@@ -1,6 +1,19 @@
-from flask import jsonify
+from flask import jsonify, request
 from backend import app
+from .entities import Session
+from .entities.account import Account
 
 @app.route('/api/accounts')
 def get_accounts():
-  return jsonify([{'id': 1, 'name': 'cash' , 'currency': 'RUB', 'balance': 0}, {'id': 2, 'name': 'visa' , 'currency': 'RUB', 'balance': 0}])
+  session = Session()
+  all = session.query(Account).all()
+  return jsonify(all)
+
+@app.route('/api/accounts', methods=['POST'])
+def add_exam():
+    json = request.json
+    account = Account(**json)
+    session = Session()
+    session.add(account)
+    session.commit()
+    return jsonify(json), 201
