@@ -1,6 +1,8 @@
 from sqlalchemy import Column, ForeignKey, Integer, String, Numeric
 from sqlalchemy.orm import relationship
-from . import Base
+from marshmallow import fields
+import simplejson as simplejson
+from .api import Base, ma
 
 class Account(Base):
     __tablename__ = 'accounts'
@@ -9,3 +11,10 @@ class Account(Base):
     currency = Column(String(250), nullable=False)
     balance = Column(Numeric(10,2), nullable=False)
  
+class AccountSchema(ma.Schema):
+    class Meta:
+        json_module = simplejson
+        fields = ('id', 'name','currency','balance')
+
+account_schema = AccountSchema()
+accounts_schema = AccountSchema(many=True)
