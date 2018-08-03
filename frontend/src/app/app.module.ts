@@ -7,6 +7,7 @@ import { AppRoutingModule } from './app.routing.module';
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { reducers } from './app.reducers'
+import { AppEffects } from './app.effects'
 import { AccountsEffects } from './accounts/accounts.effects'
 
 import { AppComponent } from './app.component';
@@ -24,7 +25,7 @@ import { AccountEditComponent } from './accounts/account.edit.component'
     HttpClientModule,
     AppRoutingModule,
     StoreModule.forRoot(reducers),
-    EffectsModule.forRoot([AccountsEffects])
+    EffectsModule.forRoot([AccountsEffects, AppEffects])
   ],
   providers: [BackendService],
   bootstrap: [AppComponent]

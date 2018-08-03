@@ -14,7 +14,6 @@ export class AccountsComponent implements OnInit {
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
-    this.store.dispatch({ type: '[accounts] query'});
     this.accounts$ = this.store.select('accounts', 'accounts');
   }
 }
