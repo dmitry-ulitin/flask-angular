@@ -10,7 +10,7 @@ import { Component } from '@angular/core';
       </div>
     </nav>
     <div class="flex-grow-1">
-      <div class="container">
+      <div class="container mt-2">
         <router-outlet></router-outlet>
       </div>
     </div>

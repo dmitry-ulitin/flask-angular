@@ -12,11 +12,12 @@ import { AccountsEffects } from './accounts/accounts.effects'
 import { AppComponent } from './app.component';
 import { BackendService } from './backend.service';
 import { AccountsComponent } from './accounts/accounts.component'
+import { AccountEditComponent } from './accounts/account.edit.component'
 
 @NgModule({
   declarations: [
     AppComponent,
-    AccountsComponent
+    AccountsComponent, AccountEditComponent
   ],
   imports: [
     BrowserModule,
