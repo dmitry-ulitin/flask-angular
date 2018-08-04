@@ -22,7 +22,7 @@ export class AccountEditComponent implements OnInit {
       name: ['', Validators.required],
       currency: ['', Validators.required],
       start_balance: [],
-      current_balance: [],
+      balance: [],
       hidden: [false]
     });
     this.account$ = this.store.select('accounts', 'selected').pipe(tap(a => this.form.patchValue(a)));

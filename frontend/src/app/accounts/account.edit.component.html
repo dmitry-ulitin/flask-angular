@@ -19,6 +19,6 @@
     <input type="checkbox" class="form-check-input" id="hidden" formControlName="hidden">
     <label class="form-check-label" for="hidden">Hidden</label>
   </div>
-  <button type="submit" class="btn btn-primary mr-2">Submit</button>
+  <button type="submit" class="btn btn-primary mr-2" [disabled]="!form.valid">Submit</button>
   <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
 </form>

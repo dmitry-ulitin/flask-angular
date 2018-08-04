@@ -15,4 +15,8 @@ export class BackendService {
   saveAccount(account: Account): Observable<Account> {
     return this.http.post<Account>('/api/accounts',account, { headers:new HttpHeaders({'Content-Type':'application/json'})});
   }
+
+  deleteAccount(id: number): Observable<any> {
+    return this.http.delete('/api/accounts/' + id);
+  }
 }

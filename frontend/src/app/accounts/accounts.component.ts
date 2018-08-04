@@ -11,9 +11,15 @@ import { Account } from '../models/account';
 })
 export class AccountsComponent implements OnInit {
   accounts$: Observable<Account[]>;
+  selected$: Observable<Account>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.accounts$ = this.store.select('accounts', 'accounts');
+    this.selected$ = this.store.select('accounts', 'selected');
+  }
+
+  select(a: Account) {
+    this.store.dispatch({type:'[accounts] select', payload: a});    
   }
 }

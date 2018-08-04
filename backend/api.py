@@ -24,7 +24,8 @@ def get_accounts():
 @app.route('/api/accounts', methods=['POST'])
 def add_exam():
     json = request.json
-    account = Account(**json)
+    data = account_schema.load(json)
+    account = Account(**data)
     session = Session()
     session.add(account)
     session.commit()

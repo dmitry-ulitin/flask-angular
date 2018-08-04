@@ -18,7 +18,7 @@ export class AccountsEffects {
         switchMap(action => this.backend.saveAccount(action.payload).pipe(
             map(data => {
                 this.router.navigate(['/accounts']);
-                return { type: '[accounts] save success', payload: data };
+                return { type: '[account] save success', payload: data };
             })
         ))
     );

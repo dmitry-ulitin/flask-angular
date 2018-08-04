@@ -11,9 +11,10 @@ export const initialState: State = {
 };
 
 export function reducer(state: State = initialState, action: any): State {
-    switch(action.type) {
+    switch(action.type) {        
         case '[accounts] query success' : {
-            return {...state, accounts: action.payload, selected: null};
+            let accounts = (action.payload as Account[]).map(a => { return {...a, balance: a.start_balance};})
+            return {...state, accounts: accounts, selected: null};
         }
         case '[accounts] select': {
             return {...state, selected: action.payload};
@@ -23,9 +24,9 @@ export function reducer(state: State = initialState, action: any): State {
             let accounts = {...state.accounts};
             let index = accounts.findIndex(a => a.id == action.payload.id);
             if (index<0) {
-                accounts.push(action.payload);
+                accounts.push(selected);
             } else {
-                selected = accounts[index];
+                accounts[index] = selected;
             }
             return {...state, accounts: accounts, selected: selected};
         }
