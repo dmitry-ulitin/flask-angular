@@ -1,17 +1,24 @@
-<form>
-    <div class="form-group">
-      <label for="exampleInputEmail1">Email address</label>
-      <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
-      <small id="emailHelp" class="form-text text-muted">We'll never share your email with anyone else.</small>
+<form [formGroup]="form" (submit)="onSubmit()">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" placeholder="Account name" formControlName="name">
+  </div>
+  <div class="row">
+    <div class="form-group col-8 col-sm">
+      <label for="start_balance">Balance</label>
+      <input type="number" class="form-control" id="start_balance" placeholder="0.00" aria-describedby="balanceHelp" formControlName="start_balance">
+      <small id="balanceHelp" class="form-text text-muted">Initial account balance.</small>
     </div>
-    <div class="form-group">
-      <label for="exampleInputPassword1">Password</label>
-      <input type="password" class="form-control" id="exampleInputPassword1" placeholder="Password">
+    <div class="form-group col-4 col-sm-auto">
+      <label for="currency">Currency</label>
+      <input type="text" class="form-control" id="currency" placeholder="RUB" aria-describedby="currencyHelp" formControlName="currency">
+      <small id="currncyHelp" class="form-text text-muted"></small>
     </div>
-    <div class="form-group form-check">
-      <input type="checkbox" class="form-check-input" id="exampleCheck1">
-      <label class="form-check-label" for="exampleCheck1">Check me out</label>
-    </div>
-    <button type="submit" class="btn btn-primary mr-2">Submit</button>
-    <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
-  </form>
+  </div>
+  <div class="form-group form-check">
+    <input type="checkbox" class="form-check-input" id="hidden" formControlName="hidden">
+    <label class="form-check-label" for="hidden">Hidden</label>
+  </div>
+  <button type="submit" class="btn btn-primary mr-2">Submit</button>
+  <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
+</form>

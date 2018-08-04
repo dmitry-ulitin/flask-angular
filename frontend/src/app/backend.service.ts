@@ -11,4 +11,8 @@ export class BackendService {
   getAccounts(): Observable<Account[]> {
     return this.http.get<Account[]>('/api/accounts');
   }
+
+  saveAccount(account: Account): Observable<Account> {
+    return this.http.post<Account>('/api/accounts',account, { headers:new HttpHeaders({'Content-Type':'application/json'})});
+  }
 }
