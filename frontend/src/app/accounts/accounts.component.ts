@@ -6,22 +6,20 @@ import { Account } from '../models/account';
 
 @Component({
   selector: 'app-accounts',
-  template: `
-    <table>
-    <tr *ngFor="let a of accounts$ | async">
-      <td>{{a.name}}</td>
-      <td>{{a.balance}} {{a.currency}}</td>
-    </tr>
-    </table>
-  `,
+  templateUrl: '/accounts.component.html',
   styles: []
 })
 export class AccountsComponent implements OnInit {
   accounts$: Observable<Account[]>;
+  selected$: Observable<Account>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
-    this.store.dispatch({ type: '[accounts] query'});
     this.accounts$ = this.store.select('accounts', 'accounts');
+    this.selected$ = this.store.select('accounts', 'selected');
+  }
+
+  select(a: Account) {
+    this.store.dispatch({type:'[accounts] select', payload: a});    
   }
 }

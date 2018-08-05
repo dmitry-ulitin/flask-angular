@@ -5,13 +5,14 @@ import { Component } from '@angular/core';
   template: `
 <div class="d-flex flex-column h-100">
     <nav class="navbar navbar-light bg-light">
-      <span class="navbar-brand mb-0 h1">Swarmer</span>
+      <div class="container">
+        <span class="navbar-brand mb-0 h1">Swarmer</span>
+      </div>
     </nav>
-    <div class="d-flex flex-column flex-grow-1">
-        <div id="two" class="bg-info h-100 flex-grow-1">
-          <router-outlet></router-outlet>
-        </div>
-        <div><!--footer content--></div>
+    <div class="flex-grow-1">
+      <div class="container mt-2">
+        <router-outlet></router-outlet>
+      </div>
     </div>
 </div>
 `,
