@@ -13,6 +13,7 @@ import { AccountsEffects } from './accounts/accounts.effects'
 
 import { AppComponent } from './app.component';
 import { BackendService } from './backend.service';
+import { AlertifyService } from './alertify.service'
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
 
@@ -29,7 +30,7 @@ import { AccountEditComponent } from './accounts/account.edit.component'
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([AccountsEffects, AppEffects])
   ],
-  providers: [BackendService],
+  providers: [BackendService, AlertifyService],
   bootstrap: [AppComponent]
 })
 export class AppModule { }

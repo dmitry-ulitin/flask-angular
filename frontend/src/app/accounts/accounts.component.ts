@@ -22,4 +22,8 @@ export class AccountsComponent implements OnInit {
   select(a: Account) {
     this.store.dispatch({type:'[accounts] select', payload: a});    
   }
+
+  delete() {
+    this.store.dispatch({type:'[accounts] delete'});    
+  }
 }
