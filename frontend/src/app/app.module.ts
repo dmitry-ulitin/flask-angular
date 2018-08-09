@@ -7,15 +7,15 @@ import { AppRoutingModule } from './app.routing.module';
 
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
+import { StoreDevtoolsModule } from '@ngrx/store-devtools'
 import { reducers } from './app.reducers'
 import { AppEffects } from './app.effects'
 import { AccountsEffects } from './accounts/accounts.effects'
 
 import { AppComponent } from './app.component';
-import { BackendService } from './backend.service';
-import { AlertifyService } from './alertify.service'
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
+import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
@@ -28,9 +28,10 @@ import { AccountEditComponent } from './accounts/account.edit.component'
     AppRoutingModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers),
-    EffectsModule.forRoot([AccountsEffects, AppEffects])
+    EffectsModule.forRoot([AccountsEffects, AppEffects]),
+    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})
   ],
-  providers: [BackendService, AlertifyService],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
