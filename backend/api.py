@@ -19,14 +19,38 @@ def get_accounts():
   all_accounts = session.query(Account).all()
   result = accounts_schema.dump(all_accounts)
   return jsonify(result)
- # return accounts_schema.jsonify(all_accounts)  
+
+@app.route("/api/accounts/<id>")
+def get_account(id):
+  session = Session()
+  account = session.query(Account).get(id)
+  return account_schema.jsonify(account)
 
 @app.route('/api/accounts', methods=['POST'])
-def add_exam():
-    json = request.json
-    data = account_schema.load(json)
-    account = Account(**data)
-    session = Session()
-    session.add(account)
-    session.commit()
-    return account_schema.jsonify(account), 201
+def account_add():
+  json = request.json
+  data = account_schema.load(json)
+  account = Account(**data)
+  session = Session()
+  session.add(account)
+  session.commit()
+  return account_schema.jsonify(account), 201
+
+@app.route("/account/<id>", methods=["PUT"])
+def account_update(id):
+  session = Session()
+  account = session.query(Account).get(id)
+  account.name = request.json['name']
+  account.currency = request.json['currency']
+  account.start_balance = request.json['start_balance']
+  session.update(account)
+  session.commit()
+  return account_schema.jsonify(account)
+
+@app.route("/api/accounts/<id>", methods=["DELETE"])
+def account_delete(id):
+  session = Session()
+  account = session.query(Account).get(id)
+  session.delete(account)
+  session.commit()
+  return account_schema.jsonify(account)

@@ -10,9 +10,9 @@
                 </a>
             </div>
             <div class="btn-group mr-2" role="group" *ngIf="selected$ | async">
-                <button type="button" class="btn btn-outline-primary">
+                <a role="button" class="btn btn-outline-primary" [routerLink]="['/accounts/edit/'+(selected$ | async)?.id]">
                     <i class="fas fa-pencil-alt"></i>
-                </button>
+                </a>
                 <button type="button" class="btn btn-outline-primary" (click)="delete()">
                     <i class="fas fa-trash-alt"></i>
                 </button>
