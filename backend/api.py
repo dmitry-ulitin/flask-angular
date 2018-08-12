@@ -36,14 +36,13 @@ def account_add():
   session.commit()
   return account_schema.jsonify(account), 201
 
-@app.route("/account/<id>", methods=["PUT"])
-def account_update(id):
+@app.route("/api/accounts", methods=["PUT"])
+def account_update():
   session = Session()
-  account = session.query(Account).get(id)
+  account = session.query(Account).get(request.json['id'])
   account.name = request.json['name']
   account.currency = request.json['currency']
   account.start_balance = request.json['start_balance']
-  session.update(account)
   session.commit()
   return account_schema.jsonify(account)
 

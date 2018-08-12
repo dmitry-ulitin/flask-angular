@@ -14,25 +14,23 @@ import { Account } from '../models/account';
   styles: []
 })
 export class AccountEditComponent implements OnInit {
-  account$: Observable<Account>;
   form: FormGroup;
   constructor(private store: Store<State>, private route: ActivatedRoute, private location: Location, private fb: FormBuilder) {}
 
   ngOnInit() {
     this.form = this.fb.group({
+      id: [],
       name: ['', Validators.required],
       currency: ['', Validators.required],
       start_balance: [],
-      balance: [],
       hidden: [false]
     });
-    this.account$ = this.store.select('accounts', 'selected').pipe(filter(a => a != null), tap(a => this.form.patchValue(a)));
+    this.store.select('accounts', 'selected').pipe(filter(a => a != null)).forEach(a => this.form.patchValue(a));
     this.route.params.forEach(p => this.store.dispatch({ type: '[account] query id', payload: p['id']}));
   }
 
-  onSubmit() {
-    let account = this.form.value;
-    this.store.dispatch({type: '[account] save', payload: {...account, account: account.start_balance || '0'}});
+  onSubmit({ value, valid }) {
+    this.store.dispatch({type: '[account] save', payload: {...value, account: value.start_balance || '0'}});
   }
 
   cancel() {
