@@ -9,7 +9,7 @@ ma = Marshmallow(app)
 
 Base = declarative_base()
 engine = create_engine('sqlite:///swarmer.db')
-from .account import Account, account_schema, accounts_schema
+from .account import Account, AccountSchema, account_schema, accounts_schema
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
@@ -29,7 +29,7 @@ def get_account(id):
 @app.route('/api/accounts', methods=['POST'])
 def account_add():
   json = request.json
-  data = account_schema.load(json)
+  data = AccountSchema(only=('name', 'currency', 'start_balance')).load(json)
   account = Account(**data)
   session = Session()
   session.add(account)

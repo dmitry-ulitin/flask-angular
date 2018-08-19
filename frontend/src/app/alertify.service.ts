@@ -26,6 +26,6 @@ export class AlertifyService {
   }
 
   confirm(message: string): Observable<boolean> {
-    return Observable.create(observer => alertify.confirm('Swarmer', message, () => observer.complete(true), () => observer.complete(false)).set('transition','zoom'));
+    return Observable.create(observer => alertify.confirm('Swarmer', message, () => observer.next(true), () => observer.next(false)).set('transition','zoom'));
   }
 }

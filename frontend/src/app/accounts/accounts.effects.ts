@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Router } from '@angular/router'
 import { Observable, of } from 'rxjs';
-import { switchMap, concatMap, map, withLatestFrom, filter, tap } from 'rxjs/operators';
+import { switchMap, map, withLatestFrom, filter, tap, catchError } from 'rxjs/operators';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
@@ -18,14 +18,16 @@ export class AccountsEffects {
 
     @Effect() getAccounts$: Observable<any> = this.actions$.ofType('[accounts] query').pipe(
         switchMap(action => this.backend.getAccounts().pipe(
-            map(data => { return { type: '[accounts] query success', payload: data }; })
+            map(data => { return { type: '[accounts] query success', payload: data }; }),
+            catchError(error => of({type:'[accounts] query fail', payload: error}))
         ))
     );
 
     @Effect() getAccount$: Observable<any> = this.actions$.ofType('[account] query id').pipe(
         filter(action => action.payload),
         switchMap(action => this.backend.getAccount(action.payload).pipe(
-            map(data => { return { type: '[account] query id success', payload: data }; })
+            map(data => { return { type: '[account] query id success', payload: data }; }),
+            catchError(error => of({type:'[accounts] query id fail', payload: error}))
         ))
     );
 
@@ -34,20 +36,28 @@ export class AccountsEffects {
         map(action => { return {type: '[accounts] select'};})
     );
 
+    @Effect() createAccount$: Observable<any> = this.actions$.ofType('[accounts] create').pipe(
+        map(action => {
+            this.router.navigate(['/accounts/create']);
+            return {type: '[accounts] select'};
+        })
+    );
+
     @Effect() saveAccount$: Observable<any> = this.actions$.ofType('[account] save').pipe(
         switchMap(action => this.backend.saveAccount(action.payload).pipe(
             map(data => {
-                this.notify.success('New account added');
+                this.notify.success('Account saved');
                 this.router.navigate(['/accounts']);
                 return { type: '[account] save success', payload: data };
-            })
+            }),
+            catchError(error => of({type:'[accounts] save fail', payload: error}))
         ))
     );
 
     @Effect() deleteAccount$: Observable<any> = this.actions$.ofType('[accounts] delete').pipe(
         withLatestFrom(this.store),
         filter(([action, state]) => state.accounts.selected != null),
-        concatMap(([action, state]) => this.notify.confirm('Delete?').pipe(
+        switchMap(([action, state]) => this.notify.confirm('Delete?').pipe(
             tap(c => console.log(c)),
             filter(c => c),
             switchMap(() => this.backend.deleteAccount(state.accounts.selected.id).pipe(
@@ -56,7 +66,8 @@ export class AccountsEffects {
                     this.router.navigate(['/accounts']);
                     return { type: '[accounts] delete success' };
                 })
-            ))
+            )),
+            catchError(error => of({type:'[accounts] delete fail', payload: error}))
         ))
     );
 }
