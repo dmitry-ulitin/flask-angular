@@ -10,6 +10,7 @@ ma = Marshmallow(app)
 Base = declarative_base()
 engine = create_engine('sqlite:///swarmer.db')
 from .account import Account, AccountSchema, account_schema, accounts_schema
+from .category import Category, CategorySchema, category_schema, categories_schema
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)
 
@@ -53,3 +54,16 @@ def account_delete(id):
   session.delete(account)
   session.commit()
   return account_schema.jsonify(account)
+
+@app.route('/api/categories')
+def get_categories():
+  session = Session()
+  all_categories = session.query(Category).all()
+  if len(all_categories) == 0:
+    session = Session()
+    session.add(Category(id=1, name='Expense'))
+    session.add(Category(id=2, name='Income'))
+    session.commit()
+    all_categories = session.query(Category).all()
+  result = categories_schema.dump(all_categories)
+  return jsonify(result)
