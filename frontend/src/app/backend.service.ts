@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Account } from './models/account';
+import { Category } from './models/category';
 
 @Injectable({
   providedIn: 'root'
@@ -28,5 +29,13 @@ export class BackendService {
 
   deleteAccount(id: number): Observable<any> {
     return this.http.delete('/api/accounts/' + id);
+  }
+
+  getExpenses(): Observable<Category[]> {
+    return this.http.get<Category[]>('/api/categories/expenses');
+  }
+
+  getIncome(): Observable<Category[]> {
+    return this.http.get<Category[]>('/api/categories/income');
   }
 }

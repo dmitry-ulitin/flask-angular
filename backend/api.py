@@ -60,10 +60,23 @@ def get_categories():
   session = Session()
   all_categories = session.query(Category).all()
   if len(all_categories) == 0:
-    session = Session()
     session.add(Category(id=1, name='Expense'))
     session.add(Category(id=2, name='Income'))
     session.commit()
     all_categories = session.query(Category).all()
   result = categories_schema.dump(all_categories)
+  return jsonify(result)
+
+@app.route('/api/categories/expenses')
+def get_expenses():
+  session = Session()
+  category = session.query(Category).get(1)
+  result = category_schema.dump(category)
+  return jsonify(result)
+
+@app.route('/api/categories/income')
+def get_income():
+  session = Session()
+  category = session.query(Category).get(2)
+  result = category_schema.dump(category)
   return jsonify(result)

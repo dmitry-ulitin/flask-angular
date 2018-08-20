@@ -11,16 +11,19 @@ import { StoreDevtoolsModule } from '@ngrx/store-devtools'
 import { reducers } from './app.reducers'
 import { AppEffects } from './app.effects'
 import { AccountsEffects } from './accounts/accounts.effects'
+import { CategoriesEffects } from './categories/categories.effects';
 
 import { AppComponent } from './app.component';
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
+import { CategoriesComponent } from './categories/categories.component'
 import { environment } from '../environments/environment';
 
 @NgModule({
   declarations: [
     AppComponent,
-    AccountsComponent, AccountEditComponent
+    AccountsComponent, AccountEditComponent,
+    CategoriesComponent
   ],
   imports: [
     BrowserModule,
@@ -28,7 +31,7 @@ import { environment } from '../environments/environment';
     AppRoutingModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers),
-    EffectsModule.forRoot([AccountsEffects, AppEffects]),
+    EffectsModule.forRoot([AccountsEffects, CategoriesEffects, AppEffects]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})
   ],
   providers: [],

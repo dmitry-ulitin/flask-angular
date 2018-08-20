@@ -18,6 +18,6 @@ export class AppEffects {
     );
 
     @Effect() init$ = defer(() => {
-        return of({ type: '[accounts] query' });
+        return of({ type: '[accounts] query' }, { type: '[categories] query expenses' }, { type: '[categories] query income' });
     });
 }
