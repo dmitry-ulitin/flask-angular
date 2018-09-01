@@ -30,7 +30,7 @@ export class AccountEditComponent implements OnInit {
   }
 
   onSubmit({ value, valid }) {
-    this.store.dispatch({type: '[account] save', payload: {...value, account: value.start_balance || '0'}});
+    this.store.dispatch({type: '[account] save', payload: {...value, start_balance: value.start_balance || '0'}});
   }
 
   cancel() {

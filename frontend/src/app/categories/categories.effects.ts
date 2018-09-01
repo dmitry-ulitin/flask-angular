@@ -16,17 +16,17 @@ export class CategoriesEffects {
         private notify: AlertifyService,
         private router: Router) { };
 
-        @Effect() getExpenses$: Observable<any> = this.actions$.ofType('[categories] query expenses').pipe(
-            switchMap(action => this.backend.getExpenses().pipe(
-                map(data => { return { type: '[categories] query expenses success', payload: data }; }),
-                catchError(error => of({type:'[categories] query expenses fail', payload: error}))
-            ))
-        );
-    
-        @Effect() getIncome$: Observable<any> = this.actions$.ofType('[categories] query income').pipe(
-            switchMap(action => this.backend.getIncome().pipe(
-                map(data => { return { type: '[categories] query income success', payload: data }; }),
-                catchError(error => of({type:'[categories] query income fail', payload: error}))
-            ))
-        );
-    }
+    @Effect() getExpenses$: Observable<any> = this.actions$.ofType('[categories] query expenses').pipe(
+        switchMap(action => this.backend.getExpenses().pipe(
+            map(data => { return { type: '[categories] query expenses success', payload: data }; }),
+            catchError(error => of({ type: '[categories] query expenses fail', payload: error }))
+        ))
+    );
+
+    @Effect() getIncome$: Observable<any> = this.actions$.ofType('[categories] query income').pipe(
+        switchMap(action => this.backend.getIncome().pipe(
+            map(data => { return { type: '[categories] query income success', payload: data }; }),
+            catchError(error => of({ type: '[categories] query income fail', payload: error }))
+        ))
+    );
+}

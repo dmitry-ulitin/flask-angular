@@ -12,10 +12,12 @@ import { reducers } from './app.reducers'
 import { AppEffects } from './app.effects'
 import { AccountsEffects } from './accounts/accounts.effects'
 import { CategoriesEffects } from './categories/categories.effects';
+import { TransactionsEffects } from './transactions/transactions.effects'
 
 import { AppComponent } from './app.component';
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
+import { TransactionsComponent } from './transactions/transactions.component'
 import { CategoriesComponent } from './categories/categories.component'
 import { environment } from '../environments/environment';
 
@@ -23,6 +25,7 @@ import { environment } from '../environments/environment';
   declarations: [
     AppComponent,
     AccountsComponent, AccountEditComponent,
+    TransactionsComponent,
     CategoriesComponent
   ],
   imports: [
@@ -31,7 +34,7 @@ import { environment } from '../environments/environment';
     AppRoutingModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers),
-    EffectsModule.forRoot([AccountsEffects, CategoriesEffects, AppEffects]),
+    EffectsModule.forRoot([AccountsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})
   ],
   providers: [],

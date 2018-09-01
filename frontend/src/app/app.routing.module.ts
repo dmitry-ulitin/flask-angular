@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
+import { TransactionsComponent } from './transactions/transactions.component'
 import { CategoriesComponent } from './categories/categories.component'
 
 const routes: Routes = [
@@ -21,6 +22,10 @@ const routes: Routes = [
   {
     path: "accounts/edit/:id",
     component: AccountEditComponent
+  },
+  {
+    path: "transactions",
+    component: TransactionsComponent
   },
   {
     path: 'categories',
