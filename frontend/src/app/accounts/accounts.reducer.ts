@@ -29,6 +29,7 @@ export function reducer(state: State = initialState, action: any): State {
             } else {
                 accounts[index] = selected;
             }
+            selected.balance = selected.start_balance;
             return {...state, accounts: accounts, selected: selected};
         }
         case '[accounts] delete success': {
