@@ -1,0 +1,28 @@
+<div class="row">
+    <div class="col">
+        <div class="btn-toolbar mb-2" role="toolbar">
+            <div class="btn-group mr-2" role="group">
+                <button type="button" class="btn btn-outline-primary" (click)="refresh()">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <button type="button" class="btn btn-outline-primary" (click)="create()">
+                    <i class="fas fa-plus-circle"></i>
+                </button>
+            </div>
+            <div class="btn-group mr-2" role="group" *ngIf="selected$ | async">
+                <a role="button" class="btn btn-outline-primary" [routerLink]="['/accounts/edit/'+(selected$ | async)?.id]">
+                    <i class="fas fa-pencil-alt"></i>
+                </a>
+                <button type="button" class="btn btn-outline-primary" (click)="delete()">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        </div>
+        <table class="table">
+            <tr *ngFor="let a of accounts$ | async" (click)="select(a)" [class.table-active]="(selected$ | async)?.id == a.id">
+                <td>{{a.name}}</td>
+                <td class="text-right">{{a.balance}} {{a.currency}}</td>
+            </tr>
+        </table>
+    </div>
+</div>
