@@ -1,8 +1,9 @@
 import { Component, OnInit } from '@angular/core';
+import { ActivatedRoute } from '@angular/router'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Location } from '@angular/common'
 import { Observable} from 'rxjs';
-import { tap } from 'rxjs/operators'
+import { tap, filter } from 'rxjs/operators'
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Account } from '../models/account';
@@ -13,23 +14,23 @@ import { Account } from '../models/account';
   styles: []
 })
 export class AccountEditComponent implements OnInit {
-  account$: Observable<Account>;
   form: FormGroup;
-  constructor(private store: Store<State>, private location: Location, private fb: FormBuilder) {}
+  constructor(private store: Store<State>, private route: ActivatedRoute, private location: Location, private fb: FormBuilder) {}
 
   ngOnInit() {
     this.form = this.fb.group({
+      id: [],
       name: ['', Validators.required],
       currency: ['', Validators.required],
       start_balance: [],
-      balance: [],
       hidden: [false]
     });
-    this.account$ = this.store.select('accounts', 'selected').pipe(tap(a => this.form.patchValue(a)));
+    this.store.select('accounts', 'selected').pipe(filter(a => a != null)).forEach(a => this.form.patchValue(a));
+    this.route.params.forEach(p => this.store.dispatch({ type: '[account] query id', payload: p['id']}));
   }
 
-  onSubmit() {
-    this.store.dispatch({type: '[account] save', payload: this.form.value});
+  onSubmit({ value, valid }) {
+    this.store.dispatch({type: '[account] save', payload: {...value, start_balance: value.start_balance || '0'}});
   }
 
   cancel() {

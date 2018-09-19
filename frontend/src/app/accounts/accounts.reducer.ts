@@ -19,16 +19,25 @@ export function reducer(state: State = initialState, action: any): State {
         case '[accounts] select': {
             return {...state, selected: action.payload};
         }
+        case '[account] query id success':
         case '[account] save success': {
             let selected = action.payload;
-            let accounts = {...state.accounts};
-            let index = accounts.findIndex(a => a.id == action.payload.id);
+            let accounts = [...state.accounts];
+            let index = accounts.findIndex(a => a.id == selected.id);
             if (index<0) {
                 accounts.push(selected);
             } else {
                 accounts[index] = selected;
             }
             return {...state, accounts: accounts, selected: selected};
+        }
+        case '[accounts] delete success': {
+            let accounts = [...state.accounts];
+            let index = accounts.findIndex(a => a.id == state.selected.id);
+            if (index>=0) {
+                accounts.splice(index, 1);
+            } 
+            return {...state, accounts: accounts, selected: null};
         }
         default: {
             return state;
