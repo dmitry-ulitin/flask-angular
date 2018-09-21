@@ -6,7 +6,7 @@ import { Category } from '../models/category';
 
 @Component({
   selector: 'app-categories',
-  templateUrl: '/categories.component.html',
+  templateUrl: './categories.component.html',
   styles: []
 })
 export class CategoriesComponent implements OnInit {
