@@ -10,7 +10,7 @@ import { Account } from '../models/account';
 
 @Component({
   selector: 'app-account-edit',
-  templateUrl: '/account.edit.component.html',
+  templateUrl: './account.edit.component.html',
   styles: []
 })
 export class AccountEditComponent implements OnInit {
