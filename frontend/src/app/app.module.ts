@@ -21,6 +21,12 @@ import { TransactionsComponent } from './transactions/transactions.component'
 import { CategoriesComponent } from './categories/categories.component'
 import { environment } from '../environments/environment';
 
+// i18n
+import { LOCALE_ID } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeRu from '@angular/common/locales/ru';
+registerLocaleData(localeRu, 'ru');
+
 @NgModule({
   declarations: [
     AppComponent,
@@ -37,7 +43,7 @@ import { environment } from '../environments/environment';
     EffectsModule.forRoot([AccountsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})
   ],
-  providers: [],
+  providers: [{ provide: LOCALE_ID, useValue: 'ru' }],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
