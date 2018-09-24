@@ -6,7 +6,7 @@ export interface Transaction {
     category: Category,
     account: Account,
     recipient: Account,
-    name: string,
+    opdate: Date,
     currency: string,
     amount: number,
     details: string

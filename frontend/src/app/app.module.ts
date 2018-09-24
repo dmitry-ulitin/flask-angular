@@ -25,6 +25,7 @@ import { environment } from '../environments/environment';
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
+import { TransactionEditorComponent } from './transactions/transaction.editor.component';
 registerLocaleData(localeRu, 'ru');
 
 @NgModule({
@@ -32,7 +33,8 @@ registerLocaleData(localeRu, 'ru');
     AppComponent,
     AccountsComponent, AccountEditComponent,
     TransactionsComponent,
-    CategoriesComponent
+    CategoriesComponent,
+    TransactionEditorComponent
   ],
   imports: [
     BrowserModule,

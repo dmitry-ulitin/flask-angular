@@ -19,14 +19,16 @@ export class TransactionsComponent implements OnInit {
     this.selected$ = this.store.select('transactions', 'selected');
   }
 
-  refresh() {}
+  refresh() {
+    this.store.dispatch({type:'[transactions] query'});
+  }
 
   select(a: Transaction) {
     this.store.dispatch({type:'[transactions] select', payload: a});    
   }
 
   create() {
-    this.store.dispatch({type:'[transactions] create'});    
+    this.store.dispatch({type:'[transactions] create'});
   }
 
   delete() {

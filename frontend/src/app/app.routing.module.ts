@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
 import { TransactionsComponent } from './transactions/transactions.component'
+import { TransactionEditorComponent } from './transactions/transaction.editor.component';
 import { CategoriesComponent } from './categories/categories.component'
 
 const routes: Routes = [
@@ -26,6 +27,14 @@ const routes: Routes = [
   {
     path: "transactions",
     component: TransactionsComponent
+  },
+  {
+    path: "transactions/create",
+    component: TransactionEditorComponent
+  },
+  {
+    path: "transactions/edit/:id",
+    component: TransactionEditorComponent
   },
   {
     path: 'categories',
