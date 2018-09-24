@@ -1,4 +1,4 @@
-<div class="row">
+<div class="row" *ngIf="(accounts$ | async)?.length">
     <div class="col">
         <div class="btn-toolbar mb-2" role="toolbar">
             <div class="btn-group mr-2" role="group">
