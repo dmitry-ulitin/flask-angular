@@ -12,4 +12,13 @@ body {
 form {
     max-width: 25rem;
 }
-  
+
+nav a {
+    color: #999;
+    transition: ease-in-out color .15s;
+  }
+
+nav .active, nav a:hover {
+    color: #111;
+    text-decoration: none;
+}
