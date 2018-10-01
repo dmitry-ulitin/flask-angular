@@ -7,6 +7,7 @@ import { filter, tap, map } from 'rxjs/operators'
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Account } from '../models/account';
+import { Category } from '../models/category';
 
 @Component({
   selector: 'app-transaction-editor',
@@ -15,7 +16,11 @@ import { Account } from '../models/account';
 })
 export class TransactionEditorComponent implements OnInit {
   accounts$: Observable<Account[]>;
+  expenses$: Observable<Category[]>;
+  income$: Observable<Category[]>;
+
   types = ['Expense','Income','Transfer'];
+  add_category = false;
   form: FormGroup;
   constructor(private store: Store<State>, private route: ActivatedRoute, private location: Location, private fb: FormBuilder) {}
 
@@ -27,6 +32,7 @@ export class TransactionEditorComponent implements OnInit {
       currency: ['', Validators.required],
       account: [],
       recipient: [],
+      category: [null],
       opdate: [new Date().toISOString().substr(0,10), Validators.required],
       details: []
     });
@@ -34,6 +40,8 @@ export class TransactionEditorComponent implements OnInit {
       a => this.form.patchValue({...a, type: !a.recipient ? 0 : (a.account ? 2 : 1)})
     );
     this.accounts$ = this.store.select('accounts', 'accounts');
+    this.expenses$ = this.store.select('categories','expenses').pipe(map(t => tree2flat(t, [])));
+    this.income$ = this.store.select('categories','expenses').pipe(map(t => tree2flat(t, [])));
 
     // if account and recipient are empty then select account
     this.accounts$.forEach(a => {
@@ -80,10 +88,24 @@ export class TransactionEditorComponent implements OnInit {
     this.form.controls.type.setValue(type);
   }
 
+  setCategory(c: Category) {
+    this.form.controls.category.setValue(c);
+  }
+
   onSubmit({ value, valid }) {
   }
 
   cancel() {
       this.location.back();
   }
+}
+
+function tree2flat(tree: Category, flat: Category[]): Category[] {
+  if (tree && tree.children) {
+      for (let c of tree.children) {
+          flat.push(c);
+          tree2flat(c, flat);
+      }
+  }
+  return flat;
 }

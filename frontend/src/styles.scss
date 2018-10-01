@@ -4,6 +4,11 @@
 @import '../node_modules/@fortawesome/fontawesome-free/css/all.min.css';
 @import '../node_modules/alertifyjs/build/css/alertify.css';
 @import '../node_modules/alertifyjs/build/css/themes/bootstrap.css';
+@import "../node_modules/@ng-select/ng-select/themes/default.theme.css";
+
+.ng-select .ng-select-container {
+    min-height: calc(2.25rem + 2px);
+}
 
 body {
     height: 100vh;
@@ -22,3 +27,4 @@ nav .active, nav a:hover {
     color: #111;
     text-decoration: none;
 }
+
