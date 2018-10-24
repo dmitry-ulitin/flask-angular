@@ -5,6 +5,9 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app.routing.module';
 
+import { NgbModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
+import { NgSelectModule } from '@ng-select/ng-select';
+
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools'
@@ -25,6 +28,7 @@ import { environment } from '../environments/environment';
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
+import { TransactionEditorComponent } from './transactions/transaction.editor.component';
 registerLocaleData(localeRu, 'ru');
 
 @NgModule({
@@ -32,13 +36,15 @@ registerLocaleData(localeRu, 'ru');
     AppComponent,
     AccountsComponent, AccountEditComponent,
     TransactionsComponent,
-    CategoriesComponent
+    CategoriesComponent,
+    TransactionEditorComponent
   ],
   imports: [
     BrowserModule,
     HttpClientModule,
     AppRoutingModule,
     ReactiveFormsModule,
+    NgbDropdownModule,NgSelectModule,
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([AccountsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})

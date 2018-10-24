@@ -1,0 +1,66 @@
+<form [formGroup]="form" (submit)="onSubmit(form)">
+    <div class="row">
+        <div class="form-group col-8">
+            <label for="amount">Amount</label>
+            <input type="number" class="form-control" id="amount" placeholder="0.00" formControlName="amount"
+                autocomplete="off">
+        </div>
+        <div class="form-group col-4">
+            <label for="currency">Currency</label>
+            <input type="text" class="form-control" id="currency" placeholder="RUB" formControlName="currency"
+                autocomplete="off">
+        </div>
+    </div>
+    <div class="form-group" *ngIf="form.controls.type.value != 1">
+        <label for="account">Account</label>
+        <select class="form-control" id="account" formControlName="account">
+            <option *ngFor="let a of accounts$ | async" [ngValue]="a">{{a.name}}</option>
+        </select>
+    </div>
+    <div class="form-group" *ngIf="form.controls.type.value != 0">
+        <label for="recipient">Recipient</label>
+        <select class="form-control" id="recipient" formControlName="recipient">
+            <option *ngFor="let a of accounts$ | async" [ngValue]="a">{{a.name}}</option>
+        </select>
+    </div>
+    <div class="form-group" *ngIf="form.controls.type.value != 2 && !add_category">
+        <label for="category">Category</label>
+        <div class="d-flex flex-row justify-content-between">
+            <ng-select class="w-100 mr-1" id="category" formControlName="category">
+                <ng-option *ngFor="let c of categories$ | async" [value]="c">{{c.name}}</ng-option>
+            </ng-select>
+            <button type="button" class="btn btn-outline-secondary" (click)="add_category = true"><i class="fas fa-plus"></i></button>
+        </div>
+    </div>
+    <div class="form-group" *ngIf="form.controls.type.value != 2 && add_category">
+        <label for="cname">Category</label>
+        <div class="d-flex flex-row justify-content-between">
+            <input type="text" class="form-control mr-1" id="cname" placeholder="category name" formControlName="cname"  autocomplete="off">
+            <button type="button" class="btn btn-outline-secondary" (click)="add_category = false"><i class="fas fa-ban"></i></button>
+        </div>
+    </div>
+    <div class="form-group">
+        <label for="opdate">Operation Date</label>
+        <div class="d-flex flex-row justify-content-between">
+            <input type="date" class="form-control mr-1" id="opdate" formControlName="opdate" required>
+            <button type="button" class="btn btn-outline-secondary mr-1"><i class="fas fa-caret-left"></i></button>
+            <button type="button" class="btn btn-outline-secondary"><i class="fas fa-bullseye"></i></button>
+            <button type="button" class="btn btn-outline-secondary ml-1"><i class="fas fa-caret-right"></i></button>
+        </div>
+    </div>
+    <div class="d-flex flex-row justify-content-between">
+        <div class="dropdown" ngbDropdown>
+            <button type="button" class="btn btn-outline-secondary" id="dropdownMenuButton" ngbDropdownToggle>{{types[form.controls.type.value]}}</button>
+            <div ngbDropdownMenu aria-labelledby="dropdownMenuButton">
+                <ng-template ngFor let-item let-i="index" [ngForOf]="types">
+                    <a *ngIf="form.controls.type.value != i && ((accounts$ | async)?.length>1 || i<2)" class="dropdown-item"
+                        href="#" (click)="setType(i); false">{{item}}</a>
+                </ng-template>
+            </div>
+        </div>
+        <div>
+            <button type="submit" class="btn btn-primary mr-2" [disabled]="!form.valid">Submit</button>
+            <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
+        </div>
+    </div>
+</form>

@@ -22,4 +22,12 @@ export class TransactionsEffects {
             catchError(error => of({ type: '[transactions] query fail', payload: error }))
         ))
     );
+
+    @Effect() createTransaction$: Observable<any> = this.actions$.ofType('[transactions] create').pipe(
+        map(action => {
+            this.router.navigate(['/transactions/create']);
+            return {type: '[transactions] select'};
+        })
+    );
+
 }

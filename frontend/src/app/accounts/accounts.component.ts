@@ -19,7 +19,9 @@ export class AccountsComponent implements OnInit {
     this.selected$ = this.store.select('accounts', 'selected');
   }
 
-  refresh() {}
+  refresh() {
+    this.store.dispatch({type:'[accounts] query'});
+  }
 
   select(a: Account) {
     this.store.dispatch({type:'[accounts] select', payload: a});    
