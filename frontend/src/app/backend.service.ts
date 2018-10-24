@@ -40,6 +40,18 @@ export class BackendService {
     return this.http.get<Category[]>('/api/categories/income');
   }
 
+  saveCategory(сategory: Category): Observable<Category> {
+    let headers = new HttpHeaders({'Content-Type':'application/json'});
+    if (сategory.id) {
+      return this.http.put<Category>('/api/categories',сategory, { headers:headers});
+    }
+    return this.http.post<Category>('/api/categories',сategory, { headers:headers});
+  }
+
+  deleteCategory(id: number): Observable<any> {
+    return this.http.delete('/api/categories/' + id);
+  }
+
   getTransactions(): Observable<Transaction[]> {
     return this.http.get<Transaction[]>('/api/transactions');
   }

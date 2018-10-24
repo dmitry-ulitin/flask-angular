@@ -27,16 +27,15 @@
         <label for="category">Category</label>
         <div class="d-flex flex-row justify-content-between">
             <ng-select class="w-100 mr-1" id="category" formControlName="category">
-                <ng-option [value]="">???</ng-option>
-                <ng-option *ngFor="let c of expenses$ | async" [value]="c">{{c.name}}</ng-option>
+                <ng-option *ngFor="let c of categories$ | async" [value]="c">{{c.name}}</ng-option>
             </ng-select>
             <button type="button" class="btn btn-outline-secondary" (click)="add_category = true"><i class="fas fa-plus"></i></button>
         </div>
     </div>
     <div class="form-group" *ngIf="form.controls.type.value != 2 && add_category">
-        <label for="new_category">Category</label>
+        <label for="cname">Category</label>
         <div class="d-flex flex-row justify-content-between">
-            <input type="text" class="form-control mr-1" id="new_category" placeholder="category name" formControlName="new_category"  autocomplete="off">
+            <input type="text" class="form-control mr-1" id="cname" placeholder="category name" formControlName="cname"  autocomplete="off">
             <button type="button" class="btn btn-outline-secondary" (click)="add_category = false"><i class="fas fa-ban"></i></button>
         </div>
     </div>

@@ -16,8 +16,7 @@ import { Category } from '../models/category';
 })
 export class TransactionEditorComponent implements OnInit {
   accounts$: Observable<Account[]>;
-  expenses$: Observable<Category[]>;
-  income$: Observable<Category[]>;
+  categories$: Observable<Category[]>;
 
   types = ['Expense','Income','Transfer'];
   add_category = false;
@@ -33,6 +32,7 @@ export class TransactionEditorComponent implements OnInit {
       account: [],
       recipient: [],
       category: [null],
+      cname: [],
       opdate: [new Date().toISOString().substr(0,10), Validators.required],
       details: []
     });
@@ -40,8 +40,7 @@ export class TransactionEditorComponent implements OnInit {
       a => this.form.patchValue({...a, type: !a.recipient ? 0 : (a.account ? 2 : 1)})
     );
     this.accounts$ = this.store.select('accounts', 'accounts');
-    this.expenses$ = this.store.select('categories','expenses').pipe(map(t => tree2flat(t, [])));
-    this.income$ = this.store.select('categories','expenses').pipe(map(t => tree2flat(t, [])));
+    this.categories$ = this.store.select('categories','expenses').pipe(map(t => tree2flat(t, [{...t, name: '???'}])));
 
     // if account and recipient are empty then select account
     this.accounts$.forEach(a => {
@@ -93,6 +92,9 @@ export class TransactionEditorComponent implements OnInit {
   }
 
   onSubmit({ value, valid }) {
+    if (this.add_category && value.category) {
+      this.store.dispatch({ type: '[category] save', payload: { name: value.cname, parent_id: value.category.id}});
+    }
   }
 
   cancel() {

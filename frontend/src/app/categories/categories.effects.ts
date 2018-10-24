@@ -29,4 +29,14 @@ export class CategoriesEffects {
             catchError(error => of({ type: '[categories] query income fail', payload: error }))
         ))
     );
+
+    @Effect() saveCategory$: Observable<any> = this.actions$.ofType('[category] save').pipe(
+        switchMap(action => this.backend.saveCategory(action.payload).pipe(
+            map(data => {
+                this.notify.success('Category saved');
+                return { type: '[category] save success', payload: data };
+            }),
+            catchError(error => of({type:'[category] save fail', payload: error}))
+        ))
+    );
 }
