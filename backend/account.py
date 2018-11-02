@@ -1,15 +1,14 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Numeric
-from sqlalchemy.orm import relationship
-from marshmallow import fields
 import simplejson as simplejson
-from .api import Base, ma
+from .api import db, ma
 
-class Account(Base):
+class Account(db.Model):
     __tablename__ = 'accounts'
-    id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
-    currency = Column(String(250), nullable=False)
-    start_balance = Column(Numeric(10,2), nullable=False)
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+    currency = db.Column(db.String(250), nullable=False)
+    start_balance = db.Column(db.Numeric(10,2), nullable=False)
+    def __repr__(self):
+        return '<Account %r>' % self.name
  
 class AccountSchema(ma.Schema):
     class Meta:
