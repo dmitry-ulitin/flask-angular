@@ -7,15 +7,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///swarmer.db'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
-from .account import Account, account_schema, accounts_schema
-#from .category import Category, CategorySchema, category_schema, categories_schema
-#from .transaction import Transaction, TransactionSchema, transaction_schema, transactions_schema
+from .account import Account, account_schema
+from .category import Category, category_schema
+from .transaction import Transaction, transaction_schema
 db.create_all()
 
 @app.route('/api/accounts')
 def get_accounts():
   all_accounts = Account.query.all()
-  return accounts_schema.jsonify(all_accounts)
+  return account_schema.jsonify(all_accounts, many = True)
 
 @app.route("/api/accounts/<id>")
 def get_account(id):
@@ -24,7 +24,7 @@ def get_account(id):
 
 @app.route('/api/accounts', methods=['POST'])
 def account_add():
-  data = account_schema.load(request.json)
+  data = account_schema.load(request.json, partial=True)
   account = Account(**data)
   db.session.add(account)
   db.session.commit()
@@ -32,7 +32,7 @@ def account_add():
 
 @app.route("/api/accounts", methods=["PUT"])
 def account_update():
-  account = session.query(Account).get(request.json['id'])
+  account = db.session.query(Account).get(request.json['id'])
   account.name = request.json['name']
   account.currency = request.json['currency']
   account.start_balance = request.json['start_balance']
@@ -41,23 +41,16 @@ def account_update():
 
 @app.route("/api/accounts/<id>", methods=["DELETE"])
 def account_delete(id):
-  account = session.query(Account).get(id)
+  account = db.session.query(Account).get(id)
   db.session.delete(account)
   db.session.commit()
   return account_schema.jsonify(account)
-'''
 
 @app.route('/api/categories')
 def get_categories():
-  all_categories = session.query(Category).all()
-  if len(all_categories) == 0:
-    session.add(Category(id=1, name='Expense'))
-    session.add(Category(id=2, name='Income'))
-    session.commit()
-    all_categories = session.query(Category).all()
-  result = categories_schema.dump(all_categories)
-  return jsonify(result)
-
+  all_categories = db.session.query(Category).all()
+  return category_schema.jsonify(all_categories, many = True)
+'''
 @app.route('/api/categories/expenses')
 def get_expenses():
   category = session.query(Category).get(1)

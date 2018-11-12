@@ -1,4 +1,5 @@
 import simplejson as simplejson
+from marshmallow import fields
 from .api import db, ma
 
 class Account(db.Model):
@@ -14,6 +15,6 @@ class AccountSchema(ma.Schema):
     class Meta:
         json_module = simplejson
         fields = ('id', 'name','currency','start_balance')
+    id = fields.Int(dump_only=True)
 
 account_schema = AccountSchema()
-accounts_schema = AccountSchema(many=True)
