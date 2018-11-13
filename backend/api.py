@@ -50,32 +50,28 @@ def account_delete(id):
 def get_categories():
   all_categories = db.session.query(Category).all()
   return category_schema.jsonify(all_categories, many = True)
-'''
+
 @app.route('/api/categories/expenses')
 def get_expenses():
-  category = session.query(Category).get(1)
-  result = category_schema.dump(category)
-  return jsonify(result)
+  all_categories = db.session.query(Category).all()
+  expenses = filter(lambda x: x.get_root().id == 1, all_categories)
+  return category_schema.jsonify(expenses, many = True)
 
 @app.route('/api/categories/income')
 def get_income():
-  category = session.query(Category).get(2)
-  result = category_schema.dump(category)
-  return jsonify(result)
+  all_categories = db.session.query(Category).all()
+  income = filter(lambda x: x.get_root().id == 2, all_categories)
+  return category_schema.jsonify(income, many = True)
 
 @app.route('/api/categories', methods=['POST'])
 def category_add():
-  json = request.json
-  data = CategorySchema(only=('name', 'parent_id', 'bg')).load(json)
+  data = category_schema.load(request.json)
   category = Category(**data)
-  session.add(category)
-  session.commit()
+  db.session.add(category)
+  db.session.commit()
   return category_schema.jsonify(category), 201
 
 @app.route('/api/transactions')
 def get_transactions():
-  all_transactions = session.query(Transaction).all()
-  result = transactions_schema.dump(all_transactions)
-  return jsonify(result)
-
-'''
+  all_transactions = db.session.query(Transaction).all()
+  return transaction_schema.jsonify(all_transactions, many = True)

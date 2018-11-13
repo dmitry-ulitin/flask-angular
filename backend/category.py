@@ -11,6 +11,13 @@ class Category(db.Model):
     parent = db.relationship("Category", foreign_keys=[parent_id])
     name = db.Column(db.String(250), nullable=False)
     bg = db.Column(db.String(16), nullable=True)
+
+    def get_root(self):
+        return self.get_root(self.parent) if self.parent else self
+    
+    def get_level(self):
+        return (self.get_level(self.parent) + 1) if self.parent else 0
+
  
 class CategorySchema(ma.Schema):
     class Meta:
