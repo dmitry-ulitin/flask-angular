@@ -8,22 +8,16 @@ class Category(db.Model):
     __tablename__ = 'categories'
     id = db.Column(db.Integer, primary_key=True)
     parent_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
-    parent = db.relationship("Category", foreign_keys=[parent_id])
+    children = db.relationship("Category", lazy="joined", join_depth=5)
     name = db.Column(db.String(250), nullable=False)
     bg = db.Column(db.String(16), nullable=True)
-
-    def get_root(self):
-        return self.get_root(self.parent) if self.parent else self
-    
-    def get_level(self):
-        return (self.get_level(self.parent) + 1) if self.parent else 0
-
  
 class CategorySchema(ma.Schema):
     class Meta:
         json_module = simplejson
-        fields = ('id', 'parent_id', 'parent', 'name', 'bg')
+        fields = ('id', 'parent_id', 'children', 'name', 'bg')
     id = fields.Int(dump_only=True)
+    children = ma.Nested('CategorySchema', many = True)
 
 category_schema = CategorySchema()
 
