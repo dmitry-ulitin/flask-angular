@@ -125,12 +125,12 @@ IF EXIST "%DEPLOYMENT_SOURCE%\frontend\package.json" (
 )
 
 :: 7. Angular Prod Build
-IF EXIST "%DEPLOYMENT_SOURCE%\frontend\.angular-cli.json" (
-  echo Building App in %DEPLOYMENT_SOURCE%…
+IF EXIST "%DEPLOYMENT_SOURCE%\frontend\angular.json" (
+  echo Building App in %DEPLOYMENT_SOURCE%ï¿½
   pushd "%DEPLOYMENT_SOURCE%\frontend"
   :: call :ExecuteCmd !NPM_CMD! run build
   :: If the above command fails comment above and uncomment below one
-  call ./node_modules/.bin/ng build –prod
+  call ./node_modules/.bin/ng build -prod
   IF !ERRORLEVEL! NEQ 0 goto error
   popd
 )
