@@ -5,9 +5,6 @@ import { NgModule } from '@angular/core';
 
 import { AppRoutingModule } from './app.routing.module';
 
-import { NgbModule, NgbDropdownModule } from '@ng-bootstrap/ng-bootstrap';
-import { NgSelectModule } from '@ng-select/ng-select';
-
 import { StoreModule } from '@ngrx/store';
 import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools'
@@ -44,7 +41,6 @@ registerLocaleData(localeRu, 'ru');
     HttpClientModule,
     AppRoutingModule,
     ReactiveFormsModule,
-    NgbDropdownModule,NgSelectModule,
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([AccountsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})
