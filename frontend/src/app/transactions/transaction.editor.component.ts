@@ -87,6 +87,14 @@ export class TransactionEditorComponent implements OnInit {
     this.form.controls.type.setValue(type);
   }
 
+  setAccount(a: Account) {
+    this.form.controls.account.setValue(a);
+  }
+
+  setRecipient(a: Account) {
+    this.form.controls.recipient.setValue(a);
+  }
+
   setCategory(c: Category) {
     this.form.controls.category.setValue(c);
   }
