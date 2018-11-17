@@ -3,11 +3,12 @@ import { Account } from './account';
 
 export interface Transaction {
     id: number,
-    category: Category,
-    account: Account,
-    recipient: Account,
     opdate: Date,
+    account: Account,
+    credit: number,
+    recipient: Account,
+    debit: number,
+    category: Category,
     currency: string,
-    amount: number,
     details: string
 }
