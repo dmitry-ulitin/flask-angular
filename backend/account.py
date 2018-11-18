@@ -1,5 +1,6 @@
 import simplejson as simplejson
 from marshmallow import fields
+from sqlalchemy.event import listens_for
 from .api import db, ma
 
 class Account(db.Model):
@@ -18,3 +19,10 @@ class AccountSchema(ma.Schema):
     id = fields.Int(dump_only=True)
 
 account_schema = AccountSchema()
+
+# for test purposes
+@listens_for(Account.__table__, 'after_create')
+def insert_initial_records(*args, **kwargs):
+    db.session.add(Account(id=1, name='cash', currency='RUB', start_balance=5450))
+    db.session.add(Account(id=2, name='visa ...1234', currency='RUB', start_balance=56432.28))
+    db.session.commit()
