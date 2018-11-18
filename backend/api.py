@@ -78,3 +78,8 @@ def category_add():
 def get_transactions():
   all_transactions = Transaction.query.all()
   return transaction_schema.jsonify(all_transactions, many = True)
+
+@app.route('/api/transactions/<id>')
+def get_transaction(id):
+  transaction = Transaction.query.get(id)
+  return transaction_schema.jsonify(transaction)

@@ -23,10 +23,17 @@ export class TransactionsEffects {
         ))
     );
 
+    @Effect() getTransaction$: Observable<any> = this.actions$.ofType('[transaction] query id').pipe(
+        switchMap(action => this.backend.getTransaction(action.payload).pipe(
+            map(data => { return { type: '[transaction] query id success', payload: data }; }),
+            catchError(error => of({ type: '[transaction] query id fail', payload: error }))
+        ))
+    );
+
     @Effect() createTransaction$: Observable<any> = this.actions$.ofType('[transactions] create').pipe(
         map(action => {
             this.router.navigate(['/transactions/create']);
-            return {type: '[transactions] select'};
+            return { type: '[transactions] select'};
         })
     );
 

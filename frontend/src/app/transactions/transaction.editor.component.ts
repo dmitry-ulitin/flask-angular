@@ -23,7 +23,7 @@ export class TransactionEditorComponent implements OnInit {
   constructor(private store: Store<State>, private route: ActivatedRoute, private location: Location, private fb: FormBuilder) { }
 
   ngOnInit() {
-    this.route.params.forEach(p => this.store.dispatch({ type: '[transaction] query id', payload: p['id'] }));
+    this.route.params.pipe(filter(p => p['id'])).forEach(p => this.store.dispatch({ type: '[transaction] query id', payload: p['id'] }));
 
     this.transaction$ = this.store.select('transactions', 'selected');
 

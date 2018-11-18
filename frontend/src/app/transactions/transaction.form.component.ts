@@ -43,19 +43,26 @@ export class TransactionFormComponent implements OnInit, OnChanges {
 
     ngOnChanges(changes: SimpleChanges): void {
         console.log(changes);
-        if (changes.data) {
-            this.form.patchValue(changes.data.currentValue || <any>{});
+        if (changes.data && changes.data.currentValue && changes.data.currentValue.id) {
+            this.form.patchValue(changes.data.currentValue);
+            this.setCategory(changes.data.currentValue.category);
+            this.setAccount(changes.data.currentValue.account);
+            this.setRecipient(changes.data.currentValue.recipient);
         }
         let data = this.form.value;
-        let type = data.account && data.recipient ? 0 : (data.account ? 1 : 2);
-        if (changes.accounts && changes.accounts.currentValue.length && !data.account && !data.recipient) {
-            type = 1;
-            this.form.controls.account.setValue(changes.accounts.currentValue[0]);
+        if (this.accounts && this.accounts.length && !data.account && !data.recipient) {
+            data.account = this.accounts[0];
+            this.setAccount(data.account);
         }
-        this.setType(type);
+        if (data.account  || data.recipient) {
+            let type = data.account && data.recipient ? 0 : (data.account ? 1 : 2);
+            this.setType(type);
+        }
     }
 
     setType(type: number) {
+        let change = this.form.controls.type.value != type;
+        this.form.controls.type.setValue(type);
         let acc = this.form.controls.account.value;
         let rec = this.form.controls.recipient.value;
         if (type == 0) {
@@ -73,8 +80,9 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.setRecipient(rec || acc);
             this.categories = this.income || [];
         }
-        this.setCategory(this.categories.length ? this.categories[0] : null);
-        this.form.controls.type.setValue(type);
+        if (change) {
+            this.setCategory(this.categories.length ? this.categories[0] : null);
+        }
     }
 
     setAccount(a: Account) {
