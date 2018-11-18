@@ -8,6 +8,7 @@ import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Account } from '../models/account';
 import { Category } from '../models/category';
+import { Transaction } from '../models/transaction';
 
 @Component({
   selector: 'app-transaction-editor',
@@ -15,8 +16,10 @@ import { Category } from '../models/category';
   styles: []
 })
 export class TransactionEditorComponent implements OnInit {
+  transaction$: Observable<Transaction>;
   accounts$: Observable<Account[]>;
-  categories$: Observable<Category[]>;
+  expenses$: Observable<Category[]>;
+  income$: Observable<Category[]>;
 
   types = ['Expense','Income','Transfer'];
   add_category = false;
@@ -27,8 +30,10 @@ export class TransactionEditorComponent implements OnInit {
     this.route.params.forEach(p => this.store.dispatch({ type: '[transaction] query id', payload: p['id']}));
     this.form = this.fb.group({
       type: [0],
-      amount: ['', Validators.required],
-      currency: ['', Validators.required],
+      tamount: ['', Validators.required],
+      tcurrency: ['', Validators.required],
+      camount: ['', Validators.required],
+      ccurrency: ['', Validators.required],
       account: [],
       recipient: [],
       category: [null],
@@ -36,25 +41,38 @@ export class TransactionEditorComponent implements OnInit {
       opdate: [new Date().toISOString().substr(0,10), Validators.required],
       details: []
     });
-    this.store.select('transactions', 'selected').pipe(filter(t => t != null)).forEach(
-      a => this.form.patchValue({...a, type: !a.recipient ? 0 : (a.account ? 2 : 1)})
-    );
-    this.accounts$ = this.store.select('accounts', 'accounts');
-    this.categories$ = this.store.select('categories','expenses').pipe(map(t => tree2flat(t, [{...t, name: '???'}])));
 
-    // if account and recipient are empty then select account
-    this.accounts$.forEach(a => {
+    this.transaction$ = this.store.select('transactions', 'selected').pipe(
+      filter(t => t != null),
+      tap(t => {
+        this.form.patchValue({...t, type: !t.recipient ? 0 : (t.account ? 2 : 1)});
+      })
+    );
+
+    this.accounts$ = this.store.select('accounts', 'accounts').pipe(tap(a=> {
+      // if account and recipient are empty then select account
       if (a.length && !this.form.controls.account.value && !this.form.controls.recipient.value) {
         this.form.controls.account.setValue(a[0]);
       }
-    });
+    }));
+
+    this.expenses$ = this.store.select('categories','expenses').pipe(
+      map(t => tree2flat(t, [{...t, name: '???'}])),
+      tap(t => {
+        // if category is empty then select category
+        if (t.length && !this.form.controls.category.value) {
+          this.form.controls.category.setValue(t[0]);
+        }
+      })
+    );
+
     // if account has changed then change currency
     this.form.controls.account.valueChanges.forEach(e => {
-      if (e) this.form.controls.currency.setValue(e.currency)
+      if (e) this.form.controls.tcurrency.setValue(e.currency)
     });
     // if recipient has changed then change currency
     this.form.controls.recipient.valueChanges.forEach(e => {
-      if (e) this.form.controls.currency.setValue(e.currency)
+      if (e) this.form.controls.tcurrency.setValue(e.currency)
     });
     // be sure that account and recipient are different
     combineLatest(this.accounts$, this.form.controls.account.valueChanges).forEach(([a,v]) => {
@@ -97,6 +115,10 @@ export class TransactionEditorComponent implements OnInit {
 
   setCategory(c: Category) {
     this.form.controls.category.setValue(c);
+  }
+
+  isConverted() {
+    return false;
   }
 
   onSubmit({ value, valid }) {

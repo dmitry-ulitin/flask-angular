@@ -1,13 +1,25 @@
 <form [formGroup]="form" (submit)="onSubmit(form)">
-    <div class="row">
+    <div class="form-row">
         <div class="form-group col-8">
-            <label for="amount">Amount</label>
-            <input type="number" class="form-control" id="amount" placeholder="0.00" formControlName="amount"
+            <label for="tamount">Amount</label>
+            <input type="number" class="form-control" id="tamount" placeholder="0.00" formControlName="tamount"
                 autocomplete="off">
         </div>
         <div class="form-group col-4">
-            <label for="currency">Currency</label>
-            <input type="text" class="form-control" id="currency" placeholder="RUB" formControlName="currency"
+            <label for="tcurrency">Currency</label>
+            <input type="text" class="form-control" id="tcurrency" placeholder="RUB" formControlName="tcurrency"
+                autocomplete="off">
+        </div>
+    </div>
+    <div class="form-row" *ngIf="isConverted()">
+        <div class="form-group col-8">
+            <label for="camount">Converted</label>
+            <input type="number" class="form-control" id="camount" placeholder="0.00" formControlName="camount"
+                autocomplete="off">
+        </div>
+        <div class="form-group col-4">
+            <label for="ccurrency">Currency</label>
+            <input type="text" class="form-control" id="ccurrency" placeholder="RUB" formControlName="ccurrency"
                 autocomplete="off">
         </div>
     </div>
@@ -39,12 +51,12 @@
         <label for="category">Category</label>
         <div class="d-flex flex-row justify-content-between">
             <div class="dropdown w-100 mr-1">
-                <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownCategory" data-toggle="dropdown"
-                    aria-haspopup="true" aria-expanded="false">
+                <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownCategory"
+                    data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <span class="d-inline-block w-100 text-left">{{form.controls.category.value?.name}}</span>
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownCategory">
-                    <a *ngFor="let c of categories$ | async" class="dropdown-item" href="#" (click)="setCategory(c); false">{{c.name}}</a>
+                    <a *ngFor="let c of expenses$ | async" class="dropdown-item" href="#" (click)="setCategory(c); false">{{c.name}}</a>
                 </div>
             </div>
             <button type="button" class="btn btn-outline-secondary" (click)="add_category = true"><i class="fas fa-plus"></i></button>
@@ -66,6 +78,10 @@
             <button type="button" class="btn btn-outline-secondary"><i class="fas fa-bullseye"></i></button>
             <button type="button" class="btn btn-outline-secondary ml-1"><i class="fas fa-caret-right"></i></button>
         </div>
+    </div>
+    <div class="form-group">
+        <label for="details">Example textarea</label>
+        <textarea class="form-control" id="details" formControlName="details" rows="3"></textarea>
     </div>
     <div class="d-flex flex-row justify-content-between">
         <div class="dropdown">
