@@ -35,6 +35,6 @@ def insert_initial_records(*args, **kwargs):
     db.session.add(Category(id=19, parent_id=1, name='Presents'))
     db.session.add(Category(id=51, parent_id=2, name='Wages'))
     db.session.add(Category(id=52, parent_id=2, name='Awards'))
-    db.session.add(Category(id=53, parent_id=3, name='Cashback'))
+    db.session.add(Category(id=53, parent_id=2, name='Cashback'))
     db.session.commit()
  

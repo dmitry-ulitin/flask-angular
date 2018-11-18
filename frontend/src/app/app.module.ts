@@ -18,6 +18,8 @@ import { AppComponent } from './app.component';
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
 import { TransactionsComponent } from './transactions/transactions.component'
+import { TransactionEditorComponent } from './transactions/transaction.editor.component';
+import { TransactionFormComponent } from './transactions/transaction.form.component';
 import { CategoriesComponent } from './categories/categories.component'
 import { environment } from '../environments/environment';
 
@@ -25,16 +27,14 @@ import { environment } from '../environments/environment';
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
-import { TransactionEditorComponent } from './transactions/transaction.editor.component';
 registerLocaleData(localeRu, 'ru');
 
 @NgModule({
   declarations: [
     AppComponent,
     AccountsComponent, AccountEditComponent,
-    TransactionsComponent,
-    CategoriesComponent,
-    TransactionEditorComponent
+    TransactionsComponent,TransactionFormComponent,TransactionEditorComponent,
+    CategoriesComponent
   ],
   imports: [
     BrowserModule,
