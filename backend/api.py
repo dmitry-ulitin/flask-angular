@@ -87,7 +87,7 @@ def get_transaction(id):
 @app.route('/api/transactions', methods=['POST'])
 def transaction_add():
   print(request.json);
-  data = transaction_schema.load(request.json, partial=True)
+  data = transaction_schema.load(request.json)
   print(data);
   transaction = Transaction(**data)
 #  db.session.add(transaction)
