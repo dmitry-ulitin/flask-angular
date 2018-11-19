@@ -15,8 +15,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     @Input('accounts') accounts: Account[];
     @Input('expenses') expenses: Category[];
     @Input('income') income: Category[];
-    @Output('submit')
-    submit = new EventEmitter<any>();
+    @Output('save')
+    save = new EventEmitter<any>();
 
     types = ['Transfer', 'Expense', 'Income'];
     categories:Category[] = [];
@@ -28,8 +28,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             type: [0],
             tamount: ['', Validators.required],
             tcurrency: ['', Validators.required],
-            camount: ['', Validators.required],
-            ccurrency: ['', Validators.required],
+            camount: [''],
+            ccurrency: [''],
             account: [],
             recipient: [],
             category: [],
@@ -45,6 +45,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         console.log(changes);
         if (changes.data && changes.data.currentValue && changes.data.currentValue.id) {
             this.form.patchValue(changes.data.currentValue);
+            this.form.controls.tamount.setValue(changes.data.currentValue.credit);
             this.setCategory(changes.data.currentValue.category);
             this.setAccount(changes.data.currentValue.account);
             this.setRecipient(changes.data.currentValue.recipient);
@@ -88,7 +89,9 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     setAccount(a: Account) {
         this.form.controls.account.setValue(a);
         if (a) {
-            this.form.controls.tcurrency.setValue(a.currency)
+            if (this.form.controls.type.value > 0 || !this.form.controls.id.value) {
+                this.form.controls.tcurrency.setValue(a.currency)
+            }
             if (this.form.controls.recipient.value == a) {
                 this.form.controls.recipient.setValue(this.accounts.filter(item => item != a)[0]);
             }
@@ -98,7 +101,10 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     setRecipient(a: Account) {
         this.form.controls.recipient.setValue(a);
         if (a) {
-            this.form.controls.tcurrency.setValue(a.currency)
+            if (this.form.controls.type.value > 0 || !this.form.controls.id.value) {
+                this.form.controls.tcurrency.setValue(a.currency)
+            }
+            this.form.controls.ccurrency.setValue(a.currency)
             if (this.form.controls.account.value == a) {
                 this.form.controls.account.setValue(this.accounts.filter(item => item != a)[0]);
             }
@@ -106,6 +112,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     }
 
     setCategory(c: Category) {
+        this.form.controls.ccurrency.setValue(this.form.controls.tcurrency.value);
+        this.form.controls.camount.setValue(this.form.controls.tamount.value);
         this.form.controls.category.setValue(c);
     }
 
@@ -114,7 +122,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     }
 
     onSubmit({ value, valid }) {
-        this.submit.emit(value);
+        this.save.emit(value);
     }
 
     cancel() {

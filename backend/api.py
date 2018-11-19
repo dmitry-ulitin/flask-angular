@@ -83,3 +83,13 @@ def get_transactions():
 def get_transaction(id):
   transaction = Transaction.query.get(id)
   return transaction_schema.jsonify(transaction)
+
+@app.route('/api/transactions', methods=['POST'])
+def transaction_add():
+  print(request.json);
+  data = transaction_schema.load(request.json, partial=True)
+  print(data);
+  transaction = Transaction(**data)
+#  db.session.add(transaction)
+#  db.session.commit()
+  return account_schema.jsonify(transaction), 201

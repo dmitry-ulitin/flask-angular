@@ -12,7 +12,7 @@ import { Transaction } from '../models/transaction';
 
 @Component({
   selector: 'app-transaction-editor',
-  template: '<app-transaction-form [data]="transaction$ | async" [accounts]="accounts$ | async" [income]="income$ | async" [expenses]="expenses$ | async" (submit)="onSubmit($event)"></app-transaction-form>',
+  template: '<app-transaction-form [data]="transaction$ | async" [accounts]="accounts$ | async" [income]="income$ | async" [expenses]="expenses$ | async" (save)="onSave($event)"></app-transaction-form>',
   styles: []
 })
 export class TransactionEditorComponent implements OnInit {
@@ -28,19 +28,21 @@ export class TransactionEditorComponent implements OnInit {
     this.transaction$ = this.store.select('transactions', 'selected');
 
     this.accounts$ = this.store.select('accounts', 'accounts');
-    this.expenses$ = this.store.select('categories', 'expenses').pipe(map(t => tree2flat(t, [{ ...t, name: '???' }])));
-    this.income$ = this.store.select('categories', 'income').pipe(map(t => tree2flat(t, [{ ...t, name: '???' }])));
+    this.expenses$ = this.store.select('categories', 'expenses').pipe(map(t => tree2flat(t, [{ ...t, name: '???', level:0 }])));
+    this.income$ = this.store.select('categories', 'income').pipe(map(t => tree2flat(t, [{ ...t, name: '???', level:0 }])));
   }
 
-  onSubmit(value: any) {
+  onSave(value: any) {
+    this.store.dispatch({type: '[transaction] save', payload: value});
   }
 }
 
-function tree2flat(tree: Category, flat: Category[]): Category[] {
+function tree2flat(tree: Category, flat: Category[], level:number = 0): Category[] {
   if (tree && tree.children) {
     for (let c of tree.children) {
+      c.level = level;
       flat.push(c);
-      tree2flat(c, flat);
+      tree2flat(c, flat, level + 1);
     }
   }
   return flat;

@@ -60,12 +60,12 @@ export class BackendService {
     return this.http.get<Transaction>('/api/transactions/' + id);
   }
 
-  saveTransaction(account: Transaction): Observable<Transaction> {
+  saveTransaction(transaction: Transaction): Observable<Transaction> {
     let headers = new HttpHeaders({'Content-Type':'application/json'});
-    if (account.id) {
-      return this.http.put<Transaction>('/api/transactions',account, { headers:headers});
+    if (transaction.id) {
+      return this.http.put<Transaction>('/api/transactions',transaction, { headers:headers});
     }
-    return this.http.post<Transaction>('/api/transactions',account, { headers:headers});
+    return this.http.post<Transaction>('/api/transactions',transaction, { headers:headers});
   }
 
   deleteTransaction(id: number): Observable<any> {
