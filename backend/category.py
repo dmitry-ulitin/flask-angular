@@ -18,6 +18,7 @@ class CategorySchema(ma.Schema):
         fields = ('id', 'parent_id', 'children', 'name', 'bg')
     id = fields.Int(dump_only=True)
     children = ma.Nested('CategorySchema', many = True)
+    bg = fields.Str(allow_none=True)
 
 category_schema = CategorySchema()
 

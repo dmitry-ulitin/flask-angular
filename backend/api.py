@@ -86,10 +86,16 @@ def get_transaction(id):
 
 @app.route('/api/transactions', methods=['POST'])
 def transaction_add():
-  print(request.json);
+#  print(request.json)
   data = transaction_schema.load(request.json)
-  print(data);
+  if request.json['account']:
+    data['account_id'] = request.json['account']['id']
+  if request.json['recipient']:
+    data['recipient_id'] = request.json['recipient']['id']
+  if request.json['category']:
+    data['category_id'] = request.json['category']['id']
+#  print(data)
   transaction = Transaction(**data)
-#  db.session.add(transaction)
-#  db.session.commit()
-  return account_schema.jsonify(transaction), 201
+  db.session.add(transaction)
+  db.session.commit()
+  return transaction_schema.jsonify(transaction), 201

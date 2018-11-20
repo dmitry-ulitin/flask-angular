@@ -24,12 +24,13 @@ class TransactionSchema(ma.Schema):
         json_module = simplejson
     id = fields.Int(dump_only=True)
     opdate = fields.Date()
-    account = ma.Nested('AccountSchema', allow_none=True)
-    recipient = ma.Nested('AccountSchema', allow_none=True)
-    category = ma.Nested('CategorySchema', allow_none=True)
+    account = ma.Nested('AccountSchema', dump_only=True)
+    credit = fields.Decimal()
+    recipient = ma.Nested('AccountSchema', dump_only=True)
+    debit = fields.Decimal()
+    category = ma.Nested('CategorySchema', dump_only=True)
     currency = fields.Str()
     details = fields.Str(allow_none=True)
-
 
 transaction_schema = TransactionSchema()
 

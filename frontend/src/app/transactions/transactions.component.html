@@ -21,7 +21,7 @@
         <table class="table">
             <tr *ngFor="let t of transactions$ | async" (click)="select(t)" [class.table-active]="(selected$ | async)?.id == t.id">
                 <td>{{t.opdate | date:'shortDate'}}</td>
-                <td>{{t.account.name}} {{t.category.name}}</td>
+                <td>{{t.account?.name || t.recipient?.name}} {{t.category?.name}}</td>
                 <td class="text-right">{{t.credit | currency:t.currency}}</td>
             </tr>
         </table>
