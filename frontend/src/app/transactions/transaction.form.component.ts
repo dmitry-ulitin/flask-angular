@@ -47,6 +47,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.form.patchValue(changes.data.currentValue);
             this.form.controls.tamount.setValue(changes.data.currentValue.credit);
             this.form.controls.tcurrency.setValue(changes.data.currentValue.currency);
+            this.form.controls.opdate.setValue(changes.data.currentValue.opdate.substr(0,10));
             this.setCategory(changes.data.currentValue.category);
             this.setAccount(changes.data.currentValue.account);
             this.setRecipient(changes.data.currentValue.recipient);
@@ -71,19 +72,16 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.setAccount(acc || rec);
             this.setRecipient(rec || acc);
             this.categories = [];
-            this.setCategory(null);
         }
         else if (type == 1) {
             this.setAccount(acc || rec);
             this.setRecipient(null);
             this.categories = this.expenses || [];
-            this.setCategory(this.categories[0]);
         }
         else if (type == 2) {
             this.setAccount(null);
             this.setRecipient(rec || acc);
             this.categories = this.income || [];
-            this.setCategory(this.categories[0]);
         }
         if (change) {
             this.setCategory(this.categories.length ? this.categories[0] : null);
@@ -122,6 +120,24 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     isConverted() {
         return false;
     }
+
+    prev() {
+        var today = new Date(this.form.controls.opdate.value);
+        today.setDate(today.getDate() - 1);
+        this.form.controls.opdate.setValue(today.toISOString().substr(0,10))
+    }
+
+    today() {
+        var today = new Date();
+        this.form.controls.opdate.setValue(today.toISOString().substr(0,10))
+    }
+
+    next() {
+        var today = new Date(this.form.controls.opdate.value);
+        today.setDate(today.getDate() + 1);
+        this.form.controls.opdate.setValue(today.toISOString().substr(0,10))
+    }
+
 
     onSubmit({ value, valid }) {
         value.credit = value.debit = value.tamount;
