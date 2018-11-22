@@ -22,18 +22,21 @@ class Transaction(db.Model):
 class TransactionSchema(ma.Schema):
     class Meta:
         json_module = simplejson
-        fields = ('id', 'opdate',  'account', 'debit', 'recipient', 'credit', 'category', 'currency', 'details')
     id = fields.Int(dump_only=True)
-    account = ma.Nested('AccountSchema')
-    recipient = ma.Nested('AccountSchema')
-    category = ma.Nested('CategorySchema')
-
+    opdate = fields.Date()
+    account = ma.Nested('AccountSchema', dump_only=True)
+    credit = fields.Decimal()
+    recipient = ma.Nested('AccountSchema', dump_only=True)
+    debit = fields.Decimal()
+    category = ma.Nested('CategorySchema', dump_only=True)
+    currency = fields.Str()
+    details = fields.Str(allow_none=True)
 
 transaction_schema = TransactionSchema()
 
 # for test purposes
 @listens_for(Transaction.__table__, 'after_create')
 def insert_initial_records(*args, **kwargs):
-    db.session.add(Transaction(id=1, opdate=datetime.datetime.utcnow(), account_id=1, credit=260, debit=260, category_id=12, currency='RUB', details='dinner'))
+    db.session.add(Transaction(id=1, opdate=datetime.datetime.utcnow(), account_id=2, credit=260, debit=260, category_id=1022, currency='RUB', details='dinner'))
     db.session.commit()
 

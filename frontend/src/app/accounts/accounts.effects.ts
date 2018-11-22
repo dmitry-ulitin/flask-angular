@@ -58,7 +58,6 @@ export class AccountsEffects {
         withLatestFrom(this.store),
         filter(([action, state]) => state.accounts.selected != null),
         switchMap(([action, state]) => this.notify.confirm('Delete?').pipe(
-            tap(c => console.log(c)),
             filter(c => c),
             switchMap(() => this.backend.deleteAccount(state.accounts.selected.id).pipe(
                 map(data => {

@@ -23,11 +23,44 @@ export class TransactionsEffects {
         ))
     );
 
+    @Effect() getTransaction$: Observable<any> = this.actions$.ofType('[transaction] query id').pipe(
+        switchMap(action => this.backend.getTransaction(action.payload).pipe(
+            map(data => { return { type: '[transaction] query id success', payload: data }; }),
+            catchError(error => of({ type: '[transaction] query id fail', payload: error }))
+        ))
+    );
+
     @Effect() createTransaction$: Observable<any> = this.actions$.ofType('[transactions] create').pipe(
         map(action => {
             this.router.navigate(['/transactions/create']);
-            return {type: '[transactions] select'};
+            return { type: '[transactions] select' };
         })
     );
 
+    @Effect() saveTransaction$: Observable<any> = this.actions$.ofType('[transaction] save').pipe(
+        switchMap(action => this.backend.saveTransaction(action.payload).pipe(
+            map(data => {
+                this.notify.success('Transaction saved');
+                this.router.navigate(['/transactions']);
+                return { type: '[transaction] save success', payload: data };
+            }),
+            catchError(error => of({ type: '[transactions] save fail', payload: error }))
+        ))
+    );
+
+    @Effect() deleteTransaction$: Observable<any> = this.actions$.ofType('[transactions] delete').pipe(
+        withLatestFrom(this.store),
+        filter(([action, state]) => state.transactions.selected != null),
+        switchMap(([action, state]) => this.notify.confirm('Delete transaction #' + state.transactions.selected.id + '?').pipe(
+            filter(c => c),
+            switchMap(() => this.backend.deleteTransaction(state.transactions.selected.id).pipe(
+                map(data => {
+                    this.notify.success('Transaction removed');
+                    this.router.navigate(['/transactions']);
+                    return { type: '[transactions] delete success' };
+                })
+            )),
+            catchError(error => of({ type: '[transactions] delete fail', payload: error }))
+        ))
+    );
 }

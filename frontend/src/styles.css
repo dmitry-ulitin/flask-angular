@@ -9,6 +9,11 @@
     min-height: calc(2.25rem + 2px);
 }
 
+.dropdown-menu {
+    max-height: 100vh;
+    overflow-y: auto;
+}
+
 body {
     height: 100vh;
 }

@@ -78,3 +78,24 @@ def category_add():
 def get_transactions():
   all_transactions = Transaction.query.all()
   return transaction_schema.jsonify(all_transactions, many = True)
+
+@app.route('/api/transactions/<id>')
+def get_transaction(id):
+  transaction = Transaction.query.get(id)
+  return transaction_schema.jsonify(transaction)
+
+@app.route('/api/transactions', methods=['POST'])
+def transaction_add():
+#  print(request.json)
+  data = transaction_schema.load(request.json)
+  if request.json['account']:
+    data['account_id'] = request.json['account']['id']
+  if request.json['recipient']:
+    data['recipient_id'] = request.json['recipient']['id']
+  if request.json['category']:
+    data['category_id'] = request.json['category']['id']
+#  print(data)
+  transaction = Transaction(**data)
+  db.session.add(transaction)
+  db.session.commit()
+  return transaction_schema.jsonify(transaction), 201

@@ -56,7 +56,7 @@
                     <span class="d-inline-block w-100 text-left">{{form.controls.category.value?.name}}</span>
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownCategory">
-                    <a *ngFor="let c of categories" class="dropdown-item" href="#" (click)="setCategory(c); false">{{c.name}}</a>
+                    <a *ngFor="let c of categories" class="dropdown-item" href="#" (click)="setCategory(c); false" style="padding: 0.1rem 1rem;" [style.padding-left.rem]="1+c.level">{{c.name}}</a>
                 </div>
             </div>
             <button type="button" class="btn btn-outline-secondary" (click)="add_category = true"><i class="fas fa-plus"></i></button>

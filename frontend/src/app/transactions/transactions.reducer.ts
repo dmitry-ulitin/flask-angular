@@ -23,7 +23,7 @@ export function reducer(state: State = initialState, action: any): State {
         case '[transaction] save success': {
             let selected = action.payload;
             let transactions = [...state.transactions];
-            let index = transactions.findIndex(a => a.id == selected.id);
+            let index = transactions.findIndex(t => t.id == selected.id);
             if (index<0) {
                 transactions.push(selected);
             } else {
