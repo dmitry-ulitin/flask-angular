@@ -27,6 +27,7 @@ import { environment } from '../environments/environment';
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
+import { ServiceWorkerModule } from '@angular/service-worker';
 registerLocaleData(localeRu, 'ru');
 
 @NgModule({
@@ -43,7 +44,8 @@ registerLocaleData(localeRu, 'ru');
     ReactiveFormsModule,
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([AccountsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
-    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production})
+    StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production}),
+    ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],
   providers: [{ provide: LOCALE_ID, useValue: 'ru' }],
   bootstrap: [AppComponent]
