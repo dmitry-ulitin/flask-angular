@@ -15,6 +15,7 @@ import { CategoriesEffects } from './categories/categories.effects';
 import { TransactionsEffects } from './transactions/transactions.effects'
 
 import { AppComponent } from './app.component';
+import { LoginComponent } from './login/login.component'
 import { AccountsComponent } from './accounts/accounts.component'
 import { AccountEditComponent } from './accounts/account.edit.component'
 import { TransactionsComponent } from './transactions/transactions.component'
@@ -32,7 +33,7 @@ registerLocaleData(localeRu, 'ru');
 
 @NgModule({
   declarations: [
-    AppComponent,
+    AppComponent,LoginComponent,
     AccountsComponent, AccountEditComponent,
     TransactionsComponent,TransactionFormComponent,TransactionEditorComponent,
     CategoriesComponent
