@@ -11,7 +11,7 @@ import { Router } from '@angular/router';
       <div class="d-flex flex-row">
         <a class="nav-item nav-link" href="#" routerLink="/accounts" routerLinkActive="active"><i class="fas fa-database"></i><span class="d-none d-sm-inline"> Accounts</span></a>
         <a class="nav-item nav-link" href="#" routerLink="/transactions" routerLinkActive="active"><i class="fas fa-list-ul"></i><span class="d-none d-sm-inline"> Transactions</span></a>
-        <a class="nav-item nav-link" href="#" (click)="logout(); false" *ngIf="auth.currentToken">logout</a>
+        <a class="nav-item nav-link" href="#" (click)="logout(); false" *ngIf="isAthorized">logout</a>
       </div>
     </div>
   </nav>
@@ -23,6 +23,10 @@ import { Router } from '@angular/router';
 })
 export class AppComponent {
   constructor(private auth: AuthService, private router: Router) {}
+
+  get isAthorized(): boolean {
+    return this.auth.currentToken != null;
+  }
 
   logout() {
     this.auth.logout();
