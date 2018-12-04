@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Observable} from 'rxjs';
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-login',
@@ -11,12 +11,20 @@ import { State } from '../app.reducers'
 })
 export class LoginComponent implements OnInit {
   form: FormGroup;
-  constructor(private store: Store<State>, private fb: FormBuilder) {}
+  returnUrl: string;
+  constructor(private store: Store<State>, private fb: FormBuilder, private route: ActivatedRoute) { }
 
   ngOnInit() {
     this.form = this.fb.group({
-        email: ['', Validators.required],
-        password: ['', Validators.required]
-      });
+      email: ['', Validators.email],
+      password: ['', Validators.required]
+    });
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+  }
+
+  onSubmit() {
+    if(this.form.valid) {
+      this.store.dispatch({ type: '[app] login', payload: {email: this.form.controls.email.value, password: this.form.controls.password.value, returnUrl: this.returnUrl} });
     }
+  }
 }
