@@ -13,7 +13,7 @@ export const initialState: State = {
 export function reducer(state: State = initialState, action: any): State {
     switch(action.type) {        
         case '[accounts] query success' : {
-            let accounts = (action.payload as Account[]).map(a => { return {...a, balance: a.start_balance};})
+            let accounts = (action.payload as Account[])
             return {...state, accounts: accounts, selected: null};
         }
         case '[accounts] select': {
@@ -25,11 +25,12 @@ export function reducer(state: State = initialState, action: any): State {
             let accounts = [...state.accounts];
             let index = accounts.findIndex(a => a.id == selected.id);
             if (index<0) {
+                selected.balance = selected.start_balance;
                 accounts.push(selected);
             } else {
+                selected.balance = selected.start_balance + accounts[index].balance - accounts[index].start_balance;
                 accounts[index] = selected;
             }
-            selected.balance = selected.start_balance;
             return {...state, accounts: accounts, selected: selected};
         }
         case '[accounts] delete success': {

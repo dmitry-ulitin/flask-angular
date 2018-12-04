@@ -24,11 +24,11 @@ export function reducer(state: State = initialState, action: any): State {
             let selected = action.payload;
             let transactions = [...state.transactions];
             let index = transactions.findIndex(t => t.id == selected.id);
-            if (index<0) {
-                transactions.push(selected);
-            } else {
-                transactions[index] = selected;
+            if (index>=0) {
+                transactions.splice(index, 1);
             }
+            index = transactions.filter(t => t.opdate>selected.opdate).length;
+            transactions.splice( index, 0, selected);
             return {...state, transactions: transactions, selected: selected};
         }
         case '[transactions] delete success': {
