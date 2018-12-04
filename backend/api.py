@@ -83,7 +83,9 @@ def category_add():
 
 @app.route('/api/transactions')
 def get_transactions():
-  all_transactions = Transaction.query.all()
+  limit = request.args.get('limit', 40)
+  offset = request.args.get('offset', 0)
+  all_transactions = Transaction.query.order_by(Transaction.opdate.desc()).limit(limit).offset(offset).all()
   return transaction_schema.jsonify(all_transactions, many = True)
 
 @app.route('/api/transactions/<id>')
