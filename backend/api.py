@@ -38,7 +38,7 @@ def login():
 
 
 @app.route('/api/accounts')
-@jwt_required
+#@jwt_required
 def get_accounts():
     all_accounts = account_schema.dump(Account.query.all(), many=True)
     balances = db.session.query(Transaction.account_id, Transaction.recipient_id, label('debit', func.sum(Transaction.debit)), label(
@@ -53,14 +53,14 @@ def get_accounts():
 
 
 @app.route("/api/accounts/<id>")
-@jwt_required
+#@jwt_required
 def get_account(id):
     account = Account.query.get(id)
     return account_schema.jsonify(account)
 
 
 @app.route('/api/accounts', methods=['POST'])
-@jwt_required
+#@jwt_required
 def account_add():
     data = account_schema.load(request.json, partial=True)
     account = Account(**data)
@@ -70,7 +70,7 @@ def account_add():
 
 
 @app.route("/api/accounts", methods=["PUT"])
-@jwt_required
+#@jwt_required
 def account_update():
     account = Account.query.get(request.json['id'])
     account.name = request.json['name']
@@ -81,7 +81,7 @@ def account_update():
 
 
 @app.route("/api/accounts/<id>", methods=["DELETE"])
-@jwt_required
+#@jwt_required
 def account_delete(id):
     account = Account.query.get(id)
     db.session.delete(account)
@@ -90,35 +90,35 @@ def account_delete(id):
 
 
 @app.route('/api/categories')
-@jwt_required
+#@jwt_required
 def get_categories():
     all_categories = Category.query.all()
     return category_schema.jsonify(all_categories, many=True)
 
 
 @app.route('/api/categories/expenses')
-@jwt_required
+#@jwt_required
 def get_expenses():
     expenses = Category.query.get(1)
     return category_schema.jsonify(expenses)
 
 
 @app.route('/api/categories/income')
-@jwt_required
+#@jwt_required
 def get_income():
     income = Category.query.get(2)
     return category_schema.jsonify(income)
 
 
 @app.route("/api/categories/<id>")
-@jwt_required
+#@jwt_required
 def get_category(id):
     category = Category.query.get(id)
     return category_schema.jsonify(category)
 
 
 @app.route('/api/categories', methods=['POST'])
-@jwt_required
+#@jwt_required
 def category_add():
     data = category_schema.load(request.json)
     category = Category(**data)
@@ -128,7 +128,7 @@ def category_add():
 
 
 @app.route('/api/transactions')
-@jwt_required
+#@jwt_required
 def get_transactions():
     limit = request.args.get('limit', 40)
     offset = request.args.get('offset', 0)
@@ -138,14 +138,14 @@ def get_transactions():
 
 
 @app.route('/api/transactions/<id>')
-@jwt_required
+#@jwt_required
 def get_transaction(id):
     transaction = Transaction.query.get(id)
     return transaction_schema.jsonify(transaction)
 
 
 @app.route('/api/transactions', methods=['POST'])
-@jwt_required
+#@jwt_required
 def transaction_add():
     #  print(request.json)
     data = transaction_schema.load(request.json)
