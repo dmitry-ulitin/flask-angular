@@ -12,6 +12,7 @@
 .dropdown-menu {
     max-height: 100vh;
     overflow-y: auto;
+    z-index: 1040;
 }
 
 body {
