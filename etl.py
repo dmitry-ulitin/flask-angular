@@ -3,6 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy import or_
 
 Base = declarative_base()
 
@@ -25,8 +26,8 @@ class Account(Base):
 
 class AccountUsers(Base):
     __tablename__ = 'AccountUsers'
-    AccountId = Column(Integer)
-    UserId = Column(Integer)
+    AccountId = Column(Integer, primary_key=True)
+    UserId = Column(Integer, primary_key=True)
     Options = Column(Integer)
 
 
@@ -34,6 +35,10 @@ engine = create_engine('mssql+pymssql://SA:Wowdaemon123@srv7-dieuron/DB_48667_sw
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
-accounts = session.query(Account).all()
+accounts = session.query(Account.AccountId, Account.Name, AccountUsers.UserId)\
+    .outerjoin(AccountUsers, Account.AccountId==AccountUsers.AccountId)\
+    .filter(Account.UserId==1)\
+    .filter(or_(AccountUsers.UserId==None, AccountUsers.Options==0, AccountUsers.Options==1))\
+    .order_by(Account.AccountId).all()
 for a in accounts:
-    print(a.Name)
+    print(a.AccountId, a.Name, a.UserId)
