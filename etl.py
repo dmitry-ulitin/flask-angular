@@ -4,11 +4,14 @@ from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import or_
+import json
+from datetime import datetime
 
 from backend.api import db
 from backend.user import User
 from backend.account import Account
 from backend.category import Category
+from backend.transaction import Transaction
 
 Base = declarative_base()
 
@@ -56,13 +59,13 @@ class SCurrencyRates(Base):
 class STransactions(Base):
     __tablename__ = 'Transactions'
     TransactionId = Column(Integer, primary_key=True)
-    Created = Column(String(30))
-    Modified = Column(String(30))
+    Created = Column(String(40))
+    Modified = Column(String(40))
     Options = Column(Integer)
     AccountId = Column(Integer)
     RecipientId = Column(Integer)
     CategoryId = Column(Integer)
-    Paid = Column(String(30))
+    Paid = Column(String(40))
     Value = db.Column(db.Numeric(10,2), nullable=False)
     Currency = Column(String(7))
     Details = Column(String(1000))
@@ -75,6 +78,7 @@ DBSession = sessionmaker(bind=engine)
 session = DBSession()
 
 User.query.delete()
+print('--------users')
 users = session.query(SUserProfiles)\
     .filter(or_(SUserProfiles.UserId==1,SUserProfiles.UserId==2))\
     .all()
@@ -84,14 +88,80 @@ for u in users:
 
 
 Account.query.delete()
-accounts = session.query(SAccounts.AccountId, SAccounts.Name, SAccounts.Currency, SAccounts.UserId)\
-    .outerjoin(SAccountUsers, SAccounts.AccountId==SAccountUsers.AccountId)\
-    .filter(SAccounts.UserId==1)\
-    .filter(SAccounts.Options==0)\
-    .filter(or_(SAccountUsers.UserId==None, SAccountUsers.Options==0, SAccountUsers.Options==1))\
+print('--------accounts')
+accounts = session.query(SAccounts)\
+    .filter(or_(SAccounts.UserId==1,SAccounts.UserId==2))\
     .order_by(SAccounts.AccountId).all()
 for a in accounts:
     print(a.AccountId, a.Name, a.UserId)
     db.session.add(Account(id=a.AccountId, name=a.Name, currency=a.Currency, start_balance=0, user_id=a.UserId))
+
+Category.query.delete()
+print('--------expenses')
+expenses = session.query(SCategories)\
+    .filter(SCategories.Options==0)\
+    .filter(or_(SCategories.UserId==1,SCategories.UserId==2))\
+    .all()
+for e in expenses:
+    print(e.CategoryId, e.Name)
+    db.session.add(Category(id=e.CategoryId + 10, parent_id= e.ParentId + 10 if e.ParentId else 1, name=e.Name, user_id=e.UserId))
+
+print('--------incomes')
+incomes = session.query(SCategories)\
+    .filter(SCategories.Options==1)\
+    .filter(or_(SCategories.UserId==1,SCategories.UserId==2))\
+    .all()
+for i in incomes:
+    print(i.CategoryId, i.Name)
+    db.session.add(Category(id=i.CategoryId + 10, parent_id= i.ParentId + 10 if i.ParentId else 2, name=i.Name, user_id=i.UserId))
+
+db.session.commit()
+
+aid = dict(map(lambda a: (a.AccountId,a), accounts))
+print('--------balances')
+balances = session.query(STransactions)\
+    .filter(STransactions.Options==1)\
+    .filter(or_(STransactions.AccountId.in_(list(aid.keys())), STransactions.RecipientId.in_(list(aid.keys()))))\
+    .all()
+for t in balances:
+    print(t.TransactionId, t.Value, t.Currency)
+    account = Account.query.get(t.AccountId)
+    account.start_balance = t.Value
+    db.session.commit()
+
+Transaction.query.delete()
+print('--------transactions')
+transactions = session.query(STransactions)\
+    .filter(STransactions.Options==0)\
+    .filter(or_(STransactions.AccountId.in_(list(aid.keys())), STransactions.RecipientId.in_(list(aid.keys()))))\
+    .all()
+for t in transactions:
+    tt = Transaction(opdate=datetime.strptime(t.Paid[:19],'%Y-%m-%d %H:%M:%S'), category_id=t.CategoryId + 10 if t.CategoryId else None, currency= t.Currency, details=t.Details)
+    cValue = t.Value
+    cCurrency = t.Currency
+    if t.Metadata:
+        metadata = json.loads(t.Metadata)
+        conversion = metadata['Conversion']
+        cCurrency = list(conversion.keys())[0]
+        cValue = conversion[cCurrency]
+    print(t.TransactionId, t.Value, t.Currency,cValue,cCurrency)
+
+    if t.Value<0:
+        tt.account_id = t.AccountId
+        tt.recipient_id = t.RecipientId
+    else :
+        tt.account_id = t.RecipientId
+        tt.recipient_id = t.AccountId
+
+    cValue = cValue if cValue>0 else -cValue
+    t.Value = t.Value if t.Value>0 else -t.Value
+    tt.credit = t.Value
+    tt.debit = t.Value
+
+    if tt.account_id and aid[tt.account_id].Currency != t.Currency and aid[tt.account_id].Currency == cCurrency:
+        tt.credit = cValue
+    if tt.recipient_id and aid[tt.recipient_id].Currency != t.Currency and aid[tt.recipient_id].Currency == cCurrency:
+        tt.debit = cValue
+    db.session.add(tt)
 
 db.session.commit()

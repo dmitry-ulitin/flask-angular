@@ -16,7 +16,7 @@ class Category(db.Model):
 class CategorySchema(ma.Schema):
     class Meta:
         json_module = simplejson
-        fields = ('id', 'parent_id', 'children', 'name', 'bg')
+        fields = ('id', 'user_id', 'parent_id', 'children', 'name', 'bg')
     id = fields.Int(dump_only=True)
     children = ma.Nested('CategorySchema', many = True)
     bg = fields.Str(allow_none=True)
