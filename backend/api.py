@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///swarmer.db'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+from .user import User, user_schema
 from .account import Account, account_schema
 from .category import Category, category_schema
 from .transaction import Transaction, transaction_schema

@@ -17,7 +17,7 @@ class UserSchema(ma.Schema):
         fields = ('id', 'email','name')
     id = fields.Int(dump_only=True)
 
-account_schema = UserSchema()
+user_schema = UserSchema()
 
 # for test purposes
 @listens_for(User.__table__, 'after_create')
