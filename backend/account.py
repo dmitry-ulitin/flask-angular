@@ -6,6 +6,7 @@ from .api import db, ma
 class Account(db.Model):
     __tablename__ = 'accounts'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     name = db.Column(db.String(250), nullable=False)
     currency = db.Column(db.String(250), nullable=False)
     start_balance = db.Column(db.Numeric(10,2), nullable=False)
@@ -23,6 +24,6 @@ account_schema = AccountSchema()
 # for test purposes
 @listens_for(Account.__table__, 'after_create')
 def insert_initial_records(*args, **kwargs):
-    db.session.add(Account(id=1, name='cash', currency='RUB', start_balance=5450))
-    db.session.add(Account(id=2, name='visa ...1234', currency='RUB', start_balance=56432.28))
+    db.session.add(Account(id=1, name='cash', currency='RUB', start_balance=5450, user_id=1))
+    db.session.add(Account(id=2, name='visa ...1234', currency='RUB', start_balance=56432.28, user_id=1))
     db.session.commit()

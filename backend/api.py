@@ -64,6 +64,7 @@ def get_account(id):
 def account_add():
     data = account_schema.load(request.json, partial=True)
     account = Account(**data)
+    account.user_id=1
     db.session.add(account)
     db.session.commit()
     return account_schema.jsonify(account), 201
@@ -122,6 +123,7 @@ def get_category(id):
 def category_add():
     data = category_schema.load(request.json)
     category = Category(**data)
+    category.user_id=1
     db.session.add(category)
     db.session.commit()
     return category_schema.jsonify(category), 201
