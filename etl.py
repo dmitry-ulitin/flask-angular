@@ -72,7 +72,7 @@ class STransactions(Base):
     Payee = Column(String(1000))
     Metadata = Column(String(1000))
 
-engine = create_engine('mssql+pymssql://SA:Wowdaemon123@srv7-dieuron/DB_48667_swarmer')
+engine = create_engine('mssql+pymssql://SA:Wowdaemon123@localhost/swarmer')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -136,6 +136,7 @@ transactions = session.query(STransactions)\
     .filter(or_(STransactions.AccountId.in_(list(aid.keys())), STransactions.RecipientId.in_(list(aid.keys()))))\
     .all()
 for t in transactions:
+    print(t.TransactionId, t.Value, t.Currency,t.Paid)
     tt = Transaction(opdate=datetime.strptime(t.Paid[:19],'%Y-%m-%d %H:%M:%S'), category_id=t.CategoryId + 10 if t.CategoryId else None, currency= t.Currency, details=t.Details)
     cValue = t.Value
     cCurrency = t.Currency
@@ -158,10 +159,33 @@ for t in transactions:
     tt.credit = t.Value
     tt.debit = t.Value
 
-    if tt.account_id and aid[tt.account_id].Currency != t.Currency and aid[tt.account_id].Currency == cCurrency:
-        tt.credit = cValue
-    if tt.recipient_id and aid[tt.recipient_id].Currency != t.Currency and aid[tt.recipient_id].Currency == cCurrency:
-        tt.debit = cValue
+    if tt.account_id and aid[tt.account_id].Currency != t.Currency:
+        if aid[tt.account_id].Currency == cCurrency :
+            tt.credit = cValue
+        else :
+            tt.credit = convert(t.Value, t.Currency, aid[tt.account_id].Currency, t.Paid[:10])
+    if tt.recipient_id and aid[tt.recipient_id].Currency != t.Currency:
+        if aid[tt.recipient_id].Currency == cCurrency :
+            tt.debit = cValue
+        else :
+            tt.debit = convert(t.Value, t.Currency, aid[tt.recipient_id].Currency, t.Paid[:10])
     db.session.add(tt)
 
 db.session.commit()
+
+def convert(value, currency, target, date) :
+    rate = session.query(SCurrencyRates)\
+        .filter(SCurrencyRates.Date==date)\
+        .filter(SCurrencyRates.Currency==currency)\
+        .filter(SCurrencyRates.Target==target)\
+        .get()
+    if rate :
+        return value * rate.Value / rate.Nominal
+    rate = session.query(SCurrencyRates)\
+        .filter(SCurrencyRates.Date==date)\
+        .filter(SCurrencyRates.Target==currency)\
+        .filter(SCurrencyRates.Currency==target)\
+        .get()
+    if rate :
+        return value * rate.Nominal / rate.Value 
+    return value
