@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
 from .user import User, user_schema
-from .account import Account, account_schema
+from .account import Account, account_schema, AccountUser, account_user_schema
 from .category import Category, category_schema
 from .transaction import Transaction, transaction_schema
 db.create_all()
@@ -37,11 +37,28 @@ def login():
     access_token = create_access_token(identity=username)
     return jsonify(access_token=access_token), 200
 
+def get_ua_account(au) :
+    a = au.account
+    a.name = au.name if au.name else a.name + ' (' + a.user.name + ')'
+    a.visible = au.visible
+    a.inbalance = au.inbalance
+    return a
 
 @app.route('/api/accounts')
 #@jwt_required
 def get_accounts():
-    all_accounts = account_schema.dump(Account.query.all(), many=True)
+    u_accounts = Account.query.filter(Account.user_id == 1).order_by(Account.id).all()
+    a_au = AccountUser.query.filter(AccountUser.account_id.in_(map(lambda a: a.id, u_accounts))).filter(AccountUser.coowner.is_(True)).all()
+    co_a = list(map(lambda a: a.account_id, a_au))
+    all_accounts = list(map(lambda a: dict({'belong':'own'},**a), account_schema.dump(filter(lambda a: a.id not in co_a, u_accounts), many=True)))
+    all_accounts += list(map(lambda a: dict({'belong':'coown'},**a), account_schema.dump(filter(lambda a: a.id in co_a, u_accounts), many=True)))
+
+    u_au = AccountUser.query.filter(AccountUser.user_id == 1)\
+        .order_by(AccountUser.account_id).all()
+
+    all_accounts += list(map(lambda a: dict({'belong':'coown'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: au.coowner, u_au)), many=True)))
+    all_accounts += list(map(lambda a: dict({'belong':'shared'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: not au.coowner, u_au)), many=True)))
+
     balances = db.session.query(Transaction.account_id, Transaction.recipient_id, label('debit', func.sum(Transaction.debit)), label(
         'credit', func.sum(Transaction.credit))).group_by(Transaction.account_id, Transaction.recipient_id).all()
     for account in all_accounts:

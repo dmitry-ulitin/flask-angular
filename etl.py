@@ -9,7 +9,7 @@ from datetime import datetime
 
 from backend.api import db
 from backend.user import User
-from backend.account import Account
+from backend.account import Account, AccountUser
 from backend.category import Category
 from backend.transaction import Transaction
 
@@ -55,6 +55,7 @@ class SAccountUsers(Base):
     AccountId = Column(Integer, primary_key=True)
     UserId = Column(Integer, primary_key=True)
     Options = Column(Integer)
+    Name = Column(String(250))
 
 class SCategories(Base):
     __tablename__ = 'Categories'
@@ -104,7 +105,6 @@ for u in users:
     print(u.UserId, u.UserName.lower(), u.FirstName)
     db.session.add(User(id=u.UserId, email = u.UserName.lower(), name = u.FirstName))
 
-
 Account.query.delete()
 print('--------accounts')
 accounts = session.query(SAccounts)\
@@ -112,7 +112,20 @@ accounts = session.query(SAccounts)\
     .order_by(SAccounts.AccountId).all()
 for a in accounts:
     print(a.AccountId, a.Name, a.UserId)
-    db.session.add(Account(id=a.AccountId, name=a.Name, currency=a.Currency, start_balance=0, user_id=a.UserId))
+    db.session.add(Account(id=a.AccountId, name=a.Name, currency=a.Currency, start_balance=0, user_id=a.UserId,\
+        visible=(a.Options & 1)==0, inbalance=(a.Options & 2)==0))
+
+AccountUser.query.delete()
+print('--------account users')
+account_users = session.query(SAccountUsers)\
+    .filter(or_(SAccountUsers.UserId==1,SAccountUsers.UserId==2))\
+    .all()
+for au in account_users:
+    print(au.AccountId, au.UserId, (au.Options & 4)!=0)
+    db.session.add(AccountUser(account_id=au.AccountId, user_id=au.UserId, name=au.Name,\
+        visible=((au.Options & 1)==0), inbalance=((au.Options & 2)==0), coowner=((au.Options & 4)!=0)))
+
+db.session.commit()
 
 Category.query.delete()
 print('--------expenses')
