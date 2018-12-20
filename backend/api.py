@@ -11,6 +11,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///swarmer.db'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
+from .user import User, user_schema
 from .account import Account, account_schema
 from .category import Category, category_schema
 from .transaction import Transaction, transaction_schema
@@ -45,9 +46,9 @@ def get_accounts():
         'credit', func.sum(Transaction.credit))).group_by(Transaction.account_id, Transaction.recipient_id).all()
     for account in all_accounts:
         account['balance'] = account['start_balance']
-        account['balance'] -= sum(list(map(lambda b: b.debit, list(
+        account['balance'] -= sum(list(map(lambda b: b.credit, list(
             filter(lambda b: b.account_id == account['id'], balances)))))
-        account['balance'] += sum(list(map(lambda b: b.credit, list(
+        account['balance'] += sum(list(map(lambda b: b.debit, list(
             filter(lambda b: b.recipient_id == account['id'], balances)))))
     return jsonify(all_accounts)
 
@@ -64,6 +65,7 @@ def get_account(id):
 def account_add():
     data = account_schema.load(request.json, partial=True)
     account = Account(**data)
+    account.user_id=1
     db.session.add(account)
     db.session.commit()
     return account_schema.jsonify(account), 201
@@ -99,15 +101,17 @@ def get_categories():
 @app.route('/api/categories/expenses')
 #@jwt_required
 def get_expenses():
-    expenses = Category.query.get(1)
-    return category_schema.jsonify(expenses)
+#    expenses = Category.query.get(1)
+    expenses = Category.query.filter(Category.parent_id==1).filter(Category.user_id==1).order_by(Category.name).all()
+    return category_schema.jsonify(Category(id=1, name='Expense', children=expenses))
 
 
 @app.route('/api/categories/income')
 #@jwt_required
 def get_income():
-    income = Category.query.get(2)
-    return category_schema.jsonify(income)
+#    income = Category.query.get(2)
+    income = Category.query.filter(Category.parent_id==2).filter(Category.user_id==1).order_by(Category.name).all()
+    return category_schema.jsonify(Category(id=2, name='Income', children=income))
 
 
 @app.route("/api/categories/<id>")
@@ -122,6 +126,7 @@ def get_category(id):
 def category_add():
     data = category_schema.load(request.json)
     category = Category(**data)
+    category.user_id=1
     db.session.add(category)
     db.session.commit()
     return category_schema.jsonify(category), 201
