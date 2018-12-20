@@ -13,6 +13,24 @@ from backend.account import Account
 from backend.category import Category
 from backend.transaction import Transaction
 
+
+def convert(value, currency, target, date) :
+    rate = session.query(SCurrencyRates)\
+        .filter(SCurrencyRates.Date==date)\
+        .filter(SCurrencyRates.Currency==currency)\
+        .filter(SCurrencyRates.Target==target)\
+        .first()
+    if rate :
+        return value * rate.Value / rate.Nominal
+    rate = session.query(SCurrencyRates)\
+        .filter(SCurrencyRates.Date==date)\
+        .filter(SCurrencyRates.Target==currency)\
+        .filter(SCurrencyRates.Currency==target)\
+        .first()
+    if rate :
+        return value * rate.Nominal / rate.Value 
+    return value
+
 Base = declarative_base()
 
 class SUserProfiles(Base):
@@ -72,7 +90,7 @@ class STransactions(Base):
     Payee = Column(String(1000))
     Metadata = Column(String(1000))
 
-engine = create_engine('mssql+pymssql://SA:Wowdaemon123@localhost/swarmer')
+engine = create_engine('mssql+pymssql://SA:Wowdaemon123@srv7-aboutae/swarmer')
 Base.metadata.bind = engine
 DBSession = sessionmaker(bind=engine)
 session = DBSession()
@@ -145,7 +163,6 @@ for t in transactions:
         conversion = metadata['Conversion']
         cCurrency = list(conversion.keys())[0]
         cValue = conversion[cCurrency]
-    print(t.TransactionId, t.Value, t.Currency,cValue,cCurrency)
 
     if t.Value<0:
         tt.account_id = t.AccountId
@@ -172,20 +189,3 @@ for t in transactions:
     db.session.add(tt)
 
 db.session.commit()
-
-def convert(value, currency, target, date) :
-    rate = session.query(SCurrencyRates)\
-        .filter(SCurrencyRates.Date==date)\
-        .filter(SCurrencyRates.Currency==currency)\
-        .filter(SCurrencyRates.Target==target)\
-        .get()
-    if rate :
-        return value * rate.Value / rate.Nominal
-    rate = session.query(SCurrencyRates)\
-        .filter(SCurrencyRates.Date==date)\
-        .filter(SCurrencyRates.Target==currency)\
-        .filter(SCurrencyRates.Currency==target)\
-        .get()
-    if rate :
-        return value * rate.Nominal / rate.Value 
-    return value
