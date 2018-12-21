@@ -3,6 +3,7 @@ import { Observable} from 'rxjs';
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Account } from '../models/account';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-accounts',
@@ -15,7 +16,7 @@ export class AccountsComponent implements OnInit {
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
-    this.accounts$ = this.store.select('accounts', 'accounts');
+    this.accounts$ = this.store.select('accounts', 'accounts').pipe(map(a => a.filter(t => t.visible)));
     this.selected$ = this.store.select('accounts', 'selected');
   }
 

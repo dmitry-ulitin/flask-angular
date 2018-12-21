@@ -34,3 +34,12 @@ nav .active, nav a:hover {
     text-decoration: none;
 }
 
+tr.owner {
+    background-color: #e7f6fb;
+}
+tr.coowner {
+    background-color: #f6ddf5;
+}
+tr.shared {
+    background-color: #f6e9cf;
+}

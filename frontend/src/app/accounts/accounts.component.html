@@ -19,7 +19,7 @@
             </div>
         </div>
         <table class="table">
-            <tr *ngFor="let a of accounts$ | async" (click)="select(a)" [class.table-active]="(selected$ | async)?.id == a.id">
+            <tr *ngFor="let a of accounts$ | async" (click)="select(a)" [class.table-active]="(selected$ | async)?.id == a.id"  [class.owner]="a.belong=='owner'"  [class.coowner]="a.belong=='coowner'"  [class.shared]="a.belong=='shared'">
                 <td>{{a.name}}</td>
                 <td class="text-right">{{a.balance  | currency:a.currency}}</td>
             </tr>
