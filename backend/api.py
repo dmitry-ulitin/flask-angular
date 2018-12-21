@@ -50,13 +50,13 @@ def get_accounts():
     u_accounts = Account.query.filter(Account.user_id == 1).order_by(Account.id).all()
     a_au = AccountUser.query.filter(AccountUser.account_id.in_(map(lambda a: a.id, u_accounts))).filter(AccountUser.coowner.is_(True)).all()
     co_a = list(map(lambda a: a.account_id, a_au))
-    all_accounts = list(map(lambda a: dict({'belong':'own'},**a), account_schema.dump(filter(lambda a: a.id not in co_a, u_accounts), many=True)))
-    all_accounts += list(map(lambda a: dict({'belong':'coown'},**a), account_schema.dump(filter(lambda a: a.id in co_a, u_accounts), many=True)))
+    all_accounts = list(map(lambda a: dict({'belong':'owner'},**a), account_schema.dump(filter(lambda a: a.id not in co_a, u_accounts), many=True)))
+    all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(filter(lambda a: a.id in co_a, u_accounts), many=True)))
 
     u_au = AccountUser.query.filter(AccountUser.user_id == 1)\
         .order_by(AccountUser.account_id).all()
 
-    all_accounts += list(map(lambda a: dict({'belong':'coown'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: au.coowner, u_au)), many=True)))
+    all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: au.coowner, u_au)), many=True)))
     all_accounts += list(map(lambda a: dict({'belong':'shared'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: not au.coowner, u_au)), many=True)))
 
     balances = db.session.query(Transaction.account_id, Transaction.recipient_id, label('debit', func.sum(Transaction.debit)), label(
