@@ -3,5 +3,7 @@ export interface Account {
     name: string,
     currency: string,
     start_balance: number,
-    balance: number
+    balance: number,
+    visible: boolean,
+    inbalance: boolean
 }

@@ -37,4 +37,11 @@ export class TransactionsComponent implements OnInit {
   delete() {
     this.store.dispatch({type:'[transactions] delete'});    
   }
+
+  getName(t: Transaction) {
+    if (t.account && t.recipient) {
+      return t.account.name + ' 🡆 ' + t.recipient.name;
+    }
+    return t.category ? t.category.name : '???';
+  }
 }

@@ -4,3 +4,4 @@ __pycache__/
 *$py.class
 DB_48667_swarmer_backup.bak
 backend/swarmer.db
+.vscode/settings.json
