@@ -25,7 +25,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     constructor(private location: Location, private fb: FormBuilder) {
         this.form = this.fb.group({
             id: [],
-            type: [0],
+            ttype: [0],
             tamount: ['', Validators.required],
             tcurrency: ['', Validators.required],
             camount: [''],
@@ -39,6 +39,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         });
     }
     ngOnInit() {
+        this.setType(0);
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -51,36 +52,28 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.setCategory(changes.data.currentValue.category);
             this.setAccount(changes.data.currentValue.account);
             this.setRecipient(changes.data.currentValue.recipient);
-        }
-        let data = this.form.value;
-        if (this.accounts && this.accounts.length && !data.account && !data.recipient) {
-            data.account = this.accounts[0];
-            this.setAccount(data.account);
-        }
-        if (data.account  || data.recipient) {
-            let type = data.account && data.recipient ? 0 : (data.account ? 1 : 2);
-            this.setType(type);
+            this.setType(changes.data.currentValue.ttype);
         }
     }
 
-    setType(type: number) {
-        let change = this.form.controls.type.value != type;
-        this.form.controls.type.setValue(type);
+    setType(ttype: number) {
+        let change = this.form.controls.ttype.value != ttype;
+        this.form.controls.ttype.setValue(ttype);
         let acc = this.form.controls.account.value;
         let rec = this.form.controls.recipient.value;
-        if (type == 0) {
-            this.setAccount(acc || rec);
-            this.setRecipient(rec || acc);
+        if (ttype == 0) {
+            this.setAccount(acc || rec || this.accounts[0]);
+            this.setRecipient(rec || acc || this.accounts[1]);
             this.categories = [];
         }
-        else if (type == 1) {
-            this.setAccount(acc || rec);
+        else if (ttype == 1) {
+            this.setAccount(acc || rec || this.accounts[0]);
             this.setRecipient(null);
             this.categories = this.expenses || [];
         }
-        else if (type == 2) {
+        else if (ttype == 2) {
             this.setAccount(null);
-            this.setRecipient(rec || acc);
+            this.setRecipient(rec || acc || this.accounts[0]);
             this.categories = this.income || [];
         }
         if (change) {
@@ -91,7 +84,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     setAccount(a: Account) {
         this.form.controls.account.setValue(a);
         if (a) {
-            if (this.form.controls.type.value > 0 || !this.form.controls.id.value) {
+            if (this.form.controls.ttype.value > 0 || !this.form.controls.id.value) {
                 this.form.controls.tcurrency.setValue(a.currency)
             }
             if (this.form.controls.recipient.value == a) {
@@ -103,7 +96,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     setRecipient(a: Account) {
         this.form.controls.recipient.setValue(a);
         if (a) {
-            if (this.form.controls.type.value > 0 || !this.form.controls.id.value) {
+            if (this.form.controls.ttype.value > 0 || !this.form.controls.id.value) {
                 this.form.controls.tcurrency.setValue(a.currency)
             }
             this.form.controls.ccurrency.setValue(a.currency)

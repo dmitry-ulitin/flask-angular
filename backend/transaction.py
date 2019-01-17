@@ -2,6 +2,7 @@ import simplejson as simplejson
 import datetime
 from marshmallow import fields
 from sqlalchemy.event import listens_for
+from sqlalchemy.ext.hybrid import hybrid_property
 from .api import db, ma
 
 class Transaction(db.Model):
@@ -18,6 +19,10 @@ class Transaction(db.Model):
     category = db.relationship("Category")
     currency = db.Column(db.String(250), nullable=True)
     details = db.Column(db.String(1024), nullable=True)
+    @hybrid_property
+    def ttype(self):
+        return 0 if self.account_id and self.recipient_id else 1 if self.account_id else 2
+
  
 class TransactionSchema(ma.Schema):
     class Meta:
@@ -31,6 +36,7 @@ class TransactionSchema(ma.Schema):
     category = ma.Nested('CategorySchema', dump_only=True)
     currency = fields.Str()
     details = fields.Str(allow_none=True)
+    ttype = fields.Int(dump_only=True)
 
 transaction_schema = TransactionSchema()
 
