@@ -35,4 +35,8 @@ export class AccountsComponent implements OnInit {
   delete() {
     this.store.dispatch({type:'[accounts] delete'});    
   }
+
+  createTr(ttype: number) {
+    this.store.dispatch({type:'[transactions] create', payload: {ttype:ttype}});
+  }
 }

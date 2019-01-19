@@ -30,8 +30,8 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] select', payload: a});    
   }
 
-  create() {
-    this.store.dispatch({type:'[transactions] create'});
+  create(ttype: number) {
+    this.store.dispatch({type:'[transactions] create', payload: {ttype:ttype}});
   }
 
   delete() {
