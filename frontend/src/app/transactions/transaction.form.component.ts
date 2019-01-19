@@ -25,7 +25,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     constructor(private location: Location, private fb: FormBuilder) {
         this.form = this.fb.group({
             id: [],
-            ttype: [0],
+            ttype: [1],
             tamount: ['', Validators.required],
             tcurrency: ['', Validators.required],
             camount: [''],
@@ -38,21 +38,30 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             details: []
         });
     }
+    
     ngOnInit() {
-        this.setType(0);
     }
 
     ngOnChanges(changes: SimpleChanges): void {
         console.log(changes);
-        if (changes.data && changes.data.currentValue && changes.data.currentValue.id) {
-            this.form.patchValue(changes.data.currentValue);
-            this.form.controls.tamount.setValue(changes.data.currentValue.credit);
-            this.form.controls.tcurrency.setValue(changes.data.currentValue.currency);
-            this.form.controls.opdate.setValue(changes.data.currentValue.opdate.substr(0,10));
-            this.setCategory(changes.data.currentValue.category);
-            this.setAccount(changes.data.currentValue.account);
+        if (changes.data && changes.data.currentValue) {
             this.setRecipient(changes.data.currentValue.recipient);
+            this.setAccount(changes.data.currentValue.account);
             this.setType(changes.data.currentValue.ttype);
+            if (changes.data.currentValue.id) {
+                this.form.patchValue(changes.data.currentValue);
+                this.form.controls.tamount.setValue(changes.data.currentValue.credit);
+                this.form.controls.tcurrency.setValue(changes.data.currentValue.currency);
+                this.form.controls.opdate.setValue(changes.data.currentValue.opdate.substr(0,10));
+                this.setCategory(changes.data.currentValue.category);
+            }
+        }
+        if (changes.accounts && changes.accounts.currentValue) {
+            this.setType(this.form.controls.ttype.value);
+        }
+        if (changes.expenses && changes.expenses.currentValue) {
+            this.categories = changes.expenses.currentValue;
+            this.setCategory(this.categories.length ? this.categories[0] : null);
         }
     }
 

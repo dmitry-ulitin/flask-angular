@@ -31,9 +31,14 @@ export class TransactionsEffects {
     );
 
     @Effect() createTransaction$: Observable<any> = this.actions$.ofType('[transactions] create').pipe(
-        map(action => {
+        withLatestFrom(this.store),
+        map(([action, state]) => {
+            if (state.accounts.selected) {
+                action.payload.account = action.payload.ttype == 1 ? null : state.accounts.selected;
+                action.payload.recipient = action.payload.ttype == 2 ? null : state.accounts.selected;
+            }
             this.router.navigate(['/transactions/create']);
-            return { type: '[transactions] select' };
+            return { type: '[transactions] select', payload: action.payload };
         })
     );
 
