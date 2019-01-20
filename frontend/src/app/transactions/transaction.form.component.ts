@@ -47,8 +47,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         if (changes.data && changes.data.currentValue) {
             this.setRecipient(changes.data.currentValue.recipient);
             this.setAccount(changes.data.currentValue.account);
-            this.setType(changes.data.currentValue.ttype);
             if (changes.data.currentValue.id) {
+                this.setType(changes.data.currentValue.ttype);
                 this.form.patchValue(changes.data.currentValue);
                 this.form.controls.tamount.setValue(changes.data.currentValue.credit);
                 this.form.controls.tcurrency.setValue(changes.data.currentValue.currency);
@@ -56,13 +56,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
                 this.setCategory(changes.data.currentValue.category);
             }
         }
-        if (changes.accounts && changes.accounts.currentValue) {
-            this.setType(this.form.controls.ttype.value);
-        }
-        if (changes.expenses && changes.expenses.currentValue) {
-            this.categories = changes.expenses.currentValue;
-            this.setCategory(this.categories.length ? this.categories[0] : null);
-        }
+        this.setType(this.form.controls.ttype.value);
     }
 
     setType(ttype: number) {
@@ -85,8 +79,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.setRecipient(rec || acc || this.accounts[0]);
             this.categories = this.income || [];
         }
-        if (change) {
-            this.setCategory(this.categories.length ? this.categories[0] : null);
+        if (change || !this.form.controls.category.value || !this.form.controls.category.value.id) {
+            this.setCategory(this.categories.length>1 ? this.categories[0] : null);
         }
     }
 

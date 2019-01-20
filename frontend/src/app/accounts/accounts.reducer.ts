@@ -41,6 +41,40 @@ export function reducer(state: State = initialState, action: any): State {
             } 
             return {...state, accounts: accounts, selected: null};
         }
+        case '[accounts] add transaction': {
+            let accounts = [...state.accounts];
+            if (action.payload.account) {
+                let account = accounts.find(a => a.id == action.payload.account.id);
+                if (account) {
+                    account.balance -= action.payload.credit;
+                }     
+            }
+            if (action.payload.recipient) {
+                let recipient = accounts.find(a => a.id == action.payload.recipient.id);
+                if (recipient) {
+                    recipient.balance += action.payload.debit;
+                }     
+            }
+            let selected = state.selected ? accounts.find(a => a.id == state.selected.id) : null;
+            return {...state, accounts: accounts, selected: selected};
+        }
+        case '[accounts] delete transaction': {
+            let accounts = [...state.accounts];
+            if (action.payload.account) {
+                let account = accounts.find(a => a.id == action.payload.account.id);
+                if (account) {
+                    account.balance += action.payload.credit;
+                }     
+            }
+            if (action.payload.recipient) {
+                let recipient = accounts.find(a => a.id == action.payload.recipient.id);
+                if (recipient) {
+                    recipient.balance -= action.payload.debit;
+                }     
+            }
+            let selected = state.selected ? accounts.find(a => a.id == state.selected.id) : null;
+            return {...state, accounts: accounts, selected: selected};
+        }
         default: {
             return state;
         }
