@@ -4,7 +4,7 @@ from flask_marshmallow import Marshmallow
 from sqlalchemy import func
 from sqlalchemy.sql import label, expression
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
-
+import dateutil.parser
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///swarmer.db'
@@ -169,7 +169,6 @@ def get_transaction(id):
 @app.route('/api/transactions', methods=['POST'])
 #@jwt_required
 def transaction_add():
-    #  print(request.json)
     data = transaction_schema.load(request.json)
     if request.json['account']:
         data['account_id'] = request.json['account']['id']
@@ -177,8 +176,32 @@ def transaction_add():
         data['recipient_id'] = request.json['recipient']['id']
     if request.json['category']:
         data['category_id'] = request.json['category']['id']
-#  print(data)
     transaction = Transaction(**data)
     db.session.add(transaction)
     db.session.commit()
     return transaction_schema.jsonify(transaction), 201
+
+
+@app.route("/api/transactions", methods=["PUT"])
+#@jwt_required
+def transaction_update():
+    transaction = Transaction.query.get(request.json['id'])
+    transaction.opdate = dateutil.parser.parse(request.json['opdate'])
+    transaction.account_id = request.json['account']['id'] if request.json['account'] else None
+    transaction.recipient_id = request.json['recipient']['id'] if request.json['recipient'] else None
+    transaction.category_id = request.json['category']['id'] if request.json['category'] else None
+    transaction.credit = request.json['credit']
+    transaction.debit = request.json['debit']
+    transaction.currency = request.json['currency']
+    transaction.details = request.json['details']
+    db.session.commit()
+    return transaction_schema.jsonify(transaction)
+
+@app.route("/api/transactions/<id>", methods=["DELETE"])
+#@jwt_required
+def transaction_delete(id):
+    transaction = Transaction.query.get(id)
+    if transaction:
+        db.session.delete(transaction)
+        db.session.commit()
+    return ('', 204)
