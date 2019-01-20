@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Router } from '@angular/router'
 import { Observable, of } from 'rxjs';
-import { switchMap, map, withLatestFrom, filter, tap, catchError } from 'rxjs/operators';
+import { switchMap, concatMap, map, withLatestFrom, filter, tap, catchError } from 'rxjs/operators';
 import { Actions, Effect, ofType } from '@ngrx/effects';
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
@@ -43,11 +43,12 @@ export class TransactionsEffects {
     );
 
     @Effect() saveTransaction$: Observable<any> = this.actions$.ofType('[transaction] save').pipe(
-        switchMap(action => this.backend.saveTransaction(action.payload).pipe(
-            map(data => {
+        withLatestFrom(this.store),
+        switchMap(([action, state]) => this.backend.saveTransaction(action.payload).pipe(
+            concatMap(data => {
                 this.notify.success('Transaction saved');
                 this.router.navigate(['/transactions']);
-                return { type: '[transaction] save success', payload: data };
+                return of({ type: '[accounts] delete transaction', payload: state.transactions.selected}, { type: '[accounts] add transaction', payload: data }, { type: '[transaction] save success', payload: data });
             }),
             catchError(error => of({ type: '[transactions] save fail', payload: error }))
         ))
@@ -59,10 +60,10 @@ export class TransactionsEffects {
         switchMap(([action, state]) => this.notify.confirm('Delete transaction #' + state.transactions.selected.id + '?').pipe(
             filter(c => c),
             switchMap(() => this.backend.deleteTransaction(state.transactions.selected.id).pipe(
-                map(data => {
+                concatMap(data => {
                     this.notify.success('Transaction removed');
                     this.router.navigate(['/transactions']);
-                    return { type: '[transactions] delete success' };
+                    return of({ type: '[accounts] delete transaction', payload: state.transactions.selected },{ type: '[transactions] delete success'});
                 })
             )),
             catchError(error => of({ type: '[transactions] delete fail', payload: error }))
