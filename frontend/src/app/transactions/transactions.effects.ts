@@ -1,5 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Router } from '@angular/router'
+import { Location } from '@angular/common'
 import { Observable, of } from 'rxjs';
 import { switchMap, concatMap, map, withLatestFrom, filter, tap, catchError } from 'rxjs/operators';
 import { Actions, Effect, ofType } from '@ngrx/effects';
@@ -14,7 +15,8 @@ export class TransactionsEffects {
         private store: Store<State>,
         private backend: BackendService,
         private notify: AlertifyService,
-        private router: Router) { };
+        private router: Router,
+        private location: Location) { };
 
     @Effect() getTransactions$: Observable<any> = this.actions$.ofType('[transactions] query').pipe(
         switchMap(action => this.backend.getTransactions().pipe(
@@ -38,7 +40,7 @@ export class TransactionsEffects {
                 action.payload.recipient = action.payload.ttype == 2 ? null : state.accounts.selected;
             }
             this.router.navigate(['/transactions/create']);
-            return { type: '[transactions] select', payload: action.payload };
+            return { type: '[transactions] edit', payload: action.payload };
         })
     );
 
@@ -47,8 +49,8 @@ export class TransactionsEffects {
         switchMap(([action, state]) => this.backend.saveTransaction(action.payload).pipe(
             concatMap(data => {
                 this.notify.success('Transaction saved');
-                this.router.navigate(['/transactions']);
-                return of({ type: '[accounts] delete transaction', payload: state.transactions.selected}, { type: '[accounts] add transaction', payload: data }, { type: '[transaction] save success', payload: data });
+                this.location.back();
+                return of({ type: '[accounts] delete transaction', payload: state.transactions.form}, { type: '[accounts] add transaction', payload: data }, { type: '[transaction] save success', payload: data });
             }),
             catchError(error => of({ type: '[transactions] save fail', payload: error }))
         ))
