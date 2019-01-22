@@ -3,7 +3,6 @@ import { Location } from '@angular/common'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Account } from '../models/account';
 import { Category } from '../models/category';
-//import { Transaction } from '../models/transaction';
 
 @Component({
     selector: 'app-transaction-form',
@@ -15,8 +14,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     @Input('accounts') accounts: Account[];
     @Input('expenses') expenses: Category[];
     @Input('income') income: Category[];
-    @Output('save')
-    save = new EventEmitter<any>();
+    @Output('save') save = new EventEmitter<any>();
 
     types = ['Transfer', 'Expense', 'Income'];
     categories:Category[] = [];
@@ -141,7 +139,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         this.save.emit(value);
     }
 
-    cancel() {
+    onCancel() {
         this.location.back();
     }
 }

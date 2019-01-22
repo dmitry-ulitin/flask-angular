@@ -25,7 +25,7 @@ export class TransactionEditorComponent implements OnInit {
   ngOnInit() {
     this.route.params.pipe(filter(p => p['id'])).forEach(p => this.store.dispatch({ type: '[transaction] query id', payload: p['id'] }));
 
-    this.transaction$ = this.store.select('transactions', 'selected');
+    this.transaction$ = this.store.select('transactions', 'form');
 
     this.accounts$ = this.store.select('accounts', 'accounts');
     this.expenses$ = this.store.select('categories', 'expenses').pipe(map(t => tree2flat(t, [{ ...t, name: '???', level:0 }])));
