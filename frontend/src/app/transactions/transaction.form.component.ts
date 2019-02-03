@@ -45,8 +45,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         if (changes.data && changes.data.currentValue) {
             this.setRecipient(changes.data.currentValue.recipient);
             this.setAccount(changes.data.currentValue.account);
+            this.setType(changes.data.currentValue.ttype);
             if (changes.data.currentValue.id) {
-                this.setType(changes.data.currentValue.ttype);
                 this.form.patchValue(changes.data.currentValue);
                 this.form.controls.tamount.setValue(changes.data.currentValue.credit);
                 this.form.controls.tcurrency.setValue(changes.data.currentValue.currency);
