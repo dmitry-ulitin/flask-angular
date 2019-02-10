@@ -42,6 +42,6 @@ export class TransactionsComponent implements OnInit {
     if (t.account && t.recipient) {
       return t.account.name + ' 🡆 ' + t.recipient.name;
     }
-    return t.category ? t.category.name : '???';
+    return t.category ? t.category.name : '-';
   }
 }

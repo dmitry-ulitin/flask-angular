@@ -78,7 +78,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.categories = this.income || [];
         }
         if (change || !this.form.controls.category.value || !this.form.controls.category.value.id) {
-            this.setCategory(this.categories.length>1 ? this.categories[0] : null);
+            this.setCategory(null);
         }
     }
 

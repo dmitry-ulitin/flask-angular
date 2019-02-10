@@ -28,22 +28,11 @@ export class TransactionEditorComponent implements OnInit {
     this.transaction$ = this.store.select('transactions', 'form');
 
     this.accounts$ = this.store.select('accounts', 'accounts');
-    this.expenses$ = this.store.select('categories', 'expenses').pipe(map(t => tree2flat(t, [{ ...t, name: '???', level:0 }])));
-    this.income$ = this.store.select('categories', 'income').pipe(map(t => tree2flat(t, [{ ...t, name: '???', level:0 }])));
+    this.expenses$ = this.store.select('categories', 'expenses');
+    this.income$ = this.store.select('categories', 'income');
   }
 
   onSave(value: any) {
     this.store.dispatch({type: '[transaction] save', payload: value});
   }
-}
-
-function tree2flat(tree: Category, flat: Category[], level:number = 0): Category[] {
-  if (tree && tree.children) {
-    for (let c of tree.children) {
-      c.level = level;
-      flat.push(c);
-      tree2flat(c, flat, level + 1);
-    }
-  }
-  return flat;
 }

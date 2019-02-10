@@ -4,6 +4,7 @@ from marshmallow import fields
 from sqlalchemy.event import listens_for
 from sqlalchemy.ext.hybrid import hybrid_property
 from .api import db, ma
+from .category import Category
 
 class Transaction(db.Model):
     __tablename__ = 'transactions'
@@ -21,7 +22,11 @@ class Transaction(db.Model):
     details = db.Column(db.String(1024), nullable=True)
     @hybrid_property
     def ttype(self):
-        return 0 if self.account_id and self.recipient_id else 1 if self.account_id else 2
+        return Category.TRANSFER if self.account_id and self.recipient_id else Category.EXPENSE if self.account_id else Category.INCOME
+    @hybrid_property
+    def bg(self):
+        return Category.TRANSFER_BG if self.ttype == 0 else self.category.bgc if self.category else Category.EXPENSE_BG if self.ttype == Category.EXPENSE else Category.INCOME_BG
+
 
  
 class TransactionSchema(ma.Schema):
@@ -37,6 +42,7 @@ class TransactionSchema(ma.Schema):
     currency = fields.Str()
     details = fields.Str(allow_none=True)
     ttype = fields.Int(dump_only=True)
+    bg = fields.Str(dump_only=True)
 
 transaction_schema = TransactionSchema()
 
