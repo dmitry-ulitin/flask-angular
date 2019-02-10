@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
-from sqlalchemy import func
+from sqlalchemy import func, or_
 from sqlalchemy.sql import label, expression
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 import dateutil.parser
@@ -107,28 +107,26 @@ def account_delete(id):
     db.session.commit()
     return account_schema.jsonify(account)
 
-
 @app.route('/api/categories')
 #@jwt_required
 def get_categories():
-    all_categories = Category.query.all()
+    all_categories = Category.query.filter(Category.user_id==1).order_by(Category.name).all()
     return category_schema.jsonify(all_categories, many=True)
-
 
 @app.route('/api/categories/expenses')
 #@jwt_required
 def get_expenses():
-#    expenses = Category.query.get(1)
-    expenses = Category.query.filter(Category.parent_id==1).filter(Category.user_id==1).order_by(Category.name).all()
-    return category_schema.jsonify(Category(id=1, name='Expense', children=expenses))
+    all_categories = Category.query.filter(Category.user_id==1).all()
+    expenses = sorted(filter(lambda e: e.root.id == Category.EXPENSE, all_categories), key = lambda c: c.full_name)
+    return category_schema.jsonify(expenses, many=True)
 
 
 @app.route('/api/categories/income')
 #@jwt_required
 def get_income():
-#    income = Category.query.get(2)
-    income = Category.query.filter(Category.parent_id==2).filter(Category.user_id==1).order_by(Category.name).all()
-    return category_schema.jsonify(Category(id=2, name='Income', children=income))
+    all_categories = Category.query.filter(Category.user_id==1).all()
+    income = sorted(filter(lambda e: e.root.id == Category.INCOME, all_categories), key = lambda c: c.full_name)
+    return category_schema.jsonify(income, many=True)
 
 
 @app.route("/api/categories/<id>")
@@ -147,6 +145,15 @@ def category_add():
     db.session.add(category)
     db.session.commit()
     return category_schema.jsonify(category), 201
+
+@app.route("/api/categories", methods=["PUT"])
+#@jwt_required
+def category_update():
+    category = Category.query.get(request.json['id'])
+    category.name = request.json['name']
+    category.bg = request.json['bgc']
+    db.session.commit()
+    return category_schema.jsonify(category)
 
 
 @app.route('/api/transactions')

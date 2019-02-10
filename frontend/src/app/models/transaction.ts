@@ -10,6 +10,7 @@ export interface Transaction {
     debit: number,
     category: Category,
     currency: string,
-    details: string
-    ttype: number
+    details: string,
+    ttype: number,
+    bg: string
 }

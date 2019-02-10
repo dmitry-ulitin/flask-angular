@@ -1,13 +1,13 @@
 import { Category } from '../models/category';
 
 export interface State {
-    expenses: Category,
-    income: Category
+    expenses: Category[],
+    income: Category[]
 }
 
 export const initialState: State = {
-    expenses: null,
-    income: null
+    expenses: [],
+    income: []
 };
 
 export function reducer(state: State = initialState, action: any): State {
