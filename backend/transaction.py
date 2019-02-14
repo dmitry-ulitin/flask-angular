@@ -33,7 +33,7 @@ class TransactionSchema(ma.Schema):
     class Meta:
         json_module = simplejson
     id = fields.Int(dump_only=True)
-    opdate = fields.Date()
+    opdate = fields.DateTime()
     account = ma.Nested('AccountSchema', dump_only=True)
     credit = fields.Decimal()
     recipient = ma.Nested('AccountSchema', dump_only=True)

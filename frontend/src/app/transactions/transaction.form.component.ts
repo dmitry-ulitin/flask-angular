@@ -136,6 +136,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     onSubmit({ value, valid }) {
         value.credit = value.debit = value.tamount;
         value.currency = value.tcurrency;
+        value.opdate += new Date().toISOString().substr(10)
         this.save.emit(value);
     }
 
