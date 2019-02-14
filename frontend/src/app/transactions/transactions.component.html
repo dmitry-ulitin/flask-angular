@@ -28,8 +28,7 @@
         </div>
         <table class="table table-sm">
             <tr *ngFor="let t of transactions$ | async" (click)="select(t)" [class.table-active]="(selected$ | async)?.id == t.id" [style.background-color]="t.bg">
-                <td><div>{{t.account?.name || t.recipient?.name}}</div><div>{{t.opdate | date:'shortDate'}}</div></td>
-                <td>{{getName(t)}}</td>
+                <td><div>{{getName(t)}}</div><div class="text-black-50">{{t.opdate | date:'shortDate'}} {{t.account?.name || t.recipient?.name}}</div></td>
                 <td class="text-right"><div>{{t.credit | currency:t.currency}}</div><div class="text-black-50">{{t.account?.balance || t.recipient?.balance | currency:t.currency}}</div></td>
             </tr>
         </table>

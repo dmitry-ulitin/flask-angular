@@ -50,7 +50,7 @@ export class TransactionsEffects {
             concatMap(data => {
                 this.notify.success('Transaction saved');
                 this.location.back();
-                return of({ type: '[accounts] delete transaction', payload: state.transactions.form}, { type: '[accounts] add transaction', payload: data }, { type: '[transaction] save success', payload: data });
+                return of({ type: '[accounts] delete transaction', payload: state.transactions.form}, { type: '[accounts] add transaction', payload: data }, { type: '[transaction] save success', payload: data }, { type: '[transaction] query id', payload: data.id });
             }),
             catchError(error => of({ type: '[transactions] save fail', payload: error }))
         ))

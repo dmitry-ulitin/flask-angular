@@ -155,6 +155,12 @@ def category_update():
     db.session.commit()
     return category_schema.jsonify(category)
 
+def get_balances(ai, tid, opdate):
+    return db.session.query(Transaction.account_id, Transaction.recipient_id, \
+            label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
+            .filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai))) \
+            .filter(or_(Transaction.opdate < opdate, and_(Transaction.opdate == opdate, Transaction.id < tid))) \
+            .group_by(Transaction.account_id, Transaction.recipient_id).all()
 
 @app.route('/api/transactions')
 #@jwt_required
@@ -172,10 +178,7 @@ def get_transactions():
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
         .limit(limit).offset(offset).all()
     # get balances for all previous transactions
-    balances = db.session.query(Transaction.account_id, Transaction.recipient_id, label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
-            .filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai))) \
-            .filter(or_(Transaction.opdate < transactions[-1].opdate, and_(Transaction.opdate == transactions[-1].opdate, Transaction.id < transactions[-1].id))) \
-            .group_by(Transaction.account_id, Transaction.recipient_id).all()
+    balances = get_balances(ai, transactions[-1].id, transactions[-1].opdate) if len(transactions) else []
     for id in ab:
         ab[id] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == id, balances)))))
         ab[id] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == id, balances)))))
@@ -198,7 +201,17 @@ def get_transactions():
 #@jwt_required
 def get_transaction(id):
     transaction = Transaction.query.get(id)
-    return transaction_schema.jsonify(transaction)
+    acc = transaction.account if transaction.account else transaction.recipient
+    balances = get_balances([acc.id], transaction.id, transaction.opdate)
+    balance = acc.start_balance \
+        - sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == acc.id, balances))))) \
+        + sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == acc.id, balances)))))
+    tr = transaction_schema.dump(transaction)
+    if tr['account']:
+        tr['account']['balance'] = balance - tr['credit']
+    elif tr['recipient']:
+        tr['recipient']['balance'] = balance + tr['debit']
+    return jsonify(tr)
 
 
 @app.route('/api/transactions', methods=['POST'])
