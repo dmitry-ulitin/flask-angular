@@ -1,4 +1,5 @@
 import simplejson as simplejson
+import datetime
 from marshmallow import fields
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.event import listens_for
@@ -15,11 +16,15 @@ class Category(db.Model):
     TRANSFER_BG = '#f9fbbe'
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+    created = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now)
+    updated = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
     parent_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
     parent = db.relationship("Category", remote_side=[id])
 #    children = db.relationship("Category", lazy="joined", join_depth=5)
     name = db.Column(db.String(250), nullable=False)
     bg = db.Column(db.String(16), nullable=True)
+    def __repr__(self):
+        return '<Category %r>' % self.name
     @hybrid_property
     def root(self):
         return self.parent.root if self.parent_id else self
