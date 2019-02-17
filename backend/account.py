@@ -1,4 +1,5 @@
 import simplejson as simplejson
+import datetime
 from marshmallow import fields
 from sqlalchemy.event import listens_for
 from .api import db, ma
@@ -8,6 +9,8 @@ class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship("User", foreign_keys=[user_id])
+    created = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now)
+    updated = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
     name = db.Column(db.String(250), nullable=False)
     currency = db.Column(db.String(250), nullable=False)
     start_balance = db.Column(db.Numeric(10,2), nullable=False)
@@ -38,6 +41,8 @@ class AccountUser(db.Model):
     account = db.relationship("Account", foreign_keys=[account_id])
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), primary_key=True)
     user = db.relationship("User", foreign_keys=[user_id])
+    created = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now)
+    updated = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
     name = db.Column(db.String(250), nullable=True)
     coowner = db.Column(db.Boolean, nullable=False, default = False)
     visible = db.Column(db.Boolean, nullable=False, default = True)

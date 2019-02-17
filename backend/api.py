@@ -5,6 +5,7 @@ from sqlalchemy import func, or_, and_
 from sqlalchemy.sql import label, expression
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 import dateutil.parser
+import datetime
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///swarmer.db'
@@ -217,6 +218,7 @@ def get_transaction(id):
 @app.route('/api/transactions', methods=['POST'])
 #@jwt_required
 def transaction_add():
+#    request.json['opdate'] = datetime.datetime.combine(dateutil.parser.parse(request.json['opdate']).date(), datetime.datetime.now().time()).strftime("%Y-%m-%d %H:%M:%S.%f")
     data = transaction_schema.load(request.json)
     if request.json['account']:
         data['account_id'] = request.json['account']['id']
@@ -225,6 +227,7 @@ def transaction_add():
     if request.json['category']:
         data['category_id'] = request.json['category']['id']
     transaction = Transaction(**data)
+    transaction.user_id=1
     db.session.add(transaction)
     db.session.commit()
     return transaction_schema.jsonify(transaction), 201
@@ -234,7 +237,8 @@ def transaction_add():
 #@jwt_required
 def transaction_update():
     transaction = Transaction.query.get(request.json['id'])
-    transaction.opdate = dateutil.parser.parse(request.json['opdate'])
+    transaction.user_id=1
+    transaction.opdate = datetime.datetime.combine(dateutil.parser.parse(request.json['opdate']).date(), transaction.opdate.time())
     transaction.account_id = request.json['account']['id'] if request.json['account'] else None
     transaction.recipient_id = request.json['recipient']['id'] if request.json['recipient'] else None
     transaction.category_id = request.json['category']['id'] if request.json['category'] else None

@@ -9,6 +9,9 @@ from .category import Category
 class Transaction(db.Model):
     __tablename__ = 'transactions'
     id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    created = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now)
+    updated = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
     opdate = db.Column(db.DateTime, nullable = False)
     account_id = db.Column(db.Integer, db.ForeignKey('accounts.id'), nullable=True)
     account = db.relationship("Account", foreign_keys=[account_id])
@@ -33,6 +36,8 @@ class TransactionSchema(ma.Schema):
     class Meta:
         json_module = simplejson
     id = fields.Int(dump_only=True)
+    created = fields.DateTime()
+    updated = fields.DateTime()
     opdate = fields.DateTime()
     account = ma.Nested('AccountSchema', dump_only=True)
     credit = fields.Decimal()
@@ -49,6 +54,6 @@ transaction_schema = TransactionSchema()
 # for test purposes
 @listens_for(Transaction.__table__, 'after_create')
 def insert_initial_records(*args, **kwargs):
-    db.session.add(Transaction(id=1, opdate=datetime.datetime.utcnow(), account_id=2, credit=260, debit=260, category_id=1022, currency='RUB', details='dinner'))
+    db.session.add(Transaction(id=1, user_id=1, opdate=datetime.datetime.utcnow(), account_id=2, credit=260, debit=260, category_id=1022, currency='RUB', details='dinner'))
     db.session.commit()
 
