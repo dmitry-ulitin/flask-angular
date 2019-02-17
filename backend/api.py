@@ -48,14 +48,15 @@ def get_ua_account(au) :
 @app.route('/api/accounts')
 #@jwt_required
 def get_accounts():
-    u_accounts = Account.query.filter(Account.user_id == 1).order_by(Account.id).all()
+    u_accounts = Account.query.filter(Account.user_id == 1).filter(Account.deleted.is_(False)).order_by(Account.id).all()
     a_au = AccountUser.query.filter(AccountUser.account_id.in_(map(lambda a: a.id, u_accounts))).filter(AccountUser.coowner.is_(True)).all()
     co_a = list(map(lambda a: a.account_id, a_au))
     all_accounts = list(map(lambda a: dict({'belong':'owner'},**a), account_schema.dump(filter(lambda a: a.id not in co_a, u_accounts), many=True)))
     all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(filter(lambda a: a.id in co_a, u_accounts), many=True)))
 
-    u_au = AccountUser.query.filter(AccountUser.user_id == 1)\
+    u_au = AccountUser.query.filter(AccountUser.user_id == 1) \
         .order_by(AccountUser.account_id).all()
+    u_au = filter(lambda au: not au.account.deleted, u_au)
 
     all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: au.coowner, u_au)), many=True)))
     all_accounts += list(map(lambda a: dict({'belong':'shared'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: not au.coowner, u_au)), many=True)))
@@ -94,8 +95,10 @@ def account_add():
 def account_update():
     account = Account.query.get(request.json['id'])
     account.name = request.json['name']
-    account.currency = request.json['currency']
-    account.start_balance = request.json['start_balance']
+    account.currency = request.json.get('currency', 'RUB')
+    account.start_balance = request.json.get('start_balance', 0)
+    account.visible = request.json.get('visible', False)
+    account.inbalance = request.json.get('inbalance', False)
     db.session.commit()
     return account_schema.jsonify(account)
 
@@ -104,7 +107,7 @@ def account_update():
 #@jwt_required
 def account_delete(id):
     account = Account.query.get(id)
-    db.session.delete(account)
+    account.deleted = True
     db.session.commit()
     return account_schema.jsonify(account)
 
@@ -218,7 +221,6 @@ def get_transaction(id):
 @app.route('/api/transactions', methods=['POST'])
 #@jwt_required
 def transaction_add():
-#    request.json['opdate'] = datetime.datetime.combine(dateutil.parser.parse(request.json['opdate']).date(), datetime.datetime.now().time()).strftime("%Y-%m-%d %H:%M:%S.%f")
     data = transaction_schema.load(request.json)
     if request.json['account']:
         data['account_id'] = request.json['account']['id']
