@@ -74,8 +74,9 @@ def insert_initial_records(*args, **kwargs):
     db.session.add(Category(id=110, parent_id=Category.EXPENSE, name='Traveling', user_id=1))
     db.session.add(Category(id=111, parent_id=Category.EXPENSE, name='Clothes', user_id=1))
     db.session.add(Category(id=112, parent_id=Category.EXPENSE, name='Education', user_id=1))
+    db.session.add(Category(id=113, parent_id=Category.EXPENSE, name='Gifts', user_id=1))
 
-    db.session.add(Category(id=201, parent_id=Category.INCOME, name='Wages', user_id=1))
+    db.session.add(Category(id=201, parent_id=Category.INCOME, name='Salary', user_id=1))
     db.session.add(Category(id=202, parent_id=Category.INCOME, name='Bonuses', user_id=1))
     db.session.add(Category(id=203, parent_id=Category.INCOME, name='Cashback', user_id=1))
     db.session.commit()
