@@ -55,26 +55,37 @@ def get_balances(ai, tid, opdate):
         query = query.filter(or_(Transaction.opdate < opdate, and_(Transaction.opdate == opdate, Transaction.id < tid)))
     return query.group_by(Transaction.account_id, Transaction.recipient_id).all()
 
+def get_user_categories(user_id):
+    a_au = [au.account.user_id for au in AccountUser.query.filter(AccountUser.user_id == user_id).all()]
+    a_au.append(user_id)
+    all_categories = Category.query.filter(Category.user_id.in_(a_au)).all()
+    all_categories = sorted(all_categories, key = lambda c: c.full_name)
+    categories = []
+    p = None
+    for c in all_categories:
+        if p and p.full_name == c.full_name:
+            if c.user_id == user_id:
+                categories[len(categories) - 1] = c
+            continue
+        categories.append(c)
+        p = c
+    return categories
+
 @app.route('/api/accounts')
 @jwt_required
 def get_accounts():
     user_id = get_jwt_identity()['id']
     u_accounts = Account.query.filter(Account.user_id == user_id).filter(Account.deleted.is_(False)).order_by(Account.id).all()
-    a_au = AccountUser.query.filter(AccountUser.account_id.in_(map(lambda a: a.id, u_accounts))).filter(AccountUser.coowner.is_(True)).all()
+    a_au = AccountUser.query.filter(AccountUser.account_id.in_(map(lambda a: a.id, u_accounts))).filter(AccountUser.write.is_(True)).all()
     co_a = list(map(lambda a: a.account_id, a_au))
     all_accounts = list(map(lambda a: dict({'belong':'owner'},**a), account_schema.dump(filter(lambda a: a.id not in co_a, u_accounts), many=True)))
     all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(filter(lambda a: a.id in co_a, u_accounts), many=True)))
 
     u_au = AccountUser.query.filter(AccountUser.user_id == user_id) \
         .order_by(AccountUser.account_id).all()
-    u_au = filter(lambda au: not au.account.deleted, u_au)
-
-    all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: au.coowner, u_au)), many=True)))
-    all_accounts += list(map(lambda a: dict({'belong':'shared'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: not au.coowner, u_au)), many=True)))
-
+    all_accounts += [dict({'belong':'coowner'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.account.deleted and au.write], many=True)]
+    all_accounts += [dict({'belong':'shared'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.account.deleted and not au.write], many=True)]
     balances = get_balances(list(map(lambda a: a['id'], all_accounts)), None, None)
-#    balances = db.session.query(Transaction.account_id, Transaction.recipient_id, label('debit', func.sum(Transaction.debit)), label(
-#        'credit', func.sum(Transaction.credit))).group_by(Transaction.account_id, Transaction.recipient_id).all()
     for account in all_accounts:
         account['balance'] = account['start_balance']
         account['balance'] -= sum(list(map(lambda b: b.credit, list(
@@ -82,7 +93,6 @@ def get_accounts():
         account['balance'] += sum(list(map(lambda b: b.debit, list(
             filter(lambda b: b.recipient_id == account['id'], balances)))))
     return jsonify(all_accounts)
-
 
 @app.route("/api/accounts/<id>")
 @jwt_required
@@ -129,29 +139,32 @@ def account_delete(id):
     return account_schema.jsonify(account)
 
 @app.route('/api/categories')
-#@jwt_required
+@jwt_required
 def get_categories():
-    all_categories = Category.query.filter(Category.user_id==1).order_by(Category.name).all()
+    user_id = get_jwt_identity()['id']
+    all_categories = get_user_categories(user_id)
     return category_schema.jsonify(all_categories, many=True)
 
 @app.route('/api/categories/expenses')
-#@jwt_required
+@jwt_required
 def get_expenses():
-    all_categories = Category.query.filter(Category.user_id==1).all()
+    user_id = get_jwt_identity()['id']
+    all_categories = get_user_categories(user_id)
     expenses = sorted(filter(lambda e: e.root.id == Category.EXPENSE, all_categories), key = lambda c: c.full_name)
     return category_schema.jsonify(expenses, many=True)
 
 
 @app.route('/api/categories/income')
-#@jwt_required
+@jwt_required
 def get_income():
-    all_categories = Category.query.filter(Category.user_id==1).all()
+    user_id = get_jwt_identity()['id']
+    all_categories = get_user_categories(user_id)
     income = sorted(filter(lambda e: e.root.id == Category.INCOME, all_categories), key = lambda c: c.full_name)
     return category_schema.jsonify(income, many=True)
 
 
 @app.route("/api/categories/<id>")
-#@jwt_required
+@jwt_required
 def get_category(id):
     category = Category.query.get(id)
     return category_schema.jsonify(category)
@@ -168,9 +181,12 @@ def category_add():
     return category_schema.jsonify(category), 201
 
 @app.route("/api/categories", methods=["PUT"])
-#@jwt_required
+@jwt_required
 def category_update():
     category = Category.query.get(request.json['id'])
+    user_id = get_jwt_identity()['id']
+    if category.user_id != user_id:
+        return jsonify({"msg": "Can't update this category"}), 401        
     category.name = request.json['name']
     category.bg = request.json['bgc']
     db.session.commit()
@@ -213,7 +229,7 @@ def get_transactions():
 
 
 @app.route('/api/transactions/<id>')
-#@jwt_required
+@jwt_required
 def get_transaction(id):
     transaction = Transaction.query.get(id)
     acc = transaction.account if transaction.account else transaction.recipient

@@ -26,5 +26,6 @@ user_schema = UserSchema()
 # for test purposes
 @listens_for(User.__table__, 'after_create')
 def insert_initial_records(*args, **kwargs):
-    db.session.add(User(id=1, email='test@gmail.com', name='Test', password='test'))
+    db.session.add(User(id=1, email='test', name='Test', password='21a153c6c63e764cf52339f5ade532f9'))
+    db.session.add(User(id=2, email='test2', name='Test2', password='21a153c6c63e764cf52339f5ade532f9'))
     db.session.commit()
