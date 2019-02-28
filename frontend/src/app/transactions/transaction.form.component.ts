@@ -35,6 +35,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             opdate: [new Date().toISOString().substr(0, 10), Validators.required],
             details: []
         });
+        this.today();
     }
     
     ngOnInit() {
@@ -118,18 +119,24 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     prev() {
         var today = new Date(this.form.controls.opdate.value);
         today.setDate(today.getDate() - 1);
-        this.form.controls.opdate.setValue(today.toISOString().substr(0,10))
+        let tzoffset = today.getTimezoneOffset() * 60000;
+        let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+        this.form.controls.opdate.setValue(localISOTime.substr(0,10))
     }
 
     today() {
         var today = new Date();
-        this.form.controls.opdate.setValue(today.toISOString().substr(0,10))
+        let tzoffset = today.getTimezoneOffset() * 60000;
+        let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+        this.form.controls.opdate.setValue(localISOTime.substr(0,10))
     }
 
     next() {
         var today = new Date(this.form.controls.opdate.value);
         today.setDate(today.getDate() + 1);
-        this.form.controls.opdate.setValue(today.toISOString().substr(0,10))
+        let tzoffset = today.getTimezoneOffset() * 60000;
+        let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+        this.form.controls.opdate.setValue(localISOTime.substr(0,10))
     }
 
 

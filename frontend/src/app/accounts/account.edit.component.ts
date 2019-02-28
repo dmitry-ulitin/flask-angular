@@ -21,16 +21,17 @@ export class AccountEditComponent implements OnInit {
     this.form = this.fb.group({
       id: [],
       name: ['', Validators.required],
-      currency: ['', Validators.required],
+      currency: [''],
       start_balance: [],
-      hidden: [false]
+      hidden: [false],
+      inbalance: [true],
     });
-    this.store.select('accounts', 'selected').pipe(filter(a => a != null)).forEach(a => this.form.patchValue(a));
+    this.store.select('accounts', 'selected').pipe(filter(a => a != null)).forEach(a => this.form.patchValue({...a, hidden: !a.visible}));
     this.route.params.forEach(p => this.store.dispatch({ type: '[account] query id', payload: p['id']}));
   }
 
   onSubmit({ value, valid }) {
-    this.store.dispatch({type: '[account] save', payload: {...value, start_balance: value.start_balance || '0'}});
+    this.store.dispatch({type: '[account] save', payload: {...value, start_balance: value.start_balance || '0', currency: value.currency || 'RUB', visible: !value.hidden}});
   }
 
   cancel() {

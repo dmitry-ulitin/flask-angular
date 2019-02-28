@@ -17,6 +17,7 @@ class Account(db.Model):
     visible = db.Column(db.Boolean, nullable=False, default = True)
     inbalance = db.Column(db.Boolean, nullable=False, default = True)
     deleted = db.Column(db.Boolean, nullable=False, default = False)
+    order = db.Column(db.Integer, nullable=False, default = 0)
     def __repr__(self):
         return '<Account %r>' % self.name
  
@@ -44,15 +45,26 @@ class AccountUser(db.Model):
     created = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now)
     updated = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
     name = db.Column(db.String(250), nullable=True)
-    coowner = db.Column(db.Boolean, nullable=False, default = False)
+    write = db.Column(db.Boolean, nullable=False, default = False)
+    admin = db.Column(db.Boolean, nullable=False, default = False)
     visible = db.Column(db.Boolean, nullable=False, default = True)
     inbalance = db.Column(db.Boolean, nullable=False, default = True)
     deleted = db.Column(db.Boolean, nullable=False, default = False)
+    order = db.Column(db.Integer, nullable=False, default = 0)
+    def __repr__(self):
+        return '<AccountUser %r-%r, write: %s>' % (self.account.name, self.user.name, self.write)
+
+# for test purposes
+@listens_for(AccountUser.__table__, 'after_create')
+def insert_initial_records(*args, **kwargs):
+    db.session.add(AccountUser(account_id=1, user_id=2))
+    db.session.commit()
+
  
 class AccountUserSchema(ma.Schema):
     class Meta:
         json_module = simplejson
-        fields = ('account_id', 'user_id', 'name', 'coowner', 'visible', 'inbalance', 'deleted')
+        fields = ('account_id', 'user_id', 'name', 'write', 'admin', 'visible', 'inbalance', 'deleted')
     id = fields.Int(dump_only=True)
 
 account_user_schema = AccountUserSchema()

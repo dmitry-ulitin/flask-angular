@@ -6,6 +6,7 @@ from sqlalchemy.sql import label, expression
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 import dateutil.parser
 import datetime
+import hashlib
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///swarmer.db'
@@ -32,10 +33,11 @@ def login():
         return jsonify({"msg": "Missing username parameter"}), 400
     if not password:
         return jsonify({"msg": "Missing password parameter"}), 400
-    if username != 'test' or password != 'test':
+    users = User.query.filter(func.lower(User.email) == username.lower().strip()).all()
+    if len(users) != 1 or users[0].password != hashlib.md5((password + "swarmer").encode('utf-8')).hexdigest():
         return jsonify({"msg": "Bad username or password"}), 401
     # Identity can be any data that is json serializable
-    access_token = create_access_token(identity=username)
+    access_token = create_access_token(identity=user_schema.dump(users[0]))
     return jsonify(access_token=access_token), 200
 
 def get_ua_account(au) :
@@ -45,23 +47,45 @@ def get_ua_account(au) :
     a.inbalance = au.inbalance
     return a
 
+def get_balances(ai, tid, opdate):
+    query = db.session.query(Transaction.account_id, Transaction.recipient_id, \
+            label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
+            .filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai)))
+    if tid and opdate:
+        query = query.filter(or_(Transaction.opdate < opdate, and_(Transaction.opdate == opdate, Transaction.id < tid)))
+    return query.group_by(Transaction.account_id, Transaction.recipient_id).all()
+
+def get_user_categories(user_id):
+    a_au = [au.account.user_id for au in AccountUser.query.filter(AccountUser.user_id == user_id).all()]
+    a_au.append(user_id)
+    all_categories = Category.query.filter(Category.user_id.in_(a_au)).all()
+    all_categories = sorted(all_categories, key = lambda c: c.full_name)
+    categories = []
+    p = None
+    for c in all_categories:
+        if p and p.full_name == c.full_name:
+            if c.user_id == user_id:
+                categories[len(categories) - 1] = c
+            continue
+        categories.append(c)
+        p = c
+    return categories
+
 @app.route('/api/accounts')
-#@jwt_required
+@jwt_required
 def get_accounts():
-    u_accounts = Account.query.filter(Account.user_id == 1).order_by(Account.id).all()
-    a_au = AccountUser.query.filter(AccountUser.account_id.in_(map(lambda a: a.id, u_accounts))).filter(AccountUser.coowner.is_(True)).all()
+    user_id = get_jwt_identity()['id']
+    u_accounts = Account.query.filter(Account.user_id == user_id).filter(Account.deleted.is_(False)).order_by(Account.id).all()
+    a_au = AccountUser.query.filter(AccountUser.account_id.in_(map(lambda a: a.id, u_accounts))).filter(AccountUser.write.is_(True)).all()
     co_a = list(map(lambda a: a.account_id, a_au))
     all_accounts = list(map(lambda a: dict({'belong':'owner'},**a), account_schema.dump(filter(lambda a: a.id not in co_a, u_accounts), many=True)))
     all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(filter(lambda a: a.id in co_a, u_accounts), many=True)))
 
-    u_au = AccountUser.query.filter(AccountUser.user_id == 1)\
+    u_au = AccountUser.query.filter(AccountUser.user_id == user_id) \
         .order_by(AccountUser.account_id).all()
-
-    all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: au.coowner, u_au)), many=True)))
-    all_accounts += list(map(lambda a: dict({'belong':'shared'},**a), account_schema.dump(map(lambda au: get_ua_account(au), filter(lambda au: not au.coowner, u_au)), many=True)))
-
-    balances = db.session.query(Transaction.account_id, Transaction.recipient_id, label('debit', func.sum(Transaction.debit)), label(
-        'credit', func.sum(Transaction.credit))).group_by(Transaction.account_id, Transaction.recipient_id).all()
+    all_accounts += [dict({'belong':'coowner'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.account.deleted and au.write], many=True)]
+    all_accounts += [dict({'belong':'shared'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.account.deleted and not au.write], many=True)]
+    balances = get_balances(list(map(lambda a: a['id'], all_accounts)), None, None)
     for account in all_accounts:
         account['balance'] = account['start_balance']
         account['balance'] -= sum(list(map(lambda b: b.credit, list(
@@ -70,107 +94,113 @@ def get_accounts():
             filter(lambda b: b.recipient_id == account['id'], balances)))))
     return jsonify(all_accounts)
 
-
 @app.route("/api/accounts/<id>")
-#@jwt_required
+@jwt_required
 def get_account(id):
     account = Account.query.get(id)
     return account_schema.jsonify(account)
 
-
 @app.route('/api/accounts', methods=['POST'])
-#@jwt_required
+@jwt_required
 def account_add():
     data = account_schema.load(request.json, partial=True)
     account = Account(**data)
-    account.user_id=1
+    account.user_id = get_jwt_identity()['id']
     db.session.add(account)
     db.session.commit()
     return account_schema.jsonify(account), 201
 
 
 @app.route("/api/accounts", methods=["PUT"])
-#@jwt_required
+@jwt_required
 def account_update():
+    user_id = get_jwt_identity()['id']
     account = Account.query.get(request.json['id'])
+    if account.user_id != user_id:
+        return jsonify({"msg": "Can't update this account"}), 401
     account.name = request.json['name']
-    account.currency = request.json['currency']
-    account.start_balance = request.json['start_balance']
+    account.currency = request.json.get('currency', 'RUB')
+    account.start_balance = request.json.get('start_balance', 0)
+    account.visible = request.json.get('visible', False)
+    account.inbalance = request.json.get('inbalance', False)
     db.session.commit()
     return account_schema.jsonify(account)
 
 
 @app.route("/api/accounts/<id>", methods=["DELETE"])
-#@jwt_required
+@jwt_required
 def account_delete(id):
+    user_id = get_jwt_identity()['id']
     account = Account.query.get(id)
-    db.session.delete(account)
+    if account.user_id != user_id:
+        return jsonify({"msg": "Can't delete this account"}), 401
+    account.deleted = True
     db.session.commit()
     return account_schema.jsonify(account)
 
 @app.route('/api/categories')
-#@jwt_required
+@jwt_required
 def get_categories():
-    all_categories = Category.query.filter(Category.user_id==1).order_by(Category.name).all()
+    user_id = get_jwt_identity()['id']
+    all_categories = get_user_categories(user_id)
     return category_schema.jsonify(all_categories, many=True)
 
 @app.route('/api/categories/expenses')
-#@jwt_required
+@jwt_required
 def get_expenses():
-    all_categories = Category.query.filter(Category.user_id==1).all()
+    user_id = get_jwt_identity()['id']
+    all_categories = get_user_categories(user_id)
     expenses = sorted(filter(lambda e: e.root.id == Category.EXPENSE, all_categories), key = lambda c: c.full_name)
     return category_schema.jsonify(expenses, many=True)
 
 
 @app.route('/api/categories/income')
-#@jwt_required
+@jwt_required
 def get_income():
-    all_categories = Category.query.filter(Category.user_id==1).all()
+    user_id = get_jwt_identity()['id']
+    all_categories = get_user_categories(user_id)
     income = sorted(filter(lambda e: e.root.id == Category.INCOME, all_categories), key = lambda c: c.full_name)
     return category_schema.jsonify(income, many=True)
 
 
 @app.route("/api/categories/<id>")
-#@jwt_required
+@jwt_required
 def get_category(id):
     category = Category.query.get(id)
     return category_schema.jsonify(category)
 
 
 @app.route('/api/categories', methods=['POST'])
-#@jwt_required
+@jwt_required
 def category_add():
     data = category_schema.load(request.json)
     category = Category(**data)
-    category.user_id=1
+    category.user_id=get_jwt_identity()['id']
     db.session.add(category)
     db.session.commit()
     return category_schema.jsonify(category), 201
 
 @app.route("/api/categories", methods=["PUT"])
-#@jwt_required
+@jwt_required
 def category_update():
     category = Category.query.get(request.json['id'])
+    user_id = get_jwt_identity()['id']
+    if category.user_id != user_id:
+        return jsonify({"msg": "Can't update this category"}), 401        
     category.name = request.json['name']
     category.bg = request.json['bgc']
     db.session.commit()
     return category_schema.jsonify(category)
 
-def get_balances(ai, tid, opdate):
-    return db.session.query(Transaction.account_id, Transaction.recipient_id, \
-            label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
-            .filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai))) \
-            .filter(or_(Transaction.opdate < opdate, and_(Transaction.opdate == opdate, Transaction.id < tid))) \
-            .group_by(Transaction.account_id, Transaction.recipient_id).all()
-
 @app.route('/api/transactions')
-#@jwt_required
+@jwt_required
 def get_transactions():
     limit = request.args.get('limit', 40)
     offset = request.args.get('offset', 0)
     # select accounts
-    u_a = Account.query.filter(Account.user_id == 1).all()
-    a_u = AccountUser.query.filter(AccountUser.user_id == 1).all()
+    user_id = get_jwt_identity()['id']
+    u_a = Account.query.filter(Account.user_id == user_id).all()
+    a_u = AccountUser.query.filter(AccountUser.user_id == user_id).all()
     accounts = u_a + list(map(lambda a: a.account, a_u))
     ai = list(map(lambda a: a.id, accounts))
     ab = dict((a.id,a.start_balance) for a in accounts)
@@ -199,7 +229,7 @@ def get_transactions():
 
 
 @app.route('/api/transactions/<id>')
-#@jwt_required
+@jwt_required
 def get_transaction(id):
     transaction = Transaction.query.get(id)
     acc = transaction.account if transaction.account else transaction.recipient
@@ -216,9 +246,8 @@ def get_transaction(id):
 
 
 @app.route('/api/transactions', methods=['POST'])
-#@jwt_required
+@jwt_required
 def transaction_add():
-#    request.json['opdate'] = datetime.datetime.combine(dateutil.parser.parse(request.json['opdate']).date(), datetime.datetime.now().time()).strftime("%Y-%m-%d %H:%M:%S.%f")
     data = transaction_schema.load(request.json)
     if request.json['account']:
         data['account_id'] = request.json['account']['id']
@@ -227,17 +256,17 @@ def transaction_add():
     if request.json['category']:
         data['category_id'] = request.json['category']['id']
     transaction = Transaction(**data)
-    transaction.user_id=1
+    transaction.user_id=get_jwt_identity()['id']
     db.session.add(transaction)
     db.session.commit()
     return transaction_schema.jsonify(transaction), 201
 
 
 @app.route("/api/transactions", methods=["PUT"])
-#@jwt_required
+@jwt_required
 def transaction_update():
     transaction = Transaction.query.get(request.json['id'])
-    transaction.user_id=1
+    transaction.user_id=get_jwt_identity()['id']
     transaction.opdate = datetime.datetime.combine(dateutil.parser.parse(request.json['opdate']).date(), transaction.opdate.time())
     transaction.account_id = request.json['account']['id'] if request.json['account'] else None
     transaction.recipient_id = request.json['recipient']['id'] if request.json['recipient'] else None
@@ -250,7 +279,7 @@ def transaction_update():
     return transaction_schema.jsonify(transaction)
 
 @app.route("/api/transactions/<id>", methods=["DELETE"])
-#@jwt_required
+@jwt_required
 def transaction_delete(id):
     transaction = Transaction.query.get(id)
     if transaction:
