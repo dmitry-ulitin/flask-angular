@@ -37,7 +37,7 @@ def login():
     if len(users) != 1 or users[0].password != hashlib.md5((password + "swarmer").encode('utf-8')).hexdigest():
         return jsonify({"msg": "Bad username or password"}), 401
     # Identity can be any data that is json serializable
-    access_token = create_access_token(identity=user_schema.dump(users[0]))
+    access_token = create_access_token(identity=user_schema.dump(users[0]), expires_delta=False)
     return jsonify(access_token=access_token), 200
 
 def get_ua_account(au) :
