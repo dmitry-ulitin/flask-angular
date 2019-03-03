@@ -2,11 +2,13 @@ import { Account } from '../models/account';
 
 export interface State {
     accounts: Account[],
+    total: {balance: number, currency: string}[],
     selected: Account
 }
 
 export const initialState: State = {
     accounts: [],
+    total: [],
     selected: null
 };
 
@@ -14,7 +16,7 @@ export function reducer(state: State = initialState, action: any): State {
     switch(action.type) {        
         case '[accounts] query success' : {
             let accounts = (action.payload as Account[])
-            return {...state, accounts: accounts, selected: null};
+            return {...state, accounts: accounts, total: getTotal(accounts), selected: null};
         }
         case '[accounts] select': {
             return {...state, selected: action.payload};
@@ -29,15 +31,15 @@ export function reducer(state: State = initialState, action: any): State {
             } else {
                 accounts[index] = selected;
             }
-            return {...state, accounts: accounts, selected: selected};
+            return {...state, accounts: accounts, total: getTotal(accounts), selected: selected};
         }
         case '[accounts] delete success': {
             let accounts = [...state.accounts];
             let index = accounts.findIndex(a => a.id == state.selected.id);
             if (index>=0) {
                 accounts.splice(index, 1);
-            } 
-            return {...state, accounts: accounts, selected: null};
+            }
+            return {...state, accounts: accounts, total: getTotal(accounts), selected: null};
         }
         case '[accounts] add transaction': {
             let accounts = [...state.accounts];
@@ -54,7 +56,7 @@ export function reducer(state: State = initialState, action: any): State {
                 }     
             }
             let selected = state.selected ? accounts.find(a => a.id == state.selected.id) : null;
-            return {...state, accounts: accounts, selected: selected};
+            return {...state, accounts: accounts, total: getTotal(accounts), selected: selected};
         }
         case '[accounts] delete transaction': {
             let accounts = [...state.accounts];
@@ -71,10 +73,20 @@ export function reducer(state: State = initialState, action: any): State {
                 }     
             }
             let selected = state.selected ? accounts.find(a => a.id == state.selected.id) : null;
-            return {...state, accounts: accounts, selected: selected};
+            return {...state, accounts: accounts, total: getTotal(accounts), selected: selected};
         }
         default: {
             return state;
         }
     }
+}
+
+function getTotal(accounts: Account[]) {
+    let total: { [id: string] : {balance: number, currency: string}} = {};
+    for (let a of accounts) {
+        let balance = total[a.currency] || { balance:0, currency: a.currency};
+        balance.balance += a.balance;
+        total[a.currency] = balance;
+    }
+    return Object.values(total);
 }

@@ -12,11 +12,13 @@ import { map } from 'rxjs/operators';
 })
 export class AccountsComponent implements OnInit {
   accounts$: Observable<Account[]>;
+  total$: Observable<{balance: number, currency: string}[]>;
   selected$: Observable<Account>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.accounts$ = this.store.select('accounts', 'accounts');
+    this.total$ = this.store.select('accounts', 'total');
     this.selected$ = this.store.select('accounts', 'selected');
   }
 
