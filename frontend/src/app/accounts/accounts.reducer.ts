@@ -25,10 +25,8 @@ export function reducer(state: State = initialState, action: any): State {
             let accounts = [...state.accounts];
             let index = accounts.findIndex(a => a.id == selected.id);
             if (index<0) {
-                selected.balance = selected.start_balance;
                 accounts.push(selected);
             } else {
-                selected.balance = selected.start_balance + accounts[index].balance - accounts[index].start_balance;
                 accounts[index] = selected;
             }
             return {...state, accounts: accounts, selected: selected};
