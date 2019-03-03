@@ -34,6 +34,10 @@
                 <td>{{a.name}}</td>
                 <td class="text-right">{{a.balance  | currency:a.currency}}</td>
             </tr>
+            <tr *ngFor="let t of total$ | async">
+                <td></td>
+                <td class="text-right">{{t.balance  | currency:t.currency}}</td>
+            </tr>
         </table>
     </div>
 </div>
