@@ -18,14 +18,21 @@ class Account(db.Model):
     inbalance = db.Column(db.Boolean, nullable=False, default = True)
     deleted = db.Column(db.Boolean, nullable=False, default = False)
     order = db.Column(db.Integer, nullable=False, default = 0)
+    permissions = db.relationship("AccountUser")
     def __repr__(self):
         return '<Account %r>' % self.name
  
 class AccountSchema(ma.Schema):
     class Meta:
         json_module = simplejson
-        fields = ('id', 'name','currency','start_balance', 'visible', 'inbalance')
     id = fields.Int(dump_only=True)
+    name = fields.Str()
+    currency = fields.Str()
+    start_balance = fields.Decimal()
+    visible = fields.Boolean()
+    inbalance = fields.Boolean()
+    user_id = fields.Int(dump_only=True)
+    permissions =  ma.Nested('AccountUserSchema', dump_only=True, many = True)
 
 account_schema = AccountSchema()
 

@@ -120,7 +120,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         var today = new Date(this.form.controls.opdate.value);
         today.setDate(today.getDate() - 1);
         let tzoffset = today.getTimezoneOffset() * 60000;
-        let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+        let localISOTime = (new Date(today.getTime() - tzoffset)).toISOString().slice(0, -1);
         this.form.controls.opdate.setValue(localISOTime.substr(0,10))
     }
 
@@ -135,7 +135,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         var today = new Date(this.form.controls.opdate.value);
         today.setDate(today.getDate() + 1);
         let tzoffset = today.getTimezoneOffset() * 60000;
-        let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
+        let localISOTime = (new Date(today.getTime() - tzoffset)).toISOString().slice(0, -1);
         this.form.controls.opdate.setValue(localISOTime.substr(0,10))
     }
 

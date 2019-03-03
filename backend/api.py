@@ -37,7 +37,7 @@ def login():
     if len(users) != 1 or users[0].password != hashlib.md5((password + "swarmer").encode('utf-8')).hexdigest():
         return jsonify({"msg": "Bad username or password"}), 401
     # Identity can be any data that is json serializable
-    access_token = create_access_token(identity=user_schema.dump(users[0]))
+    access_token = create_access_token(identity=user_schema.dump(users[0]), expires_delta=False)
     return jsonify(access_token=access_token), 200
 
 def get_ua_account(au) :
@@ -47,7 +47,7 @@ def get_ua_account(au) :
     a.inbalance = au.inbalance
     return a
 
-def get_balances(ai, tid, opdate):
+def get_balances(ai, tid = None, opdate = None):
     query = db.session.query(Transaction.account_id, Transaction.recipient_id, \
             label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
             .filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai)))
@@ -85,20 +85,26 @@ def get_accounts():
         .order_by(AccountUser.account_id).all()
     all_accounts += [dict({'belong':'coowner'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.account.deleted and au.write], many=True)]
     all_accounts += [dict({'belong':'shared'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.account.deleted and not au.write], many=True)]
-    balances = get_balances(list(map(lambda a: a['id'], all_accounts)), None, None)
+    balances = get_balances(list(map(lambda a: a['id'], all_accounts)))
     for account in all_accounts:
         account['balance'] = account['start_balance']
-        account['balance'] -= sum(list(map(lambda b: b.credit, list(
-            filter(lambda b: b.account_id == account['id'], balances)))))
-        account['balance'] += sum(list(map(lambda b: b.debit, list(
-            filter(lambda b: b.recipient_id == account['id'], balances)))))
+        account['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account['id'], balances)))))
+        account['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account['id'], balances)))))
     return jsonify(all_accounts)
 
 @app.route("/api/accounts/<id>")
 @jwt_required
 def get_account(id):
-    account = Account.query.get(id)
-    return account_schema.jsonify(account)
+    user_id = get_jwt_identity()['id']
+    account = account_schema.dump(Account.query.get(id))
+    balances = get_balances([id])
+    account['balance'] = account['start_balance']
+    account['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account['id'], balances)))))
+    account['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account['id'], balances)))))
+    account['belong'] = 'owner' if account['user_id'] == user_id else 'shared'
+    if any([p['write'] for p in account['permissions']]):
+        account['belong'] = 'coowner'
+    return jsonify(account)
 
 @app.route('/api/accounts', methods=['POST'])
 @jwt_required
