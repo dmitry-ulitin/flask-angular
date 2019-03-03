@@ -38,6 +38,10 @@ export class AccountsComponent implements OnInit {
     this.store.dispatch({type:'[accounts] delete'});    
   }
 
+  transactions(account: Account) {
+    this.store.dispatch({type:'[transactions] account', payload: account});    
+  }
+
   createTr(ttype: number) {
     this.store.dispatch({type:'[transactions] create', payload: {ttype:ttype}});
   }

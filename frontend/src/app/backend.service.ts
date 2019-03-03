@@ -52,8 +52,8 @@ export class BackendService {
     return this.http.delete('/api/categories/' + id);
   }
 
-  getTransactions(): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>('/api/transactions');
+  getTransactions(account: Account): Observable<Transaction[]> {
+    return this.http.get<Transaction[]>('/api/transactions?account=' + (account==null ? '':account.id));
   }
 
   getTransaction(id: number): Observable<Transaction> {

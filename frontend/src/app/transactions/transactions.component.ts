@@ -13,13 +13,13 @@ import { Transaction } from '../models/transaction';
 export class TransactionsComponent implements OnInit {
   transactions$: Observable<Transaction[]>;
   selected$: Observable<Transaction>;
-  accounts$: Observable<Account[]>;
+  account$: Observable<Account>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.transactions$ = this.store.select('transactions', 'transactions');
     this.selected$ = this.store.select('transactions', 'selected');
-    this.accounts$ = this.store.select('accounts', 'accounts');
+    this.account$ = this.store.select('transactions', 'account');
   }
 
   refresh() {
@@ -38,9 +38,13 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] delete'});    
   }
 
+  clearFilter() {
+    this.store.dispatch({type:'[transactions] account'});    
+  }
+
   getName(t: Transaction) {
     if (t.account && t.recipient) {
-      return t.account.name + ' 🡆 ' + t.recipient.name;
+      return t.account.name + ' => ' + t.recipient.name;
     }
     return t.category ? t.category.name : '-';
   }

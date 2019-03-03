@@ -1,13 +1,16 @@
 import { Transaction } from '../models/transaction';
+import { Account } from '../models/account';
 
 export interface State {
     transactions: Transaction[],
+    account: Account,
     selected: Transaction,
     form:  Transaction
 }
 
 export const initialState: State = {
     transactions: [],
+    account: null,
     selected: null,
     form: null
 };
@@ -20,6 +23,9 @@ export function reducer(state: State = initialState, action: any): State {
         }
         case '[transactions] select': {
             return {...state, selected: action.payload};
+        }
+        case '[transactions] account': {
+            return {...state, account: action.payload};
         }
         case '[transactions] edit': {
             return {...state, form: action.payload};

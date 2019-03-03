@@ -215,15 +215,17 @@ def category_update():
 def get_transactions():
     limit = request.args.get('limit', 40)
     offset = request.args.get('offset', 0)
-    # select accounts
     user_id = get_jwt_identity()['id']
+    # select accounts
     u_a = Account.query.filter(Account.user_id == user_id).all()
     a_u = AccountUser.query.filter(AccountUser.user_id == user_id).all()
     accounts = u_a + list(map(lambda a: a.account, a_u))
     ai = list(map(lambda a: a.id, accounts))
     ab = dict((a.id,a.start_balance) for a in accounts)
+    af = request.args.get('account')
+    af = [af] if af else ai
     # get transactions
-    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai))) \
+    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(af), Transaction.recipient_id.in_(af))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
         .limit(limit).offset(offset).all()
     # get balances for all previous transactions

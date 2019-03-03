@@ -34,7 +34,7 @@
             <tr *ngFor="let a of accounts$ | async" (click)="select(a)"
                 [class.table-active]="(selected$ | async)?.id == a.id" [class.owner]="a.belong=='owner'"
                 [class.coowner]="a.belong=='coowner'" [class.shared]="a.belong=='shared'">
-                <td>{{a.name}}</td>
+                <td><a  href="#" routerLink="/transactions" (click)="transactions(a)">{{a.name}}</a></td>
                 <td class="text-right">{{a.balance  | currency:a.currency}}</td>
             </tr>
             <tr>
