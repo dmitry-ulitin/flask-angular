@@ -40,7 +40,7 @@ def login():
     access_token = create_access_token(identity=user_schema.dump(users[0]), expires_delta=False)
     return jsonify(access_token=access_token), 200
 
-def get_ua_account(au) :
+def get_ua_account(au):
     a = au.account
     a.name = au.name if au.name else a.name + ' (' + a.user.name + ')'
     a.visible = au.visible
@@ -71,6 +71,18 @@ def get_user_categories(user_id):
         p = c
     return categories
 
+def get_account_json(account, user_id):
+    json = account_schema.dump(account)
+    balances = get_balances([account.id])
+    json['balance'] = account.start_balance
+    json['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account.id, balances)))))
+    json['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account.id, balances)))))
+    json['belong'] = 'owner' if account.user_id == user_id else 'shared'
+    if any([p.write for p in account.permissions]):
+        json['belong'] = 'coowner'
+    return json
+
+
 @app.route('/api/accounts')
 @jwt_required
 def get_accounts():
@@ -96,15 +108,9 @@ def get_accounts():
 @jwt_required
 def get_account(id):
     user_id = get_jwt_identity()['id']
-    account = account_schema.dump(Account.query.get(id))
-    balances = get_balances([id])
-    account['balance'] = account['start_balance']
-    account['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account['id'], balances)))))
-    account['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account['id'], balances)))))
-    account['belong'] = 'owner' if account['user_id'] == user_id else 'shared'
-    if any([p['write'] for p in account['permissions']]):
-        account['belong'] = 'coowner'
-    return jsonify(account)
+    account = Account.query.get(id)
+    json = get_account_json(account, user_id)
+    return jsonify(json)
 
 @app.route('/api/accounts', methods=['POST'])
 @jwt_required
@@ -114,7 +120,12 @@ def account_add():
     account.user_id = get_jwt_identity()['id']
     db.session.add(account)
     db.session.commit()
-    return account_schema.jsonify(account), 201
+    json = account_schema.dump(account)
+    json['balance'] = account.start_balance
+    json['belong'] = 'owner'
+    if any([p.write for p in account.permissions]):
+        json['belong'] = 'coowner'
+    return jsonify(json), 201
 
 
 @app.route("/api/accounts", methods=["PUT"])
@@ -130,7 +141,8 @@ def account_update():
     account.visible = request.json.get('visible', False)
     account.inbalance = request.json.get('inbalance', False)
     db.session.commit()
-    return account_schema.jsonify(account)
+    json = get_account_json(account, user_id)
+    return jsonify(json)
 
 
 @app.route("/api/accounts/<id>", methods=["DELETE"])
@@ -230,7 +242,6 @@ def get_transactions():
             id = t['recipient']['id']
             ab[id] += t['debit']
             t['recipient']['balance'] = ab[id]
-
     return jsonify(tr)
 
 
