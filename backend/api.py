@@ -217,15 +217,17 @@ def get_transactions():
     offset = request.args.get('offset', 0)
     user_id = get_jwt_identity()['id']
     # select accounts
-    u_a = Account.query.filter(Account.user_id == user_id).all()
-    a_u = AccountUser.query.filter(AccountUser.user_id == user_id).all()
-    accounts = u_a + list(map(lambda a: a.account, a_u))
+    accounts = request.args.get('accounts')
+    if (accounts):
+        accounts = Account.query.filter(Account.id.in_(accounts.split(','))).all()
+    else:
+        u_a = Account.query.filter(Account.user_id == user_id).all()
+        a_u = AccountUser.query.filter(AccountUser.user_id == user_id).all()
+        accounts = u_a + list(map(lambda a: a.account, a_u))
     ai = list(map(lambda a: a.id, accounts))
     ab = dict((a.id,a.start_balance) for a in accounts)
-    af = request.args.get('accounts')
-    af = [af] if af else ai
     # get transactions
-    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(af), Transaction.recipient_id.in_(af))) \
+    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
         .limit(limit).offset(offset).all()
     # get balances for all previous transactions
@@ -238,12 +240,14 @@ def get_transactions():
     for t in tr[::-1]:
         if t['account']:
             id = t['account']['id']
-            ab[id] -= t['credit']
-            t['account']['balance'] = ab[id]
+            if id in ab:
+                ab[id] -= t['credit']
+                t['account']['balance'] = ab[id]
         if t['recipient']:
             id = t['recipient']['id']
-            ab[id] += t['debit']
-            t['recipient']['balance'] = ab[id]
+            if id in ab:
+                ab[id] += t['debit']
+                t['recipient']['balance'] = ab[id]
     return jsonify(tr)
 
 
