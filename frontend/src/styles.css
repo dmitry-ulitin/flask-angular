@@ -56,3 +56,10 @@ div.filter {
 div.filter button.close {
     font-size: 1.3rem;
 }
+
+td.nowrap {
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+    max-width:200px;
+}
