@@ -222,7 +222,7 @@ def get_transactions():
     accounts = u_a + list(map(lambda a: a.account, a_u))
     ai = list(map(lambda a: a.id, accounts))
     ab = dict((a.id,a.start_balance) for a in accounts)
-    af = request.args.get('account')
+    af = request.args.get('accounts')
     af = [af] if af else ai
     # get transactions
     transactions = Transaction.query.filter(or_(Transaction.account_id.in_(af), Transaction.recipient_id.in_(af))) \

@@ -39,7 +39,8 @@ export class AccountsComponent implements OnInit {
   }
 
   transactions(account: Account) {
-    this.store.dispatch({type:'[transactions] account', payload: account});    
+    this.store.dispatch({type:'[accounts] select', payload: account});    
+    this.store.dispatch({type:'[transactions] filter accounts', payload: [account]});    
   }
 
   createTr(ttype: number) {

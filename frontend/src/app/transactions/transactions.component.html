@@ -25,12 +25,12 @@
                     <i class="fas fa-trash-alt"></i>
                 </button>
             </div>
-            <div *ngIf="account$ | async" class="filter">{{(account$ | async)?.name}} <button type="button" class="close ml-2" aria-label="Close" (click)="clearFilter()"><span aria-hidden="true">&times;</span></button></div>
+            <div *ngIf="((filter$ | async)?.accounts || []).length" class="filter">{{(filter$ | async)?.accounts[0].name}} <button type="button" class="close ml-2" aria-label="Close" (click)="clearFilter()"><span aria-hidden="true">&times;</span></button></div>
         </div>
         <table class="table table-sm">
             <tr *ngFor="let t of transactions$ | async" (click)="select(t)" [class.table-active]="(selected$ | async)?.id == t.id" [style.background-color]="t.bg">
-                <td><div>{{getName(t)}}</div><div class="text-black-50">{{t.opdate | date:'shortDate'}} {{t.account?.name || t.recipient?.name}}</div></td>
-                <td class="text-right"><div>{{t.credit | currency:t.currency}}</div><div class="text-black-50">{{t.account?.balance || t.recipient?.balance | currency:t.currency}}</div></td>
+                <td><div>{{getName(t)}}</div><div class="text-black-50">{{t.opdate | date:'shortDate'}} {{getBalance(t)?.name}}</div></td>
+                <td class="text-right"><div>{{t.credit | currency:t.currency}}</div><div class="text-black-50">{{getBalance(t)?.balance | currency:getBalance(t)?.currency}}</div></td>
             </tr>
         </table>
     </div>

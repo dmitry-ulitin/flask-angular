@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { Account } from './models/account';
 import { Category } from './models/category';
 import { Transaction } from './models/transaction';
+import { Filter } from './models/filter';
 
 @Injectable({
   providedIn: 'root'
@@ -52,8 +53,11 @@ export class BackendService {
     return this.http.delete('/api/categories/' + id);
   }
 
-  getTransactions(account: Account): Observable<Transaction[]> {
-    return this.http.get<Transaction[]>('/api/transactions?account=' + (account==null ? '':account.id));
+  getTransactions(filter: Filter): Observable<Transaction[]> {
+    let params = new HttpParams()
+      .set('accounts', (filter.accounts || []).map(a => a.id).join(','))
+      .set('categories', (filter.categories || []).map(a => a.id).join(','));
+    return this.http.get<Transaction[]>('/api/transactions', {params: params});
   }
 
   getTransaction(id: number): Observable<Transaction> {

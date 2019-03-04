@@ -18,7 +18,6 @@ export function reducer(state: State = initialState, action: any): State {
             let accounts = (action.payload as Account[])
             return {...state, accounts: accounts, total: getTotal(accounts), selected: null};
         }
-        case '[transactions] account':
         case '[accounts] select': {
             return {...state, selected: action.payload};
         }
