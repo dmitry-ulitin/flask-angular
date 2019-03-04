@@ -1,13 +1,17 @@
 import { Transaction } from '../models/transaction';
+import { Account } from '../models/account';
+import { Filter } from '../models/filter';
 
 export interface State {
     transactions: Transaction[],
+    filter: Filter,
     selected: Transaction,
     form:  Transaction
 }
 
 export const initialState: State = {
     transactions: [],
+    filter: { accounts: [], categories: []},
     selected: null,
     form: null
 };
@@ -20,6 +24,15 @@ export function reducer(state: State = initialState, action: any): State {
         }
         case '[transactions] select': {
             return {...state, selected: action.payload};
+        }
+        case '[transactions] filter accounts': {
+            let accounts = action.payload as Account[] || [];
+            let filter = {...state.filter, accounts: accounts};
+            let transactions = state.transactions;
+            if (filter.accounts.length) {
+                transactions = transactions.filter(t => accounts.some(a => t.account && a.id == t.account.id || t.recipient && a.id == t.recipient.id))
+            }
+            return {...state, transactions: transactions, filter: filter, selected: null};
         }
         case '[transactions] edit': {
             return {...state, form: action.payload};

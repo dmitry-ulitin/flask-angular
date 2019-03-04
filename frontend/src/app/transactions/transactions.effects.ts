@@ -18,12 +18,15 @@ export class TransactionsEffects {
         private router: Router,
         private location: Location) { };
 
-    @Effect() getTransactions$: Observable<any> = this.actions$.ofType('[transactions] query').pipe(
-        switchMap(action => this.backend.getTransactions().pipe(
+    @Effect() getTransactions$: Observable<any> = this.actions$.ofType('[transactions] query', '[transactions] filter accounts').pipe(
+        withLatestFrom(this.store),
+        switchMap(([action, state]) => this.backend.getTransactions(state.transactions.filter).pipe(
             map(data => { return { type: '[transactions] query success', payload: data }; }),
             catchError(error => of({ type: '[transactions] query fail', payload: error }))
         ))
     );
+
+//    @Effect() setAccount$: Observable<any> = this.actions$.ofType('[transaction] account').pipe(map(action => { return { type: '[transactions] query'};}));
 
     @Effect() getTransaction$: Observable<any> = this.actions$.ofType('[transaction] query id').pipe(
         switchMap(action => this.backend.getTransaction(action.payload).pipe(

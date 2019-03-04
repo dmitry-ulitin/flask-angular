@@ -2,8 +2,8 @@ import { Component, OnInit } from '@angular/core';
 import { Observable} from 'rxjs';
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
-import { Account } from '../models/account';
 import { Transaction } from '../models/transaction';
+import { Filter } from '../models/filter';
 
 @Component({
   selector: 'app-transactions',
@@ -13,13 +13,13 @@ import { Transaction } from '../models/transaction';
 export class TransactionsComponent implements OnInit {
   transactions$: Observable<Transaction[]>;
   selected$: Observable<Transaction>;
-  accounts$: Observable<Account[]>;
+  filter$: Observable<Filter>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.transactions$ = this.store.select('transactions', 'transactions');
     this.selected$ = this.store.select('transactions', 'selected');
-    this.accounts$ = this.store.select('accounts', 'accounts');
+    this.filter$ = this.store.select('transactions', 'filter');
   }
 
   refresh() {
@@ -38,10 +38,18 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] delete'});    
   }
 
+  clearFilter() {
+    this.store.dispatch({type:'[transactions] filter accounts', payload: []});    
+  }
+
   getName(t: Transaction) {
     if (t.account && t.recipient) {
-      return t.account.name + ' 🡆 ' + t.recipient.name;
+      return t.account.name + ' => ' + t.recipient.name;
     }
     return t.category ? t.category.name : '-';
+  }
+
+  getBalance(t: Transaction) {
+    return t.account && t.account.balance ? t.account : (t.recipient && t.recipient.balance ? t.recipient : null);
   }
 }

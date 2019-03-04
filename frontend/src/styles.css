@@ -43,3 +43,16 @@ tr.coowner {
 tr.shared {
     background-color: #f6e9cf;
 }
+
+div.filter {
+    color: #856404;
+    background-color: #fff3cd;
+    border-color: #ffeeba;    
+    padding: .375rem .5rem;
+    border: 1px solid transparent;
+    border-radius: .25rem;
+}
+
+div.filter button.close {
+    font-size: 1.3rem;
+}

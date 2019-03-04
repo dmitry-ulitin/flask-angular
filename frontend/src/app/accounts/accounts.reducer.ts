@@ -60,13 +60,13 @@ export function reducer(state: State = initialState, action: any): State {
         }
         case '[accounts] delete transaction': {
             let accounts = [...state.accounts];
-            if (action.payload.account) {
+            if (action.payload && action.payload.id && action.payload.account) {
                 let account = accounts.find(a => a.id == action.payload.account.id);
                 if (account) {
                     account.balance += action.payload.credit;
                 }     
             }
-            if (action.payload.recipient) {
+            if (action.payload && action.payload.id && action.payload.recipient) {
                 let recipient = accounts.find(a => a.id == action.payload.recipient.id);
                 if (recipient) {
                     recipient.balance -= action.payload.debit;
