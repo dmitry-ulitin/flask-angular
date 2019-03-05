@@ -7,9 +7,12 @@ from flask_jwt_extended import JWTManager, jwt_required, create_access_token, ge
 import dateutil.parser
 import datetime
 import hashlib
+import os
 
+db_path = os.path.join(os.path.dirname(__file__), 'swarmer.db')
+db_uri = 'sqlite:///{}'.format(db_path)
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../swarmer.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 
