@@ -54,6 +54,8 @@ transaction_schema = TransactionSchema()
 # for test purposes
 @listens_for(Transaction.__table__, 'after_create')
 def insert_initial_records(*args, **kwargs):
-    db.session.add(Transaction(id=1, user_id=1, opdate=datetime.datetime.utcnow(), account_id=2, credit=260, debit=260, category_id=1022, currency='RUB', details='dinner'))
+    db.session.add(Transaction(id=1, user_id=1, opdate=datetime.datetime.utcnow(), account_id=2, credit=4900, recipient_id=1, debit=4900))
+    db.session.add(Transaction(id=2, user_id=1, opdate=datetime.datetime.utcnow(), account_id=1, credit=260, debit=260, category_id=1022, currency='RUB', details='lunch'))
+    db.session.add(Transaction(id=3, user_id=1, opdate=datetime.datetime.utcnow(), account_id=2, credit=465, debit=260, category_id=108, currency='RUB', details='telephony'))
     db.session.commit()
 
