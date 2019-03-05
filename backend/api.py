@@ -9,7 +9,7 @@ import datetime
 import hashlib
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///swarmer.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///../swarmer.db'
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 

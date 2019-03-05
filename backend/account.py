@@ -41,6 +41,7 @@ account_schema = AccountSchema()
 def insert_initial_records(*args, **kwargs):
     db.session.add(Account(id=1, name='cash', currency='RUB', start_balance=5450, user_id=1))
     db.session.add(Account(id=2, name='visa ...1234', currency='RUB', start_balance=56432.28, user_id=1))
+    db.session.add(Account(id=3, name='visa ...1234', currency='USD', start_balance=456, user_id=1))
     db.session.commit()
 
 class AccountUser(db.Model):
