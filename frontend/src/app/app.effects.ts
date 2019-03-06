@@ -1,7 +1,7 @@
 import { Injectable } from "@angular/core";
 import { Observable, of, defer } from 'rxjs';
 import { filter, map, switchMap, catchError, mergeMap } from 'rxjs/operators';
-import { Actions, Effect } from '@ngrx/effects';
+import { Actions, Effect, ofType } from '@ngrx/effects';
 import { AlertifyService } from './alertify.service';
 import { AuthService } from "./auth.service";
 import { Router } from "@angular/router";
@@ -19,7 +19,8 @@ export class AppEffects {
         })
     );
 
-    @Effect() login$: Observable<any> = this.actions$.ofType('[app] login').pipe(
+    @Effect() login$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[app] login'),
         switchMap((action) => this.auth.login(action.payload.email, action.payload.password).pipe(
             map(response => {
                 this.router.navigate([action.payload.returnUrl]);
@@ -29,7 +30,8 @@ export class AppEffects {
         )
     );
 
-    @Effect() loadData$: Observable<any> = this.actions$.ofType('[app] load').pipe(
+    @Effect() loadData$: Observable<any> = this.actions$.pipe(
+        ofType('[app] load'),
         filter(action => this.auth.currentToken != null),
         mergeMap(action => of({ type: '[accounts] query' }, { type: '[transactions] query' }, { type: '[categories] query expenses' }, { type: '[categories] query income' }))
     );
