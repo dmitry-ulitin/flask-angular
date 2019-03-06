@@ -18,7 +18,8 @@ export class TransactionsEffects {
         private router: Router,
         private location: Location) { };
 
-    @Effect() getTransactions$: Observable<any> = this.actions$.ofType('[transactions] query', '[transactions] filter accounts').pipe(
+    @Effect() getTransactions$: Observable<any> = this.actions$.pipe(
+        ofType('[transactions] query', '[transactions] filter accounts'),
         withLatestFrom(this.store),
         switchMap(([action, state]) => this.backend.getTransactions(state.transactions.filter).pipe(
             map(data => { return { type: '[transactions] query success', payload: data }; }),
@@ -28,14 +29,16 @@ export class TransactionsEffects {
 
 //    @Effect() setAccount$: Observable<any> = this.actions$.ofType('[transaction] account').pipe(map(action => { return { type: '[transactions] query'};}));
 
-    @Effect() getTransaction$: Observable<any> = this.actions$.ofType('[transaction] query id').pipe(
+    @Effect() getTransaction$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[transaction] query id'),
         switchMap(action => this.backend.getTransaction(action.payload).pipe(
             map(data => { return { type: '[transaction] query id success', payload: data }; }),
             catchError(error => of({ type: '[transaction] query id fail', payload: error }))
         ))
     );
 
-    @Effect() createTransaction$: Observable<any> = this.actions$.ofType('[transactions] create').pipe(
+    @Effect() createTransaction$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[transactions] create'),
         withLatestFrom(this.store),
         map(([action, state]) => {
             if (state.accounts.selected) {
@@ -47,7 +50,8 @@ export class TransactionsEffects {
         })
     );
 
-    @Effect() saveTransaction$: Observable<any> = this.actions$.ofType('[transaction] save').pipe(
+    @Effect() saveTransaction$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[transaction] save'),
         withLatestFrom(this.store),
         switchMap(([action, state]) => this.backend.saveTransaction(action.payload).pipe(
             concatMap(data => {
@@ -59,7 +63,8 @@ export class TransactionsEffects {
         ))
     );
 
-    @Effect() deleteTransaction$: Observable<any> = this.actions$.ofType('[transactions] delete').pipe(
+    @Effect() deleteTransaction$: Observable<any> = this.actions$.pipe(
+        ofType('[transactions] delete'),
         withLatestFrom(this.store),
         filter(([action, state]) => state.transactions.selected != null),
         switchMap(([action, state]) => this.notify.confirm('Delete transaction #' + state.transactions.selected.id + '?').pipe(
