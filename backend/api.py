@@ -84,6 +84,7 @@ def get_account_json(account, balances, user_id):
     json = account_schema.dump(account)
     json['belong'] = account.group.belong(user_id)
     json['full_name'] = account.full_name(user_id)
+    json['name'] = account.name if len(account.group.accounts)>1 else account.group.name
     json['balance'] = account.start_balance
     if balances:
         json['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account.id, balances)))))
@@ -132,9 +133,14 @@ def get_account(id):
 @app.route('/api/accounts', methods=['POST'])
 @jwt_required
 def account_add():
+    user_id = get_jwt_identity()['id']
     data = account_schema.load(request.json, partial=True)
     account = Account(**data)
-    account.user_id = get_jwt_identity()['id']
+    if 'group' in request.json:
+        account.group =  AccountGroup.query.get(request.json['group']['id'])
+    else:
+        account.group = AccountGroup(name =  account.name, user_id = user_id)
+        account.name = None
     db.session.add(account)
     db.session.commit()
     json = get_account_json(account, None, user_id)
@@ -148,7 +154,10 @@ def account_update():
     account = Account.query.get(request.json['id'])
     if account.group.user_id != user_id:
         return jsonify({"msg": "Can't update this account"}), 401
-    account.name = request.json['name']
+    if len(account.group.accounts)>1:
+        account.name = request.json['name']
+    else:
+        account.group.name = request.json['name']
     account.currency = request.json.get('currency', 'RUB')
     account.start_balance = request.json.get('start_balance', 0)
     db.session.commit()
@@ -165,8 +174,8 @@ def account_delete(id):
     if account.group.user_id != user_id:
         return jsonify({"msg": "Can't delete this account"}), 401
     account.deleted = True
-    if len([a for a in account.group.accounts if not a.deleted])<1:
-        account.group.deleted = True
+#    if len([a for a in account.group.accounts if not a.deleted])<1:
+    account.group.deleted = True
     db.session.commit()
     return account_schema.jsonify(account)
 

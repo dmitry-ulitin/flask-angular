@@ -86,7 +86,7 @@ class AccountSchema(ma.Schema):
     class Meta:
         json_module = simplejson
     id = fields.Int(dump_only=True)
-    group = ma.Nested('AccountGroupSchema', dump_only=True, only=["name", "visible", "inbalance"])
+    group = ma.Nested('AccountGroupSchema', dump_only=True, only=["id", "name", "visible", "inbalance"])
     name = fields.Str()
     currency = fields.Str()
     start_balance = fields.Decimal()
