@@ -46,7 +46,6 @@ class AccountGroupSchema(ma.Schema):
     visible = fields.Boolean()
     inbalance = fields.Boolean()
     user_id = fields.Int(dump_only=True)
-    accounts =  ma.Nested('AccountSchema', dump_only=True, many = True)
     permissions =  ma.Nested('AccountUserSchema', dump_only=True, many = True)
 
 group_schema = AccountGroupSchema()

@@ -26,7 +26,7 @@ export class AccountEditComponent implements OnInit {
       hidden: [false],
       inbalance: [true],
     });
-    this.store.select('accounts', 'selected').pipe(filter(a => a != null)).forEach(a => this.form.patchValue({...a, hidden: !a.visible}));
+    this.store.select('accounts', 'selected').pipe(filter(a => a != null)).forEach(a => this.form.patchValue(a));
     this.route.params.forEach(p => this.store.dispatch({ type: '[account] query id', payload: p['id']}));
   }
 

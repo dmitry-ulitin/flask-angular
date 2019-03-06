@@ -66,43 +66,67 @@ def get_user_categories(user_id):
         p = c
     return categories
 
-def get_account_json(account, user_id):
+def get_group_json(group, balances, user_id):
+    json = group_schema.dump(group)
+    json['belong'] = group.belong(user_id)
+    json['full_name'] = group.full_name(user_id)
+    balances = {}
+    acconts = []
+    for account in group.acconts:
+        ajson = get_account_json(account, balances, user_id)
+        acconts.append(ajson)
+        balances[account.currency] = balances.get(account.currency, 0) + ajson['balance']
+    json['accounts'] = acconts
+    json['balances'] = [{'currency':currency, 'balance': balance} for currency,balance in balances.items()]
+    return json
+
+def get_account_json(account, balances, user_id):
     json = account_schema.dump(account)
-    balances = get_balances([account.id])
-    json['balance'] = account.start_balance
-    json['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account.id, balances)))))
-    json['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account.id, balances)))))
     json['belong'] = account.group.belong(user_id)
     json['full_name'] = account.full_name(user_id)
+    json['balance'] = account.start_balance
+    if balances:
+        json['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account.id, balances)))))
+        json['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account.id, balances)))))
     return json
+
+
+@app.route('/api/groups')
+@jwt_required
+def get_groups():
+    user_id = get_jwt_identity()['id']
+    u_groups = AccountGroup.query.filter(AccountGroup.user_id == user_id).filter(AccountGroup.deleted.is_(False)).order_by(AccountGroup.id).all()
+    s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).select(AccountUser.group).order_by(AccountUser.group_id).all()
+    all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.OWNER]
+    all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.COOWNER]
+    all_groups = [g for g in s_groups if g.belong(user_id) == AccountGroup.COOWNER]
+    all_groups = [g for g in s_groups if g.belong(user_id) == AccountGroup.SHARED]
+    all_accounts = [g for g in all_groups for a in g.accounts]
+    balances = get_balances([a.id for a in all_accounts])
+    jsons = [get_group_json(group,balances,user_id) for group in all_groups]
+    return jsonify(jsons)
 
 @app.route('/api/accounts')
 @jwt_required
 def get_accounts():
     user_id = get_jwt_identity()['id']
-    u_accounts = Account.query.filter(AccountGroup.user_id == user_id).filter(AccountGroup.deleted.is_(False)).order_by(Account.id).all()
-    all_accounts = [get_account_json(a, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.OWNER]
-    all_accounts += [get_account_json(a, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
-
-    u_au = AccountUser.query.filter(AccountUser.user_id == user_id) \
-        .order_by(AccountUser.group_id).all()
-    s_accounts = [a for g in u_au for a in g.group.accounts]
-    all_accounts += [get_account_json(a, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
-    all_accounts += [get_account_json(a, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.SHARED]
-
-    balances = get_balances([a['id'] for a in all_accounts])
-    for account in all_accounts:
-        account['balance'] = account['start_balance']
-        account['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account['id'], balances)))))
-        account['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account['id'], balances)))))
-    return jsonify(all_accounts)
+    u_accounts = Account.query.filter(AccountGroup.user_id == user_id).filter(AccountGroup.deleted.is_(False)).order_by(AccountGroup.id).all()
+    s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).order_by(AccountUser.group_id).all()
+    s_accounts = [a for g in s_groups for a in g.group.accounts]
+    balances = get_balances([a.id for a in (u_accounts + s_accounts)])
+    jsons = [get_account_json(a, balances, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.OWNER]
+    jsons += [get_account_json(a, balances, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
+    jsons += [get_account_json(a, balances, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
+    jsons += [get_account_json(a, balances, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.SHARED]
+    return jsonify(jsons)
 
 @app.route("/api/accounts/<id>")
 @jwt_required
 def get_account(id):
     user_id = get_jwt_identity()['id']
     account = Account.query.get(id)
-    json = get_account_json(account, user_id)
+    balances = get_balances([account.id])
+    json = get_account_json(account, balances, user_id)
     return jsonify(json)
 
 @app.route('/api/accounts', methods=['POST'])
@@ -113,11 +137,7 @@ def account_add():
     account.user_id = get_jwt_identity()['id']
     db.session.add(account)
     db.session.commit()
-    json = account_schema.dump(account)
-    json['balance'] = account.start_balance
-    json['belong'] = 'owner'
-    if any([p.write for p in account.permissions]):
-        json['belong'] = 'coowner'
+    json = get_account_json(account, None, user_id)
     return jsonify(json), 201
 
 
@@ -132,7 +152,8 @@ def account_update():
     account.currency = request.json.get('currency', 'RUB')
     account.start_balance = request.json.get('start_balance', 0)
     db.session.commit()
-    json = get_account_json(account, user_id)
+    balances = get_balances([account.id])
+    json = get_account_json(account, balances, user_id)
     return jsonify(json)
 
 
@@ -217,22 +238,18 @@ def get_transactions():
         user_accounts = Account.query.filter(AccountGroup.user_id == user_id).all()
         user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
         accounts = user_accounts +  [a for g in user_permissions for a in g.group.accounts]
-
     account_ids = [a.id for a in accounts]
     account_balances = dict((a.id,a.start_balance) for a in accounts)
-    account_jsons = dict((a.id,get_account_json(a, user_id)) for a in accounts)
-
+    account_jsons = dict((a.id,get_account_json(a, None, user_id)) for a in accounts)
     # get transactions
     transactions = Transaction.query.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
         .limit(limit).offset(offset).all()
-
     # get balances for all previous transactions
     balances = get_balances(account_ids, transactions[-1].id, transactions[-1].opdate) if len(transactions) else []
     for id in account_balances:
         account_balances[id] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == id, balances)))))
         account_balances[id] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == id, balances)))))
-
     # set balances to transactions
     tr = transaction_schema.dump(transactions, many = True)    
     for t in tr[::-1]:
@@ -256,17 +273,16 @@ def get_transactions():
 @app.route('/api/transactions/<id>')
 @jwt_required
 def get_transaction(id):
+    user_id = get_jwt_identity()['id']
     transaction = Transaction.query.get(id)
-    acc = transaction.account if transaction.account else transaction.recipient
-    balances = get_balances([acc.id], transaction.id, transaction.opdate)
-    balance = acc.start_balance \
-        - sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == acc.id, balances))))) \
-        + sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == acc.id, balances)))))
+    balances = get_balances([a.id for a in [transaction.account,transaction.recipient] if a], transaction.id, transaction.opdate)
     tr = transaction_schema.dump(transaction)
     if tr['account']:
-        tr['account']['balance'] = balance - tr['credit']
+        tr['account'] = get_account_json(transaction.account, balances, user_id)
+        tr['account']['balance'] -= transaction.credit
     elif tr['recipient']:
-        tr['recipient']['balance'] = balance + tr['debit']
+        tr['recipient'] = get_account_json(transaction.recipient, balances, user_id)
+        tr['account']['balance'] += transaction.debit
     return jsonify(tr)
 
 
