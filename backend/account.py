@@ -2,11 +2,15 @@ import simplejson as simplejson
 import datetime
 from marshmallow import fields
 from sqlalchemy.event import listens_for
-from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.ext.hybrid import hybrid_property,hybrid_method
 from .api import db, ma
 
 class AccountGroup(db.Model):
     __tablename__ = 'account_groups'
+    ANOTHER = 0
+    OWNER = 1
+    COOWNER = 2
+    SHARED = 3
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     user = db.relationship("User", foreign_keys=[user_id])
@@ -19,6 +23,18 @@ class AccountGroup(db.Model):
     order = db.Column(db.Integer, nullable=False, default = 0)
     accounts = db.relationship("Account")
     permissions = db.relationship("AccountUser")
+    @hybrid_method
+    def belong(self, user_id):
+        if self.user_id == user_id:
+            result = AccountGroup.COOWNER if any([p.write for p in self.permissions]) else AccountGroup.OWNER
+        else:
+            result = AccountGroup.COOWNER if any([p.write for p in self.permissions if p.user_id == user_id]) \
+                else AccountGroup.SHARED if any([p for p in self.permissions if p.user_id == user_id]) \
+                else AccountGroup.ANOTHER
+        return result
+    @hybrid_method
+    def full_name(self, user_id):
+        return self.name if self.user_id == user_id else self.name + ' (' + self.user.name + ')'
     def __repr__(self):
         return '<AccountGroup %r>' % self.name
  
@@ -54,13 +70,15 @@ class Account(db.Model):
     start_balance = db.Column(db.Numeric(10,2), nullable=False)
     deleted = db.Column(db.Boolean, nullable=False, default = False)
     order = db.Column(db.Integer, nullable=False, default = 0)
-    @hybrid_property
-    def full_name(self):
+    @hybrid_method
+    def full_name(self, user_id):
         fn = self.group.name
         if self.name:
             fn += ' / ' + self.name
         elif len(self.group.accounts) > 1:
             fn += ' ' + self.currency
+        if self.group.user_id != user_id:
+            fn += ' (' + self.group.user.name + ')'
         return fn
     def __repr__(self):
         return '<Account %r>' % self.name
@@ -71,7 +89,6 @@ class AccountSchema(ma.Schema):
     id = fields.Int(dump_only=True)
     group = ma.Nested('AccountGroupSchema', dump_only=True, only=["name", "visible", "inbalance"])
     name = fields.Str()
-    full_name = fields.Str()
     currency = fields.Str()
     start_balance = fields.Decimal()
 

@@ -32,8 +32,8 @@
         </div>
         <table class="table">
             <tr *ngFor="let a of accounts$ | async" (click)="select(a)"
-                [class.table-active]="(selected$ | async)?.id == a.id" [class.owner]="a.belong=='owner'"
-                [class.coowner]="a.belong=='coowner'" [class.shared]="a.belong=='shared'">
+                [class.table-active]="(selected$ | async)?.id == a.id" [class.owner]="a.belong==1"
+                [class.coowner]="a.belong==2" [class.shared]="a.belong==3">
                 <td><a  href="#" routerLink="/transactions" (click)="transactions(a)">{{a.full_name}}</a></td>
                 <td class="text-right">{{a.balance  | currency:a.currency}}</td>
             </tr>

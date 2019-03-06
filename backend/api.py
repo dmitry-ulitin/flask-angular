@@ -42,13 +42,6 @@ def login():
     access_token = create_access_token(identity=user_schema.dump(users[0]), expires_delta=False)
     return jsonify(access_token=access_token), 200
 
-def get_ua_account(au):
-    g = au.group
-    g.name = au.name if au.name else g.name + ' (' + g.user.name + ')'
-    g.visible = au.visible
-    g.inbalance = au.inbalance
-    return g
-
 def get_balances(ai, tid = None, opdate = None):
     query = db.session.query(Transaction.account_id, Transaction.recipient_id, \
             label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
@@ -79,27 +72,25 @@ def get_account_json(account, user_id):
     json['balance'] = account.start_balance
     json['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account.id, balances)))))
     json['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account.id, balances)))))
-    json['belong'] = 'owner' if account.group.user_id == user_id else 'shared'
-    if any([p.write for p in account.group.permissions]):
-        json['belong'] = 'coowner'
+    json['belong'] = account.group.belong(user_id)
+    json['full_name'] = account.full_name(user_id)
     return json
-
 
 @app.route('/api/accounts')
 @jwt_required
 def get_accounts():
     user_id = get_jwt_identity()['id']
     u_accounts = Account.query.filter(AccountGroup.user_id == user_id).filter(AccountGroup.deleted.is_(False)).order_by(Account.id).all()
-    a_au = AccountUser.query.filter(AccountUser.group_id.in_([a.group_id for a in u_accounts])).filter(AccountUser.write.is_(True)).all()
-    co_g = [au.group_id for au in a_au]
-    all_accounts = [dict({'belong':'owner'},**a) for a in account_schema.dump(filter(lambda a: a.group_id not in co_g, u_accounts), many=True)]
-    all_accounts += list(map(lambda a: dict({'belong':'coowner'},**a), account_schema.dump(filter(lambda a: a.group_id in co_g, u_accounts), many=True)))
+    all_accounts = [get_account_json(a, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.OWNER]
+    all_accounts += [get_account_json(a, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
 
     u_au = AccountUser.query.filter(AccountUser.user_id == user_id) \
         .order_by(AccountUser.group_id).all()
-    all_accounts += [dict({'belong':'coowner'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.group.deleted and au.write], many=True)]
-    all_accounts += [dict({'belong':'shared'},**a) for a in account_schema.dump([get_ua_account(au) for au in u_au if not au.group.deleted and not au.write], many=True)]
-    balances = get_balances(list(map(lambda a: a['id'], all_accounts)))
+    s_accounts = [a for g in u_au for a in g.group.accounts]
+    all_accounts += [get_account_json(a, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
+    all_accounts += [get_account_json(a, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.SHARED]
+
+    balances = get_balances([a['id'] for a in all_accounts])
     for account in all_accounts:
         account['balance'] = account['start_balance']
         account['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account['id'], balances)))))
@@ -227,33 +218,38 @@ def get_transactions():
         user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
         accounts = user_accounts +  [a for g in user_permissions for a in g.group.accounts]
 
-    ai = [a.id for a in accounts]
-    ab = dict((a.id,a.start_balance) for a in accounts)
+    account_ids = [a.id for a in accounts]
+    account_balances = dict((a.id,a.start_balance) for a in accounts)
+    account_jsons = dict((a.id,get_account_json(a, user_id)) for a in accounts)
 
     # get transactions
-    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(ai), Transaction.recipient_id.in_(ai))) \
+    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
         .limit(limit).offset(offset).all()
 
     # get balances for all previous transactions
-    balances = get_balances(ai, transactions[-1].id, transactions[-1].opdate) if len(transactions) else []
-    for id in ab:
-        ab[id] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == id, balances)))))
-        ab[id] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == id, balances)))))
-        
+    balances = get_balances(account_ids, transactions[-1].id, transactions[-1].opdate) if len(transactions) else []
+    for id in account_balances:
+        account_balances[id] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == id, balances)))))
+        account_balances[id] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == id, balances)))))
+
     # set balances to transactions
-    tr = transaction_schema.dump(transactions, many = True)
+    tr = transaction_schema.dump(transactions, many = True)    
     for t in tr[::-1]:
         if t['account']:
             id = t['account']['id']
-            if id in ab:
-                ab[id] -= t['credit']
-                t['account']['balance'] = ab[id]
+            if id in account_jsons:
+                t['account']['full_name'] = account_jsons[id]['full_name']
+            if id in account_balances:
+                account_balances[id] -= t['credit']
+                t['account']['balance'] = account_balances[id]
         if t['recipient']:
             id = t['recipient']['id']
-            if id in ab:
-                ab[id] += t['debit']
-                t['recipient']['balance'] = ab[id]
+            if id in account_jsons:
+                t['recipient']['full_name'] = account_jsons[id]['full_name']
+            if id in account_balances:
+                account_balances[id] += t['debit']
+                t['recipient']['balance'] = account_balances[id]
     return jsonify(tr)
 
 

@@ -44,7 +44,7 @@ export class TransactionsComponent implements OnInit {
 
   getName(t: Transaction) {
     if (t.account && t.recipient) {
-      return t.account.name + ' => ' + t.recipient.name;
+      return t.account.full_name + ' => ' + t.recipient.full_name;
     }
     return t.category ? t.category.name : '-';
   }
