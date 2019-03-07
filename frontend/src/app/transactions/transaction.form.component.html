@@ -28,10 +28,10 @@
         <div class="dropdown">
             <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownAccount" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
-                <span class="d-inline-block w-100 text-left">{{form.controls.account.value?.name}}</span>
+                <span class="d-inline-block w-100 text-left">{{form.controls.account.value?.full_name}}</span>
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownAccount">
-                <a *ngFor="let a of accounts" class="dropdown-item" href="#" (click)="setAccount(a); false">{{a.name}}</a>
+                <a *ngFor="let a of accounts" class="dropdown-item" href="#" (click)="setAccount(a); false">{{a.full_name}}</a>
             </div>
         </div>
     </div>
@@ -40,10 +40,10 @@
         <div class="dropdown">
             <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownRecipient" data-toggle="dropdown"
                 aria-haspopup="true" aria-expanded="false">
-                <span class="d-inline-block w-100 text-left">{{form.controls.recipient.value?.name}}</span>
+                <span class="d-inline-block w-100 text-left">{{form.controls.recipient.value?.full_name}}</span>
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownRecipient">
-                <a *ngFor="let a of accounts" class="dropdown-item" href="#" (click)="setRecipient(a); false">{{a.name}}</a>
+                <a *ngFor="let a of accounts" class="dropdown-item" href="#" (click)="setRecipient(a); false">{{a.full_name}}</a>
             </div>
         </div>
     </div>
