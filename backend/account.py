@@ -47,6 +47,7 @@ class AccountGroupSchema(ma.Schema):
     inbalance = fields.Boolean()
     deleted = fields.Boolean()
     user_id = fields.Int(dump_only=True)
+    accounts =  ma.Nested('AccountSchema', dump_only=True, many = True, only = ['id', 'name', 'currency', 'start_balance', 'deleted'])
     permissions =  ma.Nested('AccountUserSchema', dump_only=True, many = True)
 
 group_schema = AccountGroupSchema()

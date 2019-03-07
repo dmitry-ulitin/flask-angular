@@ -70,14 +70,15 @@ def get_group_json(group, balances, user_id):
     json = group_schema.dump(group)
     json['belong'] = group.belong(user_id)
     json['full_name'] = group.full_name(user_id)
-    balances = {}
-    acconts = []
-    for account in group.acconts:
+    totals = {}
+    accounts = []
+    for account in group.accounts:
         ajson = get_account_json(account, balances, user_id)
-        acconts.append(ajson)
-        balances[account.currency] = balances.get(account.currency, 0) + ajson['balance']
-    json['accounts'] = acconts
-    json['balances'] = [{'currency':currency, 'balance': balance} for currency,balance in balances.items()]
+        ajson.pop('group', None)
+        accounts.append(ajson)
+        totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
+    json['accounts'] = accounts
+    json['balances'] = [{'currency':currency, 'balance': balance} for currency,balance in totals.items()]
     return json
 
 def get_account_json(account, balances, user_id):
@@ -97,15 +98,37 @@ def get_account_json(account, balances, user_id):
 def get_groups():
     user_id = get_jwt_identity()['id']
     u_groups = AccountGroup.query.filter(AccountGroup.user_id == user_id).order_by(AccountGroup.id).all()
-    s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).select(AccountUser.group).order_by(AccountUser.group_id).all()
+    s_groups = [au.group for au in AccountUser.query.filter(AccountUser.user_id == user_id).order_by(AccountUser.group_id).all()]
     all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.OWNER]
-    all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.COOWNER]
-    all_groups = [g for g in s_groups if g.belong(user_id) == AccountGroup.COOWNER]
-    all_groups = [g for g in s_groups if g.belong(user_id) == AccountGroup.SHARED]
+    all_groups += [g for g in u_groups if g.belong(user_id) == AccountGroup.COOWNER]
+    all_groups += [g for g in s_groups if g.belong(user_id) == AccountGroup.COOWNER]
+    all_groups += [g for g in s_groups if g.belong(user_id) == AccountGroup.SHARED]
     all_accounts = [g for g in all_groups for a in g.accounts]
     balances = get_balances([a.id for a in all_accounts])
     jsons = [get_group_json(group,balances,user_id) for group in all_groups]
     return jsonify(jsons)
+
+@app.route("/api/groups/<id>")
+@jwt_required
+def get_group(id):
+    user_id = get_jwt_identity()['id']
+    group = AccountGroup.query.get(id)
+    balances = get_balances([a.id for a in group.accounts])
+    json = get_group_json(group, balances, user_id)
+    return jsonify(json)
+
+@app.route('/api/groups', methods=['POST'])
+@jwt_required
+def group_add():
+    user_id = get_jwt_identity()['id']
+    data = group_schema.load(request.json, partial=True)
+    group = AccountGroup(**data)
+    group.user_id = user_id
+    db.session.add(group)
+    db.session.commit()
+    json = get_group_json(group, None, user_id)
+    return jsonify(json), 201
+
 
 @app.route('/api/accounts')
 @jwt_required

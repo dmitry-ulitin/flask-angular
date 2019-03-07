@@ -5,6 +5,7 @@ import { Account } from './models/account';
 import { Category } from './models/category';
 import { Transaction } from './models/transaction';
 import { Filter } from './models/filter';
+import { Group } from './models/group';
 
 @Injectable({
   providedIn: 'root'
@@ -12,6 +13,26 @@ import { Filter } from './models/filter';
 export class BackendService {
 
   constructor(private http: HttpClient) { }
+
+  getGroups(): Observable<Group[]> {
+    return this.http.get<Group[]>('/api/groups');
+  }
+
+  getGroup(id: number): Observable<Group> {
+    return this.http.get<Group>('/api/groups/' + id);
+  }
+
+  saveGroup(group: Group): Observable<Group> {
+    let headers = new HttpHeaders({'Content-Type':'application/json'});
+    if (group.id) {
+      return this.http.put<Group>('/api/groups', group, { headers:headers});
+    }
+    return this.http.post<Group>('/api/groups', group, { headers:headers});
+  }
+
+  deleteGroup(id: number): Observable<any> {
+    return this.http.delete('/api/groups/' + id);
+  }
 
   getAccounts(): Observable<Account[]> {
     return this.http.get<Account[]>('/api/accounts');
@@ -24,9 +45,9 @@ export class BackendService {
   saveAccount(account: Account): Observable<Account> {
     let headers = new HttpHeaders({'Content-Type':'application/json'});
     if (account.id) {
-      return this.http.put<Account>('/api/accounts',account, { headers:headers});
+      return this.http.put<Account>('/api/accounts', account, { headers:headers});
     }
-    return this.http.post<Account>('/api/accounts',account, { headers:headers});
+    return this.http.post<Account>('/api/accounts', account, { headers:headers});
   }
 
   deleteAccount(id: number): Observable<any> {

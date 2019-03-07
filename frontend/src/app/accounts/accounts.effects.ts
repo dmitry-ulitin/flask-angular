@@ -16,6 +16,66 @@ export class AccountsEffects {
         private notify: AlertifyService,
         private router: Router) { };
 
+    @Effect() getGroups$: Observable<any> = this.actions$.pipe(
+        ofType('[groups] query'),
+        switchMap(action => this.backend.getGroups().pipe(
+            map(data => { return { type: '[groups] query success', payload: data }; }),
+            catchError(error => of({type:'[groups] query fail', payload: error}))
+        ))
+    );
+
+    @Effect() getGroup$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[group] query id'),
+        filter(action => action.payload),
+        switchMap(action => this.backend.getGroup(action.payload).pipe(
+            map(data => { return { type: '[group] query id success', payload: data }; }),
+            catchError(error => of({type:'[group] query id fail', payload: error}))
+        ))
+    );
+
+    @Effect() clearGroup$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[group] query id'),
+        filter(action => !action.payload),
+        map(action => { return {type: '[groups] select'};})
+    );
+
+    @Effect() createGroup$: Observable<any> = this.actions$.pipe(
+        ofType('[group] create'),
+        map(action => {
+            this.router.navigate(['/groups/create']);
+            return {type: '[groups] select'};
+        })
+    );
+
+    @Effect() saveGroup$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[group] save'),
+        switchMap(action => this.backend.saveGroup(action.payload).pipe(
+            map(data => {
+                this.notify.success('Group saved');
+                this.router.navigate(['/groups']);
+                return { type: '[group] save success', payload: data };
+            }),
+            catchError(error => of({type:'[group] save fail', payload: error}))
+        ))
+    );
+
+    @Effect() deleteGroup$: Observable<any> = this.actions$.pipe(
+        ofType('[groups] delete'),
+        withLatestFrom(this.store),
+        filter(([action, state]) => state.accounts.selected != null),
+        switchMap(([action, state]) => this.notify.confirm('Delete group?').pipe(
+            filter(c => c),
+            switchMap(() => this.backend.deleteGroup(state.accounts.selected.id).pipe(
+                map(data => {
+                    this.notify.success('Group removed');
+                    this.router.navigate(['/groups']);
+                    return { type: '[groups] delete success' };
+                })
+            )),
+            catchError(error => of({type:'[groups] delete fail', payload: error}))
+        ))
+    );
+    
     @Effect() getAccounts$: Observable<any> = this.actions$.pipe(
         ofType('[accounts] query'),
         switchMap(action => this.backend.getAccounts().pipe(
@@ -29,7 +89,7 @@ export class AccountsEffects {
         filter(action => action.payload),
         switchMap(action => this.backend.getAccount(action.payload).pipe(
             map(data => { return { type: '[account] query id success', payload: data }; }),
-            catchError(error => of({type:'[accounts] query id fail', payload: error}))
+            catchError(error => of({type:'[account] query id fail', payload: error}))
         ))
     );
 
@@ -55,7 +115,7 @@ export class AccountsEffects {
                 this.router.navigate(['/accounts']);
                 return { type: '[account] save success', payload: data };
             }),
-            catchError(error => of({type:'[accounts] save fail', payload: error}))
+            catchError(error => of({type:'[account] save fail', payload: error}))
         ))
     );
 

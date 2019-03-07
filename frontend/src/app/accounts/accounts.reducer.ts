@@ -1,12 +1,15 @@
 import { Account } from '../models/account';
+import { Group } from '../models/group';
 
 export interface State {
+    groups: Group[],
     accounts: Account[],
     total: {balance: number, currency: string}[],
     selected: Account
 }
 
 export const initialState: State = {
+    groups: [],
     accounts: [],
     total: [],
     selected: null
@@ -14,6 +17,10 @@ export const initialState: State = {
 
 export function reducer(state: State = initialState, action: any): State {
     switch(action.type) {        
+        case '[groups] query success' : {
+            let groups = (action.payload as Group[])
+            return {...state, groups: groups};
+        }
         case '[accounts] query success' : {
             let accounts = (action.payload as Account[])
             return {...state, accounts: accounts, total: getTotal(accounts), selected: null};
