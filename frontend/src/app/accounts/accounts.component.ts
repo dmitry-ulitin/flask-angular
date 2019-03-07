@@ -17,7 +17,7 @@ export class AccountsComponent implements OnInit {
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
-    this.accounts$ = this.store.select('accounts', 'accounts');
+    this.accounts$ = this.store.select('accounts', 'accounts').pipe(map(accounts => accounts.filter(a => !a.deleted)));
     this.total$ = this.store.select('accounts', 'total');
     this.selected$ = this.store.select('accounts', 'selected');
   }

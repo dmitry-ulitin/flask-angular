@@ -45,6 +45,7 @@ class AccountGroupSchema(ma.Schema):
     name = fields.Str()
     visible = fields.Boolean()
     inbalance = fields.Boolean()
+    deleted = fields.Boolean()
     user_id = fields.Int(dump_only=True)
     permissions =  ma.Nested('AccountUserSchema', dump_only=True, many = True)
 
@@ -86,10 +87,11 @@ class AccountSchema(ma.Schema):
     class Meta:
         json_module = simplejson
     id = fields.Int(dump_only=True)
-    group = ma.Nested('AccountGroupSchema', dump_only=True, only=["id", "name", "visible", "inbalance"])
+    group = ma.Nested('AccountGroupSchema', dump_only=True, only=["id", "name", "visible", "inbalance", "deleted"])
     name = fields.Str()
     currency = fields.Str()
     start_balance = fields.Decimal()
+    deleted = fields.Boolean()
 
 account_schema = AccountSchema()
 

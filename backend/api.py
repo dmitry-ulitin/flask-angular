@@ -96,7 +96,7 @@ def get_account_json(account, balances, user_id):
 @jwt_required
 def get_groups():
     user_id = get_jwt_identity()['id']
-    u_groups = AccountGroup.query.filter(AccountGroup.user_id == user_id).filter(AccountGroup.deleted.is_(False)).order_by(AccountGroup.id).all()
+    u_groups = AccountGroup.query.filter(AccountGroup.user_id == user_id).order_by(AccountGroup.id).all()
     s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).select(AccountUser.group).order_by(AccountUser.group_id).all()
     all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.OWNER]
     all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.COOWNER]
@@ -111,7 +111,7 @@ def get_groups():
 @jwt_required
 def get_accounts():
     user_id = get_jwt_identity()['id']
-    u_accounts = Account.query.filter(AccountGroup.user_id == user_id).filter(AccountGroup.deleted.is_(False)).order_by(AccountGroup.id).all()
+    u_accounts = Account.query.filter(AccountGroup.user_id == user_id).order_by(AccountGroup.id).all()
     s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).order_by(AccountUser.group_id).all()
     s_accounts = [a for g in s_groups for a in g.group.accounts]
     balances = get_balances([a.id for a in (u_accounts + s_accounts)])
@@ -174,8 +174,8 @@ def account_delete(id):
     if account.group.user_id != user_id:
         return jsonify({"msg": "Can't delete this account"}), 401
     account.deleted = True
-#    if len([a for a in account.group.accounts if not a.deleted])<1:
-    account.group.deleted = True
+    if len([a for a in account.group.accounts if not a.deleted])<1:
+        account.group.deleted = True
     db.session.commit()
     return account_schema.jsonify(account)
 
