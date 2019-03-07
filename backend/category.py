@@ -65,6 +65,7 @@ def insert_initial_records(*args, **kwargs):
     db.session.add(Category(id=104, parent_id=Category.EXPENSE, name='Healthcare', user_id=1))
     db.session.add(Category(id=1041, parent_id=104, name='Medicine', user_id=1))
     db.session.add(Category(id=1042, parent_id=104, name='Doctors', user_id=1))
+    db.session.add(Category(id=106, parent_id=Category.EXPENSE, name='Transport', user_id=1))
     db.session.add(Category(id=107, parent_id=Category.EXPENSE, name='Entertainment', user_id=1))
     db.session.add(Category(id=108, parent_id=Category.EXPENSE, name='Bills', user_id=1))
     db.session.add(Category(id=1081, parent_id=108, name='Rent', user_id=1))
