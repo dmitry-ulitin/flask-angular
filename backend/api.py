@@ -75,6 +75,7 @@ def get_group_json(group, balances, user_id):
     for account in group.accounts:
         ajson = get_account_json(account, balances, user_id)
         ajson.pop('group', None)
+        ajson['group_id', group.id]
         accounts.append(ajson)
         totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
     json['accounts'] = accounts
@@ -129,6 +130,29 @@ def group_add():
     json = get_group_json(group, None, user_id)
     return jsonify(json), 201
 
+@app.route("/api/groups", methods=["PUT"])
+@jwt_required
+def group_update():
+    user_id = get_jwt_identity()['id']
+    group = AccountGroup.query.get(request.json['id'])
+    if group.user_id != user_id:
+        return jsonify({"msg": "Can't update this group"}), 401
+    group.name = request.json['name']
+    db.session.commit()
+    balances = get_balances([a.id for a in group.accounts])
+    json = get_group_json(group, balances, user_id)
+    return jsonify(json)
+
+@app.route("/api/groups/<id>", methods=["DELETE"])
+@jwt_required
+def group_delete(id):
+    user_id = get_jwt_identity()['id']
+    group = AccountGroup.query.get(id)
+    if group.user_id != user_id:
+        return jsonify({"msg": "Can't delete this group"}), 401
+    group.deleted = True
+    db.session.commit()
+    return account_schema.jsonify(account)
 
 @app.route('/api/accounts')
 @jwt_required
@@ -168,7 +192,6 @@ def account_add():
     db.session.commit()
     json = get_account_json(account, None, user_id)
     return jsonify(json), 201
-
 
 @app.route("/api/accounts", methods=["PUT"])
 @jwt_required
