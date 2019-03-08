@@ -75,7 +75,7 @@ def get_group_json(group, balances, user_id):
     for account in group.accounts:
         ajson = get_account_json(account, balances, user_id)
         ajson.pop('group', None)
-        ajson['group_id', group.id]
+        ajson['group_id'] = group.id
         accounts.append(ajson)
         totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
     json['accounts'] = accounts

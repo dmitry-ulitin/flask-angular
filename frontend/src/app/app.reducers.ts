@@ -1,16 +1,16 @@
 import { ActionReducerMap } from '@ngrx/store';
-import * as fromAccounts from './accounts/accounts.reducer';
+import * as fromGroups from './accounts/groups.reducer';
 import * as fromCategories from './categories/categories.reducer';
 import * as fromTransactions from './transactions/transactions.reducer';
 
 export interface State {
-    accounts: fromAccounts.State;
+    groups: fromGroups.State;
     categories: fromCategories.State;
     transactions: fromTransactions.State;
 }
 
 export const reducers: ActionReducerMap<State> = {
-    accounts: fromAccounts.reducer,
+    groups: fromGroups.reducer,
     categories: fromCategories.reducer,
     transactions: fromTransactions.reducer
 };

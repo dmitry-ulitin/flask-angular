@@ -10,14 +10,13 @@ import { EffectsModule } from '@ngrx/effects';
 import { StoreDevtoolsModule } from '@ngrx/store-devtools'
 import { reducers } from './app.reducers'
 import { AppEffects } from './app.effects'
-import { AccountsEffects } from './accounts/accounts.effects'
+import { GroupsEffects } from './accounts/groups.effects'
 import { CategoriesEffects } from './categories/categories.effects';
 import { TransactionsEffects } from './transactions/transactions.effects'
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component'
-import { AccountsComponent } from './accounts/accounts.component'
-import { AccountEditComponent } from './accounts/account.edit.component'
+import { GroupsComponent } from './accounts/groups.component'
 import { TransactionsComponent } from './transactions/transactions.component'
 import { TransactionEditorComponent } from './transactions/transaction.editor.component';
 import { TransactionFormComponent } from './transactions/transaction.form.component';
@@ -36,7 +35,7 @@ registerLocaleData(localeRu, 'ru');
 @NgModule({
   declarations: [
     AppComponent,LoginComponent,
-    AccountsComponent, AccountEditComponent,
+    GroupsComponent,
     TransactionsComponent,TransactionFormComponent,TransactionEditorComponent,
     CategoriesComponent
   ],
@@ -46,7 +45,7 @@ registerLocaleData(localeRu, 'ru');
     AppRoutingModule,
     ReactiveFormsModule,
     StoreModule.forRoot(reducers),
-    EffectsModule.forRoot([AccountsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
+    EffectsModule.forRoot([GroupsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production}),
     ServiceWorkerModule.register('ngsw-worker.js', { enabled: environment.production })
   ],

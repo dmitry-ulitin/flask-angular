@@ -41,9 +41,9 @@ export class TransactionsEffects {
         ofType<any>('[transactions] create'),
         withLatestFrom(this.store),
         map(([action, state]) => {
-            if (state.accounts.selected) {
-                action.payload.account = action.payload.ttype == 1 ? null : state.accounts.selected;
-                action.payload.recipient = action.payload.ttype == 2 ? null : state.accounts.selected;
+            if (state.groups.selected) {
+                action.payload.account = action.payload.ttype == 1 ? null : state.groups.selected[0];
+                action.payload.recipient = action.payload.ttype == 2 ? null : state.groups.selected[0];
             }
             this.router.navigate(['/transactions/create']);
             return { type: '[transactions] edit', payload: action.payload };

@@ -2,8 +2,8 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AuthGuard } from './auth.guard';
 import { LoginComponent } from './login/login.component';
-import { AccountsComponent } from './accounts/accounts.component'
-import { AccountEditComponent } from './accounts/account.edit.component'
+import { GroupsComponent } from './accounts/groups.component'
+//import { GroupEditComponent } from './accounts/account.edit.component'
 import { TransactionsComponent } from './transactions/transactions.component'
 import { TransactionEditorComponent } from './transactions/transaction.editor.component';
 import { CategoriesComponent } from './categories/categories.component'
@@ -20,19 +20,21 @@ const routes: Routes = [
   },
   {
     path: "accounts",
-    component: AccountsComponent,
+    component: GroupsComponent,
     canActivate: [AuthGuard]
   },
+  /*
   {
     path: "accounts/create",
-    component: AccountEditComponent,
+    component: GroupEditComponent,
     canActivate: [AuthGuard]
   },
   {
     path: "accounts/edit/:id",
-    component: AccountEditComponent,
+    component: GroupEditComponent,
     canActivate: [AuthGuard]
   },
+  */
   {
     path: "transactions",
     component: TransactionsComponent,
