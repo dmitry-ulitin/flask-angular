@@ -138,6 +138,13 @@ def group_update():
     if group.user_id != user_id:
         return jsonify({"msg": "Can't update this group"}), 401
     group.name = request.json['name']
+    for acc in request.json['accounts']:
+        account = next(account for account in group.accounts if account.id==acc['id'])
+        if id:
+            account.start_balance = acc.get('start_balance', 0)
+            account.deleted = acc.get('deleted', False)
+        elif not acc['id'] and not acc['deleted']:
+            group.accounts.append(Account(start_balance = acc.get('start_balance', 0), currency = acc.get('currency', 'RUB')))
     db.session.commit()
     balances = get_balances([a.id for a in group.accounts])
     json = get_group_json(group, balances, user_id)

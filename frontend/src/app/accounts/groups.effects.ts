@@ -40,9 +40,9 @@ export class GroupsEffects {
     );
 
     @Effect() createGroup$: Observable<any> = this.actions$.pipe(
-        ofType('[group] create'),
+        ofType('[groups] create'),
         map(action => {
-            this.router.navigate(['/groups/create']);
+            this.router.navigate(['/accounts/create']);
             return {type: '[groups] select'};
         })
     );
@@ -52,7 +52,7 @@ export class GroupsEffects {
         switchMap(action => this.backend.saveGroup(action.payload).pipe(
             map(data => {
                 this.notify.success('Group saved');
-                this.router.navigate(['/groups']);
+                this.router.navigate(['/accounts']);
                 return { type: '[group] save success', payload: data };
             }),
             catchError(error => of({type:'[group] save fail', payload: error}))
@@ -68,7 +68,7 @@ export class GroupsEffects {
             switchMap(() => this.backend.deleteGroup(state.groups.selected.id).pipe(
                 map(data => {
                     this.notify.success('Group removed');
-                    this.router.navigate(['/groups']);
+                    this.router.navigate(['/accounts']);
                     return { type: '[groups] delete success' };
                 })
             )),

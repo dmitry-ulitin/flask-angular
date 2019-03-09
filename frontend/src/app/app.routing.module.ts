@@ -3,7 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { AuthGuard } from './auth.guard';
 import { LoginComponent } from './login/login.component';
 import { GroupsComponent } from './accounts/groups.component'
-//import { GroupEditComponent } from './accounts/account.edit.component'
+import { GroupEditComponent } from './accounts/group.edit.component'
 import { TransactionsComponent } from './transactions/transactions.component'
 import { TransactionEditorComponent } from './transactions/transaction.editor.component';
 import { CategoriesComponent } from './categories/categories.component'
@@ -23,7 +23,6 @@ const routes: Routes = [
     component: GroupsComponent,
     canActivate: [AuthGuard]
   },
-  /*
   {
     path: "accounts/create",
     component: GroupEditComponent,
@@ -34,7 +33,6 @@ const routes: Routes = [
     component: GroupEditComponent,
     canActivate: [AuthGuard]
   },
-  */
   {
     path: "transactions",
     component: TransactionsComponent,

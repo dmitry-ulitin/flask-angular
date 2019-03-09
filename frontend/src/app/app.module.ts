@@ -30,12 +30,13 @@ import { ErrorInterceptor } from './error.interceptor';
 import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
+import { GroupEditComponent } from './accounts/group.edit.component';
 registerLocaleData(localeRu, 'ru');
 
 @NgModule({
   declarations: [
     AppComponent,LoginComponent,
-    GroupsComponent,
+    GroupsComponent, GroupEditComponent,
     TransactionsComponent,TransactionFormComponent,TransactionEditorComponent,
     CategoriesComponent
   ],

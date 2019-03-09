@@ -1,0 +1,20 @@
+<form [formGroup]="form" (submit)="onSubmit(form)">
+  <div class="form-group">
+    <label for="name">Name</label>
+    <input type="text" class="form-control" id="name" placeholder="Account name" formControlName="name">
+  </div>
+  <label class="mr-2">Initial Balances</label><button style="padding:0rem .25rem" type="button btn-sm" class="btn btn-outline-secondary"><i class="fas fa-plus-circle"></i></button>
+  <div formArrayName="accounts" class="form-row" *ngFor="let item of form.get('accounts').controls; let i = index;">
+    <div *ngIf="!item.get('deleted').value" class="form-group col-auto" [formGroupName]="i">
+      <input type="number" class="form-control" placeholder="0.00" formControlName="start_balance">
+    </div>
+    <div *ngIf="!item.get('deleted').value" class="form-group col" [formGroupName]="i">
+      <input type="text" class="form-control" placeholder="RUB" formControlName="currency">
+    </div>
+    <div *ngIf="!item.get('deleted').value && canDelete()" class="form-group col-auto" [formGroupName]="i">
+      <button type="button" class="btn btn-outline-secondary" (click)="delete(item)"><i class="fas fa-trash-alt"></i></button>
+    </div>
+  </div>
+  <button type="submit" class="btn btn-primary mr-2" [disabled]="!form.valid">Submit</button>
+  <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
+</form>

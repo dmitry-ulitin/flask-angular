@@ -11,7 +11,7 @@
             </div>
             <div class="btn-group mr-2" role="group" *ngIf="selected$ | async">
                 <a role="button" class="btn btn-outline-primary"
-                    [routerLink]="['/groups/edit/'+(selected$ | async)?.id]">
+                    [routerLink]="['/accounts/edit/'+(selected$ | async)?.id]">
                     <i class="fas fa-pencil-alt"></i>
                 </a>
                 <button type="button" class="btn btn-outline-primary" (click)="delete()">

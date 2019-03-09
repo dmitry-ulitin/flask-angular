@@ -57,7 +57,7 @@ export class TransactionsEffects {
             concatMap(data => {
                 this.notify.success('Transaction saved');
                 this.location.back();
-                return of({ type: '[accounts] delete transaction', payload: state.transactions.form}, { type: '[accounts] add transaction', payload: data }, { type: '[transaction] save success', payload: data }, { type: '[transaction] query id', payload: data.id });
+                return of({ type: '[groups] delete transaction', payload: state.transactions.form}, { type: '[groups] add transaction', payload: data }, { type: '[transaction] save success', payload: data }, { type: '[transaction] query id', payload: data.id });
             }),
             catchError(error => of({ type: '[transactions] save fail', payload: error }))
         ))
@@ -73,7 +73,7 @@ export class TransactionsEffects {
                 concatMap(data => {
                     this.notify.success('Transaction removed');
                     this.router.navigate(['/transactions']);
-                    return of({ type: '[accounts] delete transaction', payload: state.transactions.selected },{ type: '[transactions] delete success'});
+                    return of({ type: '[groups] delete transaction', payload: state.transactions.selected },{ type: '[transactions] delete success'});
                 })
             )),
             catchError(error => of({ type: '[transactions] delete fail', payload: error }))
