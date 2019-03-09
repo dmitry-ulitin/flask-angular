@@ -125,6 +125,11 @@ def group_add():
     data = group_schema.load(request.json, partial=True)
     group = AccountGroup(**data)
     group.user_id = user_id
+    for acc in request.json['accounts']:
+        start_balance = acc['start_balance'] if acc['start_balance'] else 0
+        currency = acc['currency'] if acc['currency'] else 'RUB'
+        if not acc['deleted']:
+            group.accounts.append(Account(start_balance =start_balance, currency = currency))
     db.session.add(group)
     db.session.commit()
     json = get_group_json(group, None, user_id)
@@ -140,11 +145,13 @@ def group_update():
     group.name = request.json['name']
     for acc in request.json['accounts']:
         account = next(account for account in group.accounts if account.id==acc['id'])
+        start_balance = acc['start_balance'] if acc['start_balance'] else 0
+        currency = acc['currency'] if acc['currency'] else 'RUB'
         if id:
-            account.start_balance = acc.get('start_balance', 0)
+            account.start_balance = start_balance
             account.deleted = acc.get('deleted', False)
         elif not acc['id'] and not acc['deleted']:
-            group.accounts.append(Account(start_balance = acc.get('start_balance', 0), currency = acc.get('currency', 'RUB')))
+            group.accounts.append(Account(start_balance = start_balance, currency = acurrency))
     db.session.commit()
     balances = get_balances([a.id for a in group.accounts])
     json = get_group_json(group, balances, user_id)
@@ -158,9 +165,11 @@ def group_delete(id):
     if group.user_id != user_id:
         return jsonify({"msg": "Can't delete this group"}), 401
     group.deleted = True
+    for account in group.accounts:
+        account.delete = True
     db.session.commit()
     return account_schema.jsonify(account)
-
+'''
 @app.route('/api/accounts')
 @jwt_required
 def get_accounts():
@@ -231,7 +240,7 @@ def account_delete(id):
         account.group.deleted = True
     db.session.commit()
     return account_schema.jsonify(account)
-
+'''
 @app.route('/api/categories')
 @jwt_required
 def get_categories():

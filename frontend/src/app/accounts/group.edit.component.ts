@@ -23,6 +23,7 @@ export class GroupEditComponent implements OnInit {
       inbalance: [true],
       accounts: this.fb.array([])
     });
+    this.addAccount();
     this.store.select('groups', 'selected').pipe(filter(g => g != null)).forEach(g => {
       this.form.patchValue(g);
       let accounts = this.fb.array([]);
@@ -43,6 +44,11 @@ export class GroupEditComponent implements OnInit {
 
   delete(item) {
     item.get('deleted').setValue(true);
+  }
+
+  addAccount() {
+    let accounts = this.form.get('accounts') as FormArray;
+    accounts.push(this.fb.group({id: null, start_balance: '', currency: '', deleted: false}));
   }
 
   cancel() {

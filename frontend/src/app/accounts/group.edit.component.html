@@ -3,18 +3,27 @@
     <label for="name">Name</label>
     <input type="text" class="form-control" id="name" placeholder="Account name" formControlName="name">
   </div>
-  <label class="mr-2">Initial Balances</label><button style="padding:0rem .25rem" type="button btn-sm" class="btn btn-outline-secondary"><i class="fas fa-plus-circle"></i></button>
-  <div formArrayName="accounts" class="form-row" *ngFor="let item of form.get('accounts').controls; let i = index;">
-    <div *ngIf="!item.get('deleted').value" class="form-group col-auto" [formGroupName]="i">
-      <input type="number" class="form-control" placeholder="0.00" formControlName="start_balance">
-    </div>
-    <div *ngIf="!item.get('deleted').value" class="form-group col" [formGroupName]="i">
-      <input type="text" class="form-control" placeholder="RUB" formControlName="currency">
-    </div>
-    <div *ngIf="!item.get('deleted').value && canDelete()" class="form-group col-auto" [formGroupName]="i">
-      <button type="button" class="btn btn-outline-secondary" (click)="delete(item)"><i class="fas fa-trash-alt"></i></button>
-    </div>
-  </div>
+  <table class="table table-sm w-100">
+    <tr>
+      <td class="align-middle">Initial Balances</td>
+      <td *ngIf="canDelete()"></td>
+      <td class="text-right"><button type="button" class="btn btn-outline-secondary" (click)="addAccount()"><i class="fas fa-plus-circle"></i></button></td>
+    </tr>
+    <tr formArrayName="accounts" *ngFor="let item of form.get('accounts').controls; let i = index;">
+      <ng-template [ngIf]="!item.get('deleted').value">
+        <td [formGroupName]="i">
+          <input type="number" class="form-control" placeholder="0.00" formControlName="start_balance">
+        </td>
+        <td [formGroupName]="i">
+          <input type="text" class="form-control" placeholder="RUB" formControlName="currency">
+        </td>
+        <td class="text-right" [formGroupName]="i" *ngIf="canDelete()">
+          <button type="button" class="btn btn-outline-secondary" (click)="delete(item)"><i
+              class="fas fa-trash-alt"></i></button>
+        </td>
+      </ng-template>
+    </tr>
+  </table>
   <button type="submit" class="btn btn-primary mr-2" [disabled]="!form.valid">Submit</button>
   <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
 </form>
