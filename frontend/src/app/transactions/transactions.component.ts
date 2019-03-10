@@ -39,7 +39,7 @@ export class TransactionsComponent implements OnInit {
   }
 
   clearFilter() {
-    this.store.dispatch({type:'[transactions] filter accounts', payload: []});    
+    this.store.dispatch({type:'[transactions] filter groups', payload: []});    
   }
 
   getName(t: Transaction) {

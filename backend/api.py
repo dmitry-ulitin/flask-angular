@@ -126,10 +126,11 @@ def group_add():
     group = AccountGroup(**data)
     group.user_id = user_id
     for acc in request.json['accounts']:
+        name = acc['name'] if acc['name'] else None
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
         currency = acc['currency'] if acc['currency'] else 'RUB'
         if not acc['deleted']:
-            group.accounts.append(Account(start_balance =start_balance, currency = currency))
+            group.accounts.append(Account(start_balance =start_balance, currency = currency, name = name))
     db.session.add(group)
     db.session.commit()
     json = get_group_json(group, None, user_id)
@@ -144,14 +145,16 @@ def group_update():
         return jsonify({"msg": "Can't update this group"}), 401
     group.name = request.json['name']
     for acc in request.json['accounts']:
+        name = acc['name'] if acc['name'] else None
         account = next(account for account in group.accounts if account.id==acc['id'])
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
         currency = acc['currency'] if acc['currency'] else 'RUB'
         if id:
             account.start_balance = start_balance
             account.deleted = acc.get('deleted', False)
+            account.name = name
         elif not acc['id'] and not acc['deleted']:
-            group.accounts.append(Account(start_balance = start_balance, currency = acurrency))
+            group.accounts.append(Account(start_balance = start_balance, currency = acurrency, name = name))
     db.session.commit()
     balances = get_balances([a.id for a in group.accounts])
     json = get_group_json(group, balances, user_id)
@@ -353,7 +356,7 @@ def get_transaction(id):
         tr['account']['balance'] -= transaction.credit
     elif tr['recipient']:
         tr['recipient'] = get_account_json(transaction.recipient, balances, user_id)
-        tr['account']['balance'] += transaction.debit
+        tr['recipient']['balance'] += transaction.debit
     return jsonify(tr)
 
 

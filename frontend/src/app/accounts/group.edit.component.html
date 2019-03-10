@@ -3,26 +3,36 @@
     <label for="name">Name</label>
     <input type="text" class="form-control" id="name" placeholder="Account name" formControlName="name">
   </div>
-  <table class="table table-sm w-100">
-    <tr>
-      <td class="align-middle">Initial Balances</td>
-      <td *ngIf="canDelete()"></td>
-      <td class="text-right"><button type="button" class="btn btn-outline-secondary" (click)="addAccount()"><i class="fas fa-plus-circle"></i></button></td>
-    </tr>
-    <tr formArrayName="accounts" *ngFor="let item of form.get('accounts').controls; let i = index;">
-      <ng-template [ngIf]="!item.get('deleted').value">
-        <td [formGroupName]="i">
-          <input type="number" class="form-control" placeholder="0.00" formControlName="start_balance">
-        </td>
-        <td [formGroupName]="i">
-          <input type="text" class="form-control" placeholder="RUB" formControlName="currency">
-        </td>
-        <td class="text-right" [formGroupName]="i" *ngIf="canDelete()">
-          <button type="button" class="btn btn-outline-secondary" (click)="delete(item)"><i
-              class="fas fa-trash-alt"></i></button>
-        </td>
-      </ng-template>
-    </tr>
+  <table class="table table-sm w-100 table-borderless">
+    <thead>
+      <tr>
+        <td class="align-middle pl-0">Initial Balances</td>
+        <td *ngIf="canDelete()"></td>
+        <td class="text-right pr-0"><button type="button" class="btn btn-outline-secondary" (click)="addAccount()"><i
+              class="fas fa-plus-circle"></i></button></td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr formArrayName="accounts" *ngFor="let item of this.accounts.controls; let i = index;">
+        <ng-template [ngIf]="!item.get('deleted').value">
+<!--
+          <td [formGroupName]="i">
+            <input type="text" class="form-control" placeholder="{{item.get('currency').value}}" formControlName="name">
+          </td>
+ -->      
+          <td [formGroupName]="i" class="pl-0">
+            <input type="number" class="form-control" placeholder="0.00" formControlName="start_balance">
+          </td>
+          <td [formGroupName]="i" [class.pr-0]="!canDelete()">
+            <input type="text" class="form-control" placeholder="RUB" formControlName="currency">
+          </td>
+          <td class="text-right pr-0" [formGroupName]="i" *ngIf="canDelete()">
+            <button type="button" class="btn btn-outline-secondary" (click)="delete(item)"><i
+                class="fas fa-trash-alt"></i></button>
+          </td>
+        </ng-template>
+      </tr>
+    </tbody>
   </table>
   <button type="submit" class="btn btn-primary mr-2" [disabled]="!form.valid">Submit</button>
   <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>

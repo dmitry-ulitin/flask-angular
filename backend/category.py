@@ -65,7 +65,8 @@ def insert_initial_records(*args, **kwargs):
     db.session.add(Category(id=104, parent_id=Category.EXPENSE, name='Healthcare', user_id=1))
     db.session.add(Category(id=1041, parent_id=104, name='Medicine', user_id=1))
     db.session.add(Category(id=1042, parent_id=104, name='Doctors', user_id=1))
-    db.session.add(Category(id=106, parent_id=Category.EXPENSE, name='Transport', user_id=1))
+    db.session.add(Category(id=105, parent_id=Category.EXPENSE, name='Transport', user_id=1))
+    db.session.add(Category(id=106, parent_id=Category.EXPENSE, name='Clothes', user_id=1))
     db.session.add(Category(id=107, parent_id=Category.EXPENSE, name='Entertainment', user_id=1))
     db.session.add(Category(id=108, parent_id=Category.EXPENSE, name='Bills', user_id=1))
     db.session.add(Category(id=1081, parent_id=108, name='Rent', user_id=1))
@@ -76,9 +77,11 @@ def insert_initial_records(*args, **kwargs):
     db.session.add(Category(id=111, parent_id=Category.EXPENSE, name='Clothes', user_id=1))
     db.session.add(Category(id=112, parent_id=Category.EXPENSE, name='Education', user_id=1))
     db.session.add(Category(id=113, parent_id=Category.EXPENSE, name='Gifts', user_id=1))
-
+    db.session.add(Category(id=114, parent_id=Category.EXPENSE, name='Interests and hobbies', user_id=1))
+    
     db.session.add(Category(id=201, parent_id=Category.INCOME, name='Salary', user_id=1))
     db.session.add(Category(id=202, parent_id=Category.INCOME, name='Bonuses', user_id=1))
     db.session.add(Category(id=203, parent_id=Category.INCOME, name='Cashback', user_id=1))
+    db.session.add(Category(id=204, parent_id=Category.INCOME, name='Interest', user_id=1))
     db.session.commit()
  

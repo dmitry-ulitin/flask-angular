@@ -96,7 +96,10 @@ for c in categories:
     print(c.name)
     db.session.add(Category(id = c.id, user_id=c.user_id, created = c.created, updated = c.updated, parent_id = c.parent_id, name = c.name, bg = c.bg))
 
-db.session.add(Category(id=106, parent_id=Category.EXPENSE, name='Transport', user_id=1))
+db.session.add(Category(id=105, parent_id=Category.EXPENSE, name='Transport', user_id=1))
+db.session.add(Category(id=106, parent_id=Category.EXPENSE, name='Clothes', user_id=1))
+db.session.add(Category(id=114, parent_id=Category.EXPENSE, name='Interests and hobbies', user_id=1))
+db.session.add(Category(id=204, parent_id=Category.INCOME, name='Interest', user_id=1))
 
 
 AccountGroup.query.delete()

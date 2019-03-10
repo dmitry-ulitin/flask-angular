@@ -13,22 +13,24 @@ import { State } from '../app.reducers'
 })
 export class GroupEditComponent implements OnInit {
   form: FormGroup;
+  accounts: FormArray;
   constructor(private store: Store<State>, private route: ActivatedRoute, private location: Location, private fb: FormBuilder) {}
 
   ngOnInit() {
+    this.accounts = this.fb.array([]);
     this.form = this.fb.group({
       id: [],
       name: ['', Validators.required],
       hidden: [false],
       inbalance: [true],
-      accounts: this.fb.array([])
+      accounts: this.accounts
     });
     this.addAccount();
     this.store.select('groups', 'selected').pipe(filter(g => g != null)).forEach(g => {
       this.form.patchValue(g);
-      let accounts = this.fb.array([]);
-      this.form.setControl('accounts', accounts);
-      g.accounts.forEach(a => accounts.push(this.fb.group({id: a.id, start_balance: a.start_balance, currency: a.currency, deleted: a.deleted})));
+      this.accounts = this.fb.array([]);
+      this.form.setControl('accounts', this.accounts);
+      g.accounts.forEach(a => this.accounts.push(this.fb.group({id: a.id, start_balance: a.start_balance, currency: a.currency, name: a.name, deleted: a.deleted})));
     });
     this.route.params.forEach(p => this.store.dispatch({ type: '[group] query id', payload: p['id']}));
   }
@@ -38,8 +40,7 @@ export class GroupEditComponent implements OnInit {
   }
 
   canDelete(): boolean {
-    let accounts = this.form.get('accounts') as FormArray;
-    return accounts.controls.filter(a => !a.get('deleted').value).length > 1;
+    return this.accounts.controls.filter(a => !a.get('deleted').value).length > 1;
   }
 
   delete(item) {
@@ -48,7 +49,7 @@ export class GroupEditComponent implements OnInit {
 
   addAccount() {
     let accounts = this.form.get('accounts') as FormArray;
-    accounts.push(this.fb.group({id: null, start_balance: '', currency: '', deleted: false}));
+    accounts.push(this.fb.group({id: null, start_balance: '', currency: '', deleted: false, name: null}));
   }
 
   cancel() {
