@@ -36,7 +36,7 @@
                 [class.coowner]="g.belong==2" [class.shared]="g.belong==3">
                 <td><a  href="#" routerLink="/transactions" (click)="transactions(g)">{{g.full_name}}</a></td>
                 <td class="text-right">
-                    <div *ngFor="let t of g.balances">{{t.balance  | currency:t.currency}}</div>
+                    <div *ngFor="let t of g.total">{{t.balance  | currency:t.currency}}</div>
                 </td>
             </tr>
             <tr>

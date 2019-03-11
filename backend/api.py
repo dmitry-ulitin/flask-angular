@@ -79,7 +79,7 @@ def get_group_json(group, balances, user_id):
         accounts.append(ajson)
         totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
     json['accounts'] = accounts
-    json['balances'] = [{'currency':currency, 'balance': balance} for currency,balance in totals.items()]
+    json['total'] = [{'currency':currency, 'balance': balance} for currency,balance in totals.items()]
     return json
 
 def get_account_json(account, balances, user_id):

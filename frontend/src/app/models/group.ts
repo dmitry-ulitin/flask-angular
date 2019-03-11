@@ -8,5 +8,5 @@ export interface Group {
     inbalance: boolean,
     deleted: boolean,
     accounts: Account[],
-    balances: {currency:string, balance: number}[]
+    total: {currency:string, balance: number}[]
 }

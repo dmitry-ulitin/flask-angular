@@ -94,7 +94,7 @@ function add2balance(groups: Group[], id: number, amount: number) {
             balance.balance += a.balance;
             atotal[a.currency] = balance;
         }
-        g.balances = Object.values(atotal);
+        g.total = Object.values(atotal);
     }
     return Object.values(gtotal);
 }
