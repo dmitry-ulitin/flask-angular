@@ -34,7 +34,7 @@ class AccountGroup(db.Model):
         return result
     @hybrid_method
     def full_name(self, user_id):
-        return self.name if self.user_id == user_id else self.name + ' (' + self.user.name + ')'
+        return self.name if user_id == self.user_id or user_id in [p.user_id for p in self.permissions if p.write] else self.name + ' (' + self.user.name + ')'
     def __repr__(self):
         return '<AccountGroup %r>' % self.name
  

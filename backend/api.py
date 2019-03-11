@@ -141,8 +141,8 @@ def group_add():
 def group_update():
     user_id = get_jwt_identity()['id']
     group = AccountGroup.query.get(request.json['id'])
-    if group.user_id != user_id:
-        return jsonify({"msg": "Can't update this group"}), 401
+    if group.user_id != group.user_id and user_id not in [p.user_id for p in group.permissions if p.write]:
+        return jsonify({"msg": "Can't update this group"}), 403
     group.name = request.json['name']
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
@@ -166,7 +166,7 @@ def group_delete(id):
     user_id = get_jwt_identity()['id']
     group = AccountGroup.query.get(id)
     if group.user_id != user_id:
-        return jsonify({"msg": "Can't delete this group"}), 401
+        return jsonify({"msg": "Can't delete this group"}), 403
     group.deleted = True
     for account in group.accounts:
         account.delete = True
@@ -220,7 +220,7 @@ def category_update():
     category = Category.query.get(request.json['id'])
     user_id = get_jwt_identity()['id']
     if category.user_id != user_id:
-        return jsonify({"msg": "Can't update this category"}), 401        
+        return jsonify({"msg": "Can't update this category"}), 403        
     category.name = request.json['name']
     category.bg = request.json['bgc']
     db.session.commit()
@@ -235,7 +235,7 @@ def get_transactions():
     # select accounts
     user_accounts = Account.query.filter(AccountGroup.user_id == user_id).all()
     user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
-    accounts = user_accounts +  [p for p in user_permissions for a in p.group.accounts]
+    accounts = user_accounts +  [a for p in user_permissions for a in p.group.accounts]
     account_jsons = dict((a.id,get_account_json(a, None, user_id)) for a in accounts)
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
     if not any(account_ids):
