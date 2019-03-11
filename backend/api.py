@@ -172,78 +172,6 @@ def group_delete(id):
         account.delete = True
     db.session.commit()
     return account_schema.jsonify(account)
-'''
-@app.route('/api/accounts')
-@jwt_required
-def get_accounts():
-    user_id = get_jwt_identity()['id']
-    u_accounts = Account.query.filter(AccountGroup.user_id == user_id).order_by(AccountGroup.id).all()
-    s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).order_by(AccountUser.group_id).all()
-    s_accounts = [a for g in s_groups for a in g.group.accounts]
-    balances = get_balances([a.id for a in (u_accounts + s_accounts)])
-    jsons = [get_account_json(a, balances, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.OWNER]
-    jsons += [get_account_json(a, balances, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
-    jsons += [get_account_json(a, balances, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
-    jsons += [get_account_json(a, balances, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.SHARED]
-    return jsonify(jsons)
-
-@app.route("/api/accounts/<id>")
-@jwt_required
-def get_account(id):
-    user_id = get_jwt_identity()['id']
-    account = Account.query.get(id)
-    balances = get_balances([account.id])
-    json = get_account_json(account, balances, user_id)
-    return jsonify(json)
-
-@app.route('/api/accounts', methods=['POST'])
-@jwt_required
-def account_add():
-    user_id = get_jwt_identity()['id']
-    data = account_schema.load(request.json, partial=True)
-    account = Account(**data)
-    if 'group' in request.json:
-        account.group =  AccountGroup.query.get(request.json['group']['id'])
-    else:
-        account.group = AccountGroup(name =  account.name, user_id = user_id)
-        account.name = None
-    db.session.add(account)
-    db.session.commit()
-    json = get_account_json(account, None, user_id)
-    return jsonify(json), 201
-
-@app.route("/api/accounts", methods=["PUT"])
-@jwt_required
-def account_update():
-    user_id = get_jwt_identity()['id']
-    account = Account.query.get(request.json['id'])
-    if account.group.user_id != user_id:
-        return jsonify({"msg": "Can't update this account"}), 401
-    if len(account.group.accounts)>1:
-        account.name = request.json['name']
-    else:
-        account.group.name = request.json['name']
-    account.currency = request.json.get('currency', 'RUB')
-    account.start_balance = request.json.get('start_balance', 0)
-    db.session.commit()
-    balances = get_balances([account.id])
-    json = get_account_json(account, balances, user_id)
-    return jsonify(json)
-
-
-@app.route("/api/accounts/<id>", methods=["DELETE"])
-@jwt_required
-def account_delete(id):
-    user_id = get_jwt_identity()['id']
-    account = Account.query.get(id)
-    if account.group.user_id != user_id:
-        return jsonify({"msg": "Can't delete this account"}), 401
-    account.deleted = True
-    if len([a for a in account.group.accounts if not a.deleted])<1:
-        account.group.deleted = True
-    db.session.commit()
-    return account_schema.jsonify(account)
-'''
 @app.route('/api/categories')
 @jwt_required
 def get_categories():
@@ -305,16 +233,14 @@ def get_transactions():
     offset = request.args.get('offset', 0)
     user_id = get_jwt_identity()['id']
     # select accounts
-    accounts = request.args.get('accounts')
-    if (accounts):
-        accounts = Account.query.filter(Account.id.in_(accounts.split(','))).all()
-    else:
-        user_accounts = Account.query.filter(AccountGroup.user_id == user_id).all()
-        user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
-        accounts = user_accounts +  [a for g in user_permissions for a in g.group.accounts]
-    account_ids = [a.id for a in accounts]
-    account_balances = dict((a.id,a.start_balance) for a in accounts)
+    user_accounts = Account.query.filter(AccountGroup.user_id == user_id).all()
+    user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
+    accounts = user_accounts +  [p for p in user_permissions for a in p.group.accounts]
     account_jsons = dict((a.id,get_account_json(a, None, user_id)) for a in accounts)
+    account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    if not any(account_ids):
+        account_ids = [a.id for a in accounts]
+    account_balances = dict((a.id,a.start_balance) for a in accounts if a.id in account_ids)
     # get transactions
     transactions = Transaction.query.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
