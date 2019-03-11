@@ -26,7 +26,7 @@ export class GroupEditComponent implements OnInit {
       accounts: this.accounts
     });
     this.addAccount();
-    this.store.select('groups', 'selected').pipe(filter(g => g != null)).forEach(g => {
+    this.store.select('groups', 'sgrp').pipe(filter(g => g != null)).forEach(g => {
       this.form.patchValue(g);
       this.accounts = this.fb.array([]);
       this.form.setControl('accounts', this.accounts);

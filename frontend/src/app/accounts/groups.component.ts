@@ -13,13 +13,13 @@ import { map } from 'rxjs/operators';
 export class GroupsComponent implements OnInit {
   groups$: Observable<Group[]>;
   total$: Observable<{balance: number, currency: string}[]>;
-  selected$: Observable<Group>;
+  sgrp$: Observable<Group>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.groups$ = this.store.select('groups', 'groups').pipe(map(groups => groups.filter(g => !g.deleted)));
     this.total$ = this.store.select('groups', 'total');
-    this.selected$ = this.store.select('groups', 'selected');
+    this.sgrp$ = this.store.select('groups', 'sgrp');
   }
 
   refresh() {

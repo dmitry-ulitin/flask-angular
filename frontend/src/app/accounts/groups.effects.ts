@@ -62,10 +62,10 @@ export class GroupsEffects {
     @Effect() deleteGroup$: Observable<any> = this.actions$.pipe(
         ofType('[groups] delete'),
         withLatestFrom(this.store),
-        filter(([action, state]) => state.groups.selected != null),
+        filter(([action, state]) => state.groups.sgrp != null),
         switchMap(([action, state]) => this.notify.confirm('Delete group?').pipe(
             filter(c => c),
-            switchMap(() => this.backend.deleteGroup(state.groups.selected.id).pipe(
+            switchMap(() => this.backend.deleteGroup(state.groups.sgrp.id).pipe(
                 map(data => {
                     this.notify.success('Group removed');
                     this.router.navigate(['/accounts']);
