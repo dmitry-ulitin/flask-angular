@@ -77,7 +77,8 @@ def get_group_json(group, balances, user_id):
         ajson.pop('group', None)
         ajson['group_id'] = group.id
         accounts.append(ajson)
-        totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
+        if not account.deleted:
+            totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
     json['accounts'] = accounts
     json['total'] = [{'currency':currency, 'balance': balance} for currency,balance in totals.items()]
     return json
@@ -146,15 +147,16 @@ def group_update():
     group.name = request.json['name']
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
-        account = next(account for account in group.accounts if account.id==acc['id'])
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
         currency = acc['currency'] if acc['currency'] else 'RUB'
-        if id:
+        if acc['id']:
+            account = next(account for account in group.accounts if account.id==acc['id'])
             account.start_balance = start_balance
+            account.currency = currency
             account.deleted = acc.get('deleted', False)
             account.name = name
-        elif not acc['id'] and not acc['deleted']:
-            group.accounts.append(Account(start_balance = start_balance, currency = acurrency, name = name))
+        elif not acc['deleted']:
+            group.accounts.append(Account(start_balance = start_balance, currency = currency, name = name))
     db.session.commit()
     balances = get_balances([a.id for a in group.accounts])
     json = get_group_json(group, balances, user_id)

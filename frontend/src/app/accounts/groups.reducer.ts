@@ -79,6 +79,7 @@ function addTransaction(state: State, transaction: Transaction, add: boolean) {
         }
     }
     let sgrp = groups.find(g => g.id == sacc.group_id);
+    sacc = state.accounts.find(a => a.id == sacc.id);
     sacc = !sacc && sgrp ? sgrp.accounts[0] : null;
     return {groups: groups, accounts: getAccounts(groups), total: total, sgrp: sgrp, sacc: sacc};
 }
@@ -93,7 +94,9 @@ function add2balance(groups: Group[], id: number, amount: number) {
             }
             let balance = gtotal[a.currency] || { balance:0, currency: a.currency};
             balance.balance += a.balance;
-            gtotal[a.currency] = balance;
+            if (!a.deleted) {
+                gtotal[a.currency] = balance;
+            }
             balance = atotal[a.currency] || { balance:0, currency: a.currency};
             balance.balance += a.balance;
             atotal[a.currency] = balance;
