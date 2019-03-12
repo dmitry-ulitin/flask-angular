@@ -34,7 +34,7 @@
             <tr *ngFor="let g of groups$ | async" (click)="select(g)"
                 [class.table-active]="(sgrp$ | async)?.id == g.id" [class.owner]="g.belong==1"
                 [class.coowner]="g.belong==2" [class.shared]="g.belong==3">
-                <td><a  href="#" routerLink="/transactions" (click)="transactions(g)">{{g.full_name}}</a></td>
+                <td><a  href="#" routerLink="/transactions" (click)="transactions(g)">{{g.full_name}}</a>&nbsp;<i *ngIf="watched(g)" class="far fa-eye geye"></i></td>
                 <td class="text-right">
                     <div *ngFor="let t of g.total">{{t.balance  | currency:t.currency}}</div>
                 </td>

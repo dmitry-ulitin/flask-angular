@@ -26,8 +26,12 @@ export class GroupsComponent implements OnInit {
     this.store.dispatch({type:'[groups] query'});
   }
 
-  select(a: Group) {
-    this.store.dispatch({type:'[groups] select', payload: a});    
+  select(g: Group) {
+    this.store.dispatch({type:'[groups] select', payload: g});
+  }
+
+  watched(g: Group) {
+    return g.belong == 1 && g.permissions.length>0;
   }
 
   create() {

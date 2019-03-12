@@ -44,6 +44,10 @@ tr.shared {
     background-color: #f6e9cf;
 }
 
+.geye {
+    color: rgba(0,0,0,.1);
+}
+
 div.filter {
     color: #856404;
     background-color: #fff3cd;

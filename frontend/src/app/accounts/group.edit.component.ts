@@ -30,7 +30,7 @@ export class GroupEditComponent implements OnInit {
       this.form.patchValue(g);
       this.accounts = this.fb.array([]);
       this.form.setControl('accounts', this.accounts);
-      g.accounts.forEach(a => this.accounts.push(this.fb.group({id: a.id, start_balance: a.start_balance, currency: a.currency, name: a.name, deleted: a.deleted})));
+      g.accounts.forEach(a => this.accounts.push(this.fb.group({id: a.id, start_balance: a.start_balance, currency: [{value:a.currency, disabled: a.start_balance != a.balance}], name: a.name, deleted: a.deleted})));
     });
     this.route.params.forEach(p => this.store.dispatch({ type: '[group] query id', payload: p['id']}));
   }
