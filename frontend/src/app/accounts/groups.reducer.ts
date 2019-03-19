@@ -70,17 +70,18 @@ function addTransaction(state: State, transaction: Transaction, add: boolean) {
     let sacc = state.sacc;
     if (transaction && transaction.id) {
         if (transaction.recipient) {
-            sacc = sacc.group_id == transaction.recipient.group_id ? sacc : transaction.recipient;
+            sacc = sacc && sacc.group_id == transaction.recipient.group_id ? sacc : transaction.recipient;
             total = add2balance(groups, transaction.recipient.id, add ? transaction.debit : -transaction.debit);
         }
         if (transaction.account) {
-            sacc = sacc.group_id == transaction.account.group_id ? sacc : transaction.account;
+            sacc = sacc && sacc.group_id == transaction.account.group_id ? sacc : transaction.account;
             total = add2balance(groups, transaction.account.id, add ? -transaction.credit : transaction.credit);
         }
+        sacc.group_id = sacc.group ? sacc.group.id : sacc.group_id;
     }
     let sgrp = groups.find(g => g.id == sacc.group_id);
     sacc = state.accounts.find(a => a.id == sacc.id);
-    sacc = !sacc && sgrp ? sgrp.accounts[0] : null;
+    sacc = !sacc && sgrp ? sgrp.accounts[0] : sacc;
     return {groups: groups, accounts: getAccounts(groups), total: total, sgrp: sgrp, sacc: sacc};
 }
 

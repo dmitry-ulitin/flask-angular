@@ -27,29 +27,40 @@ class OCategory(Base):
     bg = Column(String(16), nullable=True)
 
 
-class OAccount(Base):
-    __tablename__ = 'accounts'
+class OAccountGroup(Base):
+    __tablename__ = 'account_groups'
     id = Column(Integer, primary_key=True)
     user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
     created = Column(DateTime, nullable = False)
     updated = Column(DateTime, nullable = False)
     name = Column(String(250), nullable=False)
-    currency = Column(String(250), nullable=False)
-    start_balance = Column(Numeric(10,2), nullable=False)
     visible = Column(Boolean, nullable=False, default = True)
     inbalance = Column(Boolean, nullable=False, default = True)
     deleted = Column(Boolean, nullable=False, default = False)
     order = Column(Integer, nullable=False, default = 0)
 
-class OAccountUser(Base):
-    __tablename__ = 'account_users'
-    account_id = Column(Integer, ForeignKey('accounts.id'), primary_key=True)
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+
+class OAccount(Base):
+    __tablename__ = 'accounts'
+    id = Column(Integer, primary_key=True)
+    group_id = Column(Integer, ForeignKey('account_groups.id'), nullable=False)
     created = Column(DateTime, nullable = False)
     updated = Column(DateTime, nullable = False)
     name = Column(String(250), nullable=True)
+    currency = Column(String(250), nullable=False)
+    start_balance = Column(Numeric(10,2), nullable=False)
+    deleted = Column(Boolean, nullable=False, default = False)
+    order = Column(Integer, nullable=False, default = 0)
+
+class OAccountUser(Base):
+    __tablename__ = 'account_users'
+    group_id = Column(Integer, ForeignKey('account_groups.id'), primary_key=True)
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    created = Column(DateTime, nullable = False)
+    updated = Column(DateTime, nullable = False)
     write = Column(Boolean, nullable=False, default = False)
     admin = Column(Boolean, nullable=False, default = False)
+    name = Column(String(250), nullable=True)
     visible = Column(Boolean, nullable=False, default = True)
     inbalance = Column(Boolean, nullable=False, default = True)
     deleted = Column(Boolean, nullable=False, default = False)
@@ -96,45 +107,34 @@ for c in categories:
     print(c.name)
     db.session.add(Category(id = c.id, user_id=c.user_id, created = c.created, updated = c.updated, parent_id = c.parent_id, name = c.name, bg = c.bg))
 
-db.session.add(Category(id=105, parent_id=Category.EXPENSE, name='Transport', user_id=1))
-db.session.add(Category(id=106, parent_id=Category.EXPENSE, name='Clothes', user_id=1))
-db.session.add(Category(id=114, parent_id=Category.EXPENSE, name='Interests and hobbies', user_id=1))
-db.session.add(Category(id=204, parent_id=Category.INCOME, name='Interest', user_id=1))
-
 
 AccountGroup.query.delete()
-print('\Account Groups')
-accounts = session.query(OAccount).all()
-for a in accounts:
-    print(a.name)
-    db.session.add(AccountGroup(id = a.id, user_id = a.user_id, created = a.created, updated = a.updated, name = a.name, visible = a.visible, inbalance = a.inbalance, deleted = a.deleted, order = a.order))
+print('\nAccount Groups')
+groups = session.query(OAccountGroup).all()
+for g in groups:
+    print(g.name)
+    db.session.add(AccountGroup(id = g.id, user_id = g.user_id, created = g.created, updated = g.updated, name = g.name, visible = g.visible, inbalance = g.inbalance, deleted = g.deleted, order = g.order))
 
-ag = AccountGroup.query.get(3)
-ag.name = 'tinkoff ...3272'
 
 Account.query.delete()
 print('\nAccounts')
 accounts = session.query(OAccount).all()
 for a in accounts:
     print(a.name)
-    db.session.add(Account(id = a.id, group_id = a.id, created = a.created, updated = a.updated, name = None, currency = a.currency, start_balance = a.start_balance, deleted = a.deleted, order = a.order))
-
-a = Account.query.get(4)
-a.group_id = 3
-db.session.commit()
-db.session.delete(AccountGroup.query.get(4))
+    db.session.add(Account(id = a.id, group_id = a.group_id, created = a.created, updated = a.updated, name = a.name, currency = a.currency, start_balance = a.start_balance, deleted = a.deleted, order = a.order))
 
 AccountUser.query.delete()
 print('\nAccount Users')
 account_users = session.query(OAccountUser).all()
 for au in account_users:
-    print(au.account_id, au.user_id)
+    print(au.group_id, au.user_id)
+    db.session.add(AccountUser(group_id = au.group_id, user_id = au.user_id, created = au.created, updated = au.updated, write = au.write, admin = au.admin, name = au.name, visible = au.visible, inbalance = au.inbalance, deleted = au.deleted, order = au.order))
 
 Transaction.query.delete()
 print('\nTransactions')
 transactions = session.query(OTransaction).all()
 for t in transactions:
     print(t.credit)
-    db.session.add(Transaction(id = t.id, user_id = t.user_id, created = t.created, updated = t.updated, opdate = t.opdate, account_id = t.account_id, credit = t.credit, recipient_id = t.recipient_id, debit = t.debit, category_id = t.category_id, currency = t.currency, details = t.details))
+    db.session.add(Transaction(id = t.id, user_id = t.user_id, created = t.created, updated = t.updated, opdate = t.opdate, account_id = t.account_id, credit = t.credit, recipient_id = t.recipient_id, debit = t.debit, category_id = t.category_id, currency = t.currency, details = t.details, mcc=t.mcc))
 
 db.session.commit()
