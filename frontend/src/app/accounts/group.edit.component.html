@@ -1,39 +1,79 @@
 <form [formGroup]="form" (submit)="onSubmit(form)">
   <div class="form-group">
     <label for="name">Name</label>
-    <input type="text" class="form-control" id="name" placeholder="Account name" formControlName="name">
+    <input type="text" class="form-control" id="name" placeholder="Account name" formControlName="name" autocomplete="off">
   </div>
   <table class="table table-sm w-100 table-borderless">
     <thead>
       <tr>
         <td class="align-middle pl-0">Initial Balances</td>
         <td *ngIf="canDelete()"></td>
-        <td class="text-right pr-0"><button type="button" class="btn btn-outline-secondary" (click)="addAccount()"><i
-              class="fas fa-plus-circle"></i></button></td>
+        <td class="text-right pr-0 pl-0"><button type="button" class="btn btn-outline-secondary btn-sm border-0"
+            (click)="addAccount()"><i class="fas fa-plus-circle"></i></button></td>
       </tr>
     </thead>
     <tbody>
       <tr formArrayName="accounts" *ngFor="let item of this.accounts.controls; let i = index;">
         <ng-template [ngIf]="!item.get('deleted').value">
-<!--
-          <td [formGroupName]="i">
-            <input type="text" class="form-control" placeholder="{{item.get('currency').value}}" formControlName="name">
-          </td>
- -->      
           <td [formGroupName]="i" class="pl-0">
             <input type="number" class="form-control" placeholder="0.00" formControlName="start_balance">
           </td>
           <td [formGroupName]="i" [class.pr-0]="!canDelete()">
             <input type="text" class="form-control" placeholder="RUB" formControlName="currency">
           </td>
-          <td class="text-right pr-0" [formGroupName]="i" *ngIf="canDelete()">
-            <button type="button" class="btn btn-outline-secondary" (click)="delete(item)"><i
+          <td class="text-right pr-0 pl-0 align-middle" [formGroupName]="i" *ngIf="canDelete()">
+            <button type="button" class="btn btn-outline-secondary btn-sm border-0" (click)="delete(item)"><i
                 class="fas fa-trash-alt"></i></button>
           </td>
         </ng-template>
       </tr>
     </tbody>
   </table>
-  <button type="submit" class="btn btn-primary mr-2" [disabled]="!form.valid">Submit</button>
-  <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
+  <div>
+    <label for="username">Permissions</label>
+  </div>
+  <div class="form-row align-items-center">
+    <div class="col">
+      <input type="text" class="form-control" placeholder="Add User" formControlName="username" id="username">
+    </div>
+    <div>
+      <select class="form-control">
+        <option selected>Read</option>
+        <option>Write</option>
+        <option>Admin</option>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button type="button" class="btn btn-outline-secondary btn-sm border-0"><i
+          class="fas fa-plus-circle"></i></button>
+    </div>
+  </div>
+  <table class="table table-sm w-100 mb-0" *ngIf="this.permissions.controls.length">
+    <thead>
+      <tr>
+        <td class="border-top-0">Name</td>
+        <td class="text-center border-top-0">Admin</td>
+        <td class="text-center border-top-0">Write</td>
+        <td class="text-center border-top-0">Read</td>
+        <td class="text-center border-top-0"></td>
+      </tr>
+    </thead>
+    <tbody>
+      <tr formArrayName="permissions" *ngFor="let item of this.permissions.controls; let i = index;">
+        <td class="align-middle">{{item.get('email').value}}</td>
+        <td class="text-center align-middle" [formGroupName]="i"><input type="checkbox" formControlName="admin"
+            (change)="check(item)"></td>
+        <td class="text-center align-middle" [formGroupName]="i"><input type="checkbox" formControlName="write"></td>
+        <td class="text-center align-middle" [formGroupName]="i"><input type="checkbox" formControlName="read"></td>
+        <td class="text-right pr-0 pl-0 align-middle">
+          <button type="button" class="btn btn-outline-secondary btn-sm border-0"><i
+              class="fas fa-trash-alt"></i></button>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="mt-3">
+    <button type="submit" class="btn btn-primary mr-2" [disabled]="!form.valid">Submit</button>
+    <button type="button" class="btn btn-primary" (click)="cancel()">Cancel</button>
+  </div>
 </form>
