@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router'
 import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
 import { Location } from '@angular/common'
-import { filter, debounceTime, switchMap } from 'rxjs/operators'
+import { filter, debounceTime, switchMap, map } from 'rxjs/operators'
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Observable, of } from 'rxjs';
@@ -52,7 +52,8 @@ export class GroupEditComponent implements OnInit {
         if (this.user && this.user.email.toUpperCase() != v.toUpperCase()) {
           this.user = null;
         }
-        return v.length > 2 ? this.backend.getUserNames(v, 5) : of([])
+        let ids = this.permissions.controls.map(p => p.get('id').value);
+        return v.length > 1 ? this.backend.getUserNames(v, 5).pipe(map(users => users.filter(u => !ids.some(id => u.id == id)))) : of([])
       })
     );
   }
@@ -73,6 +74,11 @@ export class GroupEditComponent implements OnInit {
       this.form.controls.rights.setValue('Read');
       this.form.controls.username.setValue('');
     }
+  }
+
+  delPermission(index) {
+    let permissions = this.form.get('permissions') as FormArray;
+    permissions.removeAt(index);
   }
 
   onSubmit({ value, valid }) {

@@ -100,7 +100,7 @@ def get_users():
     limit = request.args.get('limit', 5)
     name = request.args.get('offset', '')
     user_id = get_jwt_identity()['id']
-    users = User.query.filter(func.lower(User.name).like('%' + name.lower() + '%')).limit(limit).all()
+    users = User.query.filter(User.id != user_id).filter(func.lower(User.name).like('%' + name.lower() + '%')).limit(limit).all()
     return user_schema.jsonify(users, many=True) #jsonify([u.email for u in users])   
 
 @app.route('/api/groups')
@@ -140,6 +140,8 @@ def group_add():
         currency = acc['currency'] if acc['currency'] else 'RUB'
         if not acc['deleted']:
             group.accounts.append(Account(start_balance =start_balance, currency = currency, name = name))
+    for p in request.json['permissions']:
+        group.permissions.append(AccountUser(user_id=p['id'], admin=p['admin'], write=p.get('write', permission.admin)))
     db.session.add(group)
     db.session.commit()
     json = get_group_json(group, None, user_id)
@@ -165,6 +167,15 @@ def group_update():
             account.name = name
         elif not acc['deleted']:
             group.accounts.append(Account(start_balance = start_balance, currency = currency, name = name))
+    for p in request.json['permissions']:
+        permission = next((permission for permission in group.permissions if permission.user_id==p['id']), None)
+        if permission:
+            permission.admin = p['admin']
+            permission.write = p.get('write', permission.admin)
+        else:
+            group.permissions.append(AccountUser(group_id = group.id, user_id = p['id'], admin = p['admin'], write = p.get('write', p['admin'])))
+    for p in [permission for permission in group.permissions if not next((p for p in request.json['permissions'] if permission.user_id==p['id']), None)]:
+        db.session.delete(p)
     db.session.commit()
     balances = get_balances([a.id for a in group.accounts])
     json = get_group_json(group, balances, user_id)
