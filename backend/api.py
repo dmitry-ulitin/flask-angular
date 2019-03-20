@@ -94,6 +94,14 @@ def get_account_json(account, balances, user_id):
         json['balance'] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == account.id, balances)))))
     return json
 
+@app.route('/api/users')
+@jwt_required
+def get_users():
+    limit = request.args.get('limit', 5)
+    name = request.args.get('offset', '')
+    user_id = get_jwt_identity()['id']
+    users = User.query.filter(func.lower(User.name).like('%' + name.lower() + '%')).limit(limit).all()
+    return user_schema.jsonify(users, many=True) #jsonify([u.email for u in users])   
 
 @app.route('/api/groups')
 @jwt_required

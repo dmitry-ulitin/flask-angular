@@ -6,6 +6,7 @@ import { Category } from './models/category';
 import { Transaction } from './models/transaction';
 import { Filter } from './models/filter';
 import { Group } from './models/group';
+import { User } from './models/user';
 
 @Injectable({
   providedIn: 'root'
@@ -13,6 +14,13 @@ import { Group } from './models/group';
 export class BackendService {
 
   constructor(private http: HttpClient) { }
+
+  getUserNames(name: string, limit: number): Observable<User[]> {
+    let params = new HttpParams()
+      .set('name', name)
+      .set('limit', limit + '');
+    return this.http.get<User[]>('/api/users');
+  }
 
   getGroups(): Observable<Group[]> {
     return this.http.get<Group[]>('/api/groups');
