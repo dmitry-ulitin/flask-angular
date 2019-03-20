@@ -8,6 +8,7 @@ import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { BackendService } from '../backend.service'
 import { AlertifyService } from '../alertify.service'
+import { Group } from "../models/group";
 
 @Injectable()
 export class TransactionsEffects {
@@ -27,7 +28,21 @@ export class TransactionsEffects {
         ))
     );
 
-//    @Effect() setAccount$: Observable<any> = this.actions$.ofType('[transaction] account').pipe(map(action => { return { type: '[transactions] query'};}));
+    @Effect() groupFilter$: Observable<any> = this.actions$.pipe(
+        ofType<any>('[transactions] filter groups'),
+        map(action => {
+            let accounts = [];
+            let groups = action.payload as Group[];
+            if (groups) {
+                for (let g of groups) {
+                    accounts = accounts.concat(g.accounts);
+                }
+            }
+            return { type: '[transactions] filter accounts', payload: accounts };
+        })
+    );
+
+    //    @Effect() setAccount$: Observable<any> = this.actions$.ofType('[transaction] account').pipe(map(action => { return { type: '[transactions] query'};}));
 
     @Effect() getTransaction$: Observable<any> = this.actions$.pipe(
         ofType<any>('[transaction] query id'),
@@ -41,9 +56,9 @@ export class TransactionsEffects {
         ofType<any>('[transactions] create'),
         withLatestFrom(this.store),
         map(([action, state]) => {
-            if (state.accounts.selected) {
-                action.payload.account = action.payload.ttype == 1 ? null : state.accounts.selected;
-                action.payload.recipient = action.payload.ttype == 2 ? null : state.accounts.selected;
+            if (state.groups.sacc) {
+                action.payload.account = action.payload.ttype == 2 ? null : state.groups.sacc;
+                action.payload.recipient = action.payload.ttype == 1 ? null : state.groups.sacc;
             }
             this.router.navigate(['/transactions/create']);
             return { type: '[transactions] edit', payload: action.payload };
@@ -57,7 +72,7 @@ export class TransactionsEffects {
             concatMap(data => {
                 this.notify.success('Transaction saved');
                 this.location.back();
-                return of({ type: '[accounts] delete transaction', payload: state.transactions.form}, { type: '[accounts] add transaction', payload: data }, { type: '[transaction] save success', payload: data }, { type: '[transaction] query id', payload: data.id });
+                return of({ type: '[groups] delete transaction', payload: state.transactions.form }, { type: '[groups] add transaction', payload: data }, { type: '[transaction] save success', payload: data }, { type: '[transaction] query id', payload: data.id });
             }),
             catchError(error => of({ type: '[transactions] save fail', payload: error }))
         ))
@@ -73,7 +88,7 @@ export class TransactionsEffects {
                 concatMap(data => {
                     this.notify.success('Transaction removed');
                     this.router.navigate(['/transactions']);
-                    return of({ type: '[accounts] delete transaction', payload: state.transactions.selected },{ type: '[transactions] delete success'});
+                    return of({ type: '[groups] delete transaction', payload: state.transactions.selected }, { type: '[transactions] delete success' });
                 })
             )),
             catchError(error => of({ type: '[transactions] delete fail', payload: error }))

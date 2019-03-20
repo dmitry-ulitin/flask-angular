@@ -70,14 +70,17 @@ def get_group_json(group, balances, user_id):
     json = group_schema.dump(group)
     json['belong'] = group.belong(user_id)
     json['full_name'] = group.full_name(user_id)
-    balances = {}
-    acconts = []
-    for account in group.acconts:
+    totals = {}
+    accounts = []
+    for account in group.accounts:
         ajson = get_account_json(account, balances, user_id)
-        acconts.append(ajson)
-        balances[account.currency] = balances.get(account.currency, 0) + ajson['balance']
-    json['accounts'] = acconts
-    json['balances'] = [{'currency':currency, 'balance': balance} for currency,balance in balances.items()]
+        ajson.pop('group', None)
+        ajson['group_id'] = group.id
+        accounts.append(ajson)
+        if not account.deleted:
+            totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
+    json['accounts'] = accounts
+    json['total'] = [{'currency':currency, 'balance': balance} for currency,balance in totals.items()]
     return json
 
 def get_account_json(account, balances, user_id):
@@ -97,88 +100,80 @@ def get_account_json(account, balances, user_id):
 def get_groups():
     user_id = get_jwt_identity()['id']
     u_groups = AccountGroup.query.filter(AccountGroup.user_id == user_id).order_by(AccountGroup.id).all()
-    s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).select(AccountUser.group).order_by(AccountUser.group_id).all()
+    s_groups = [au.group for au in AccountUser.query.filter(AccountUser.user_id == user_id).order_by(AccountUser.group_id).all()]
     all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.OWNER]
-    all_groups = [g for g in u_groups if g.belong(user_id) == AccountGroup.COOWNER]
-    all_groups = [g for g in s_groups if g.belong(user_id) == AccountGroup.COOWNER]
-    all_groups = [g for g in s_groups if g.belong(user_id) == AccountGroup.SHARED]
+    all_groups += [g for g in u_groups if g.belong(user_id) == AccountGroup.COOWNER]
+    all_groups += [g for g in s_groups if g.belong(user_id) == AccountGroup.COOWNER]
+    all_groups += [g for g in s_groups if g.belong(user_id) == AccountGroup.SHARED]
     all_accounts = [g for g in all_groups for a in g.accounts]
     balances = get_balances([a.id for a in all_accounts])
     jsons = [get_group_json(group,balances,user_id) for group in all_groups]
     return jsonify(jsons)
 
-@app.route('/api/accounts')
+@app.route("/api/groups/<id>")
 @jwt_required
-def get_accounts():
+def get_group(id):
     user_id = get_jwt_identity()['id']
-    u_accounts = Account.query.filter(AccountGroup.user_id == user_id).order_by(AccountGroup.id).all()
-    s_groups = AccountUser.query.filter(AccountUser.user_id == user_id).order_by(AccountUser.group_id).all()
-    s_accounts = [a for g in s_groups for a in g.group.accounts]
-    balances = get_balances([a.id for a in (u_accounts + s_accounts)])
-    jsons = [get_account_json(a, balances, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.OWNER]
-    jsons += [get_account_json(a, balances, user_id) for a in u_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
-    jsons += [get_account_json(a, balances, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.COOWNER]
-    jsons += [get_account_json(a, balances, user_id) for a in s_accounts if a.group.belong(user_id) == AccountGroup.SHARED]
-    return jsonify(jsons)
-
-@app.route("/api/accounts/<id>")
-@jwt_required
-def get_account(id):
-    user_id = get_jwt_identity()['id']
-    account = Account.query.get(id)
-    balances = get_balances([account.id])
-    json = get_account_json(account, balances, user_id)
+    group = AccountGroup.query.get(id)
+    balances = get_balances([a.id for a in group.accounts])
+    json = get_group_json(group, balances, user_id)
     return jsonify(json)
 
-@app.route('/api/accounts', methods=['POST'])
+@app.route('/api/groups', methods=['POST'])
 @jwt_required
-def account_add():
+def group_add():
     user_id = get_jwt_identity()['id']
-    data = account_schema.load(request.json, partial=True)
-    account = Account(**data)
-    if 'group' in request.json:
-        account.group =  AccountGroup.query.get(request.json['group']['id'])
-    else:
-        account.group = AccountGroup(name =  account.name, user_id = user_id)
-        account.name = None
-    db.session.add(account)
+    data = group_schema.load(request.json, partial=True)
+    group = AccountGroup(**data)
+    group.user_id = user_id
+    for acc in request.json['accounts']:
+        name = acc['name'] if acc['name'] else None
+        start_balance = acc['start_balance'] if acc['start_balance'] else 0
+        currency = acc['currency'] if acc['currency'] else 'RUB'
+        if not acc['deleted']:
+            group.accounts.append(Account(start_balance =start_balance, currency = currency, name = name))
+    db.session.add(group)
     db.session.commit()
-    json = get_account_json(account, None, user_id)
+    json = get_group_json(group, None, user_id)
     return jsonify(json), 201
 
-
-@app.route("/api/accounts", methods=["PUT"])
+@app.route("/api/groups", methods=["PUT"])
 @jwt_required
-def account_update():
+def group_update():
     user_id = get_jwt_identity()['id']
-    account = Account.query.get(request.json['id'])
-    if account.group.user_id != user_id:
-        return jsonify({"msg": "Can't update this account"}), 401
-    if len(account.group.accounts)>1:
-        account.name = request.json['name']
-    else:
-        account.group.name = request.json['name']
-    account.currency = request.json.get('currency', 'RUB')
-    account.start_balance = request.json.get('start_balance', 0)
+    group = AccountGroup.query.get(request.json['id'])
+    if group.user_id != group.user_id and user_id not in [p.user_id for p in group.permissions if p.write]:
+        return jsonify({"msg": "Can't update this group"}), 403
+    group.name = request.json['name']
+    for acc in request.json['accounts']:
+        name = acc['name'] if acc['name'] else None
+        start_balance = acc['start_balance'] if acc['start_balance'] else 0
+        currency = acc['currency'] if acc['currency'] else 'RUB'
+        if acc['id']:
+            account = next(account for account in group.accounts if account.id==acc['id'])
+            account.start_balance = start_balance
+            account.currency = currency
+            account.deleted = acc.get('deleted', False)
+            account.name = name
+        elif not acc['deleted']:
+            group.accounts.append(Account(start_balance = start_balance, currency = currency, name = name))
     db.session.commit()
-    balances = get_balances([account.id])
-    json = get_account_json(account, balances, user_id)
+    balances = get_balances([a.id for a in group.accounts])
+    json = get_group_json(group, balances, user_id)
     return jsonify(json)
 
-
-@app.route("/api/accounts/<id>", methods=["DELETE"])
+@app.route("/api/groups/<id>", methods=["DELETE"])
 @jwt_required
-def account_delete(id):
+def group_delete(id):
     user_id = get_jwt_identity()['id']
-    account = Account.query.get(id)
-    if account.group.user_id != user_id:
-        return jsonify({"msg": "Can't delete this account"}), 401
-    account.deleted = True
-    if len([a for a in account.group.accounts if not a.deleted])<1:
-        account.group.deleted = True
+    group = AccountGroup.query.get(id)
+    if group.user_id != user_id:
+        return jsonify({"msg": "Can't delete this group"}), 403
+    group.deleted = True
+    for account in group.accounts:
+        account.delete = True
     db.session.commit()
     return account_schema.jsonify(account)
-
 @app.route('/api/categories')
 @jwt_required
 def get_categories():
@@ -227,7 +222,7 @@ def category_update():
     category = Category.query.get(request.json['id'])
     user_id = get_jwt_identity()['id']
     if category.user_id != user_id:
-        return jsonify({"msg": "Can't update this category"}), 401        
+        return jsonify({"msg": "Can't update this category"}), 403        
     category.name = request.json['name']
     category.bg = request.json['bgc']
     db.session.commit()
@@ -240,16 +235,14 @@ def get_transactions():
     offset = request.args.get('offset', 0)
     user_id = get_jwt_identity()['id']
     # select accounts
-    accounts = request.args.get('accounts')
-    if (accounts):
-        accounts = Account.query.filter(Account.id.in_(accounts.split(','))).all()
-    else:
-        user_accounts = Account.query.filter(AccountGroup.user_id == user_id).all()
-        user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
-        accounts = user_accounts +  [a for g in user_permissions for a in g.group.accounts]
-    account_ids = [a.id for a in accounts]
-    account_balances = dict((a.id,a.start_balance) for a in accounts)
+    user_accounts = Account.query.filter(AccountGroup.user_id == user_id).all()
+    user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
+    accounts = user_accounts +  [a for p in user_permissions for a in p.group.accounts]
     account_jsons = dict((a.id,get_account_json(a, None, user_id)) for a in accounts)
+    account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    if not any(account_ids):
+        account_ids = [a.id for a in accounts]
+    account_balances = dict((a.id,a.start_balance) for a in accounts if a.id in account_ids)
     # get transactions
     transactions = Transaction.query.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
@@ -291,7 +284,7 @@ def get_transaction(id):
         tr['account']['balance'] -= transaction.credit
     elif tr['recipient']:
         tr['recipient'] = get_account_json(transaction.recipient, balances, user_id)
-        tr['account']['balance'] += transaction.debit
+        tr['recipient']['balance'] += transaction.debit
     return jsonify(tr)
 
 

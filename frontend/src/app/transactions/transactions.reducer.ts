@@ -11,7 +11,7 @@ export interface State {
 
 export const initialState: State = {
     transactions: [],
-    filter: { accounts: [], categories: []},
+    filter: { groups: [],  accounts: [], categories: []},
     selected: null,
     form: null
 };
@@ -24,6 +24,9 @@ export function reducer(state: State = initialState, action: any): State {
         }
         case '[transactions] select': {
             return {...state, selected: action.payload};
+        }
+        case '[transactions] filter groups': {
+            return {...state, filter: {...state.filter, groups: action.payload}};
         }
         case '[transactions] filter accounts': {
             let accounts = action.payload as Account[] || [];

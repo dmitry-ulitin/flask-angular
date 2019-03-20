@@ -23,6 +23,7 @@ class Transaction(db.Model):
     category = db.relationship("Category")
     currency = db.Column(db.String(250), nullable=True)
     details = db.Column(db.String(1024), nullable=True)
+    mcc = db.Column(db.Integer, nullable=True)
     @hybrid_property
     def ttype(self):
         return Category.TRANSFER if self.account_id and self.recipient_id else Category.EXPENSE if self.account_id else Category.INCOME

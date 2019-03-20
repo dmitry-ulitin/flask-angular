@@ -27,7 +27,7 @@ export class TransactionEditorComponent implements OnInit {
 
     this.transaction$ = this.store.select('transactions', 'form');
 
-    this.accounts$ = this.store.select('accounts', 'accounts').pipe(map(accounts => accounts.filter(a => !a.deleted)));
+    this.accounts$ = this.store.select('groups', 'accounts').pipe(map(accounts => accounts.filter(a => !a.deleted)));
     this.expenses$ = this.store.select('categories', 'expenses');
     this.income$ = this.store.select('categories', 'income');
   }

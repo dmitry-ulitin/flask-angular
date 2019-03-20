@@ -9,9 +9,9 @@
                     <i class="fas fa-plus-circle"></i>
                 </button>
             </div>
-            <div class="btn-group mr-2" role="group" *ngIf="selected$ | async">
+            <div class="btn-group mr-2" role="group" *ngIf="sgrp$ | async">
                 <a role="button" class="btn btn-outline-primary"
-                    [routerLink]="['/accounts/edit/'+(selected$ | async)?.id]">
+                    [routerLink]="['/accounts/edit/'+(sgrp$ | async)?.id]">
                     <i class="fas fa-pencil-alt"></i>
                 </a>
                 <button type="button" class="btn btn-outline-primary" (click)="delete()">
@@ -31,11 +31,13 @@
             </div>
         </div>
         <table class="table">
-            <tr *ngFor="let a of accounts$ | async" (click)="select(a)"
-                [class.table-active]="(selected$ | async)?.id == a.id" [class.owner]="a.belong==1"
-                [class.coowner]="a.belong==2" [class.shared]="a.belong==3">
-                <td><a  href="#" routerLink="/transactions" (click)="transactions(a)">{{a.full_name}}</a></td>
-                <td class="text-right">{{a.balance  | currency:a.currency}}</td>
+            <tr *ngFor="let g of groups$ | async" (click)="select(g)"
+                [class.table-active]="(sgrp$ | async)?.id == g.id" [class.owner]="g.belong==1"
+                [class.coowner]="g.belong==2" [class.shared]="g.belong==3">
+                <td><a  href="#" routerLink="/transactions" (click)="transactions(g)">{{g.full_name}}</a>&nbsp;<i *ngIf="watched(g)" class="far fa-eye geye"></i></td>
+                <td class="text-right">
+                    <div *ngFor="let t of g.total">{{t.balance  | currency:t.currency}}</div>
+                </td>
             </tr>
             <tr>
                 <td></td>
