@@ -132,7 +132,8 @@ def insert_initial_records(*args, **kwargs):
 class AccountUserSchema(ma.Schema):
     class Meta:
         json_module = simplejson
-        fields = ('group_id', 'user_id', 'write', 'admin', 'name', 'visible', 'inbalance', 'deleted')
+        fields = ('group_id', 'user_id', 'user', 'write', 'admin', 'name', 'visible', 'inbalance', 'deleted')
     id = fields.Int(dump_only=True)
+    user =  ma.Nested('UserSchema', dump_only=True)
 
 account_user_schema = AccountUserSchema()

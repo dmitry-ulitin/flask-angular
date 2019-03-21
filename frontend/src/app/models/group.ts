@@ -1,4 +1,5 @@
 import { Account } from './account';
+import { User } from './user';
 
 export interface Group {
     id: number,
@@ -14,5 +15,7 @@ export interface Group {
 }
 
 export interface Permission {
-    write: boolean
+    user: User,
+    write: boolean,
+    admin: boolean
 }
