@@ -57,16 +57,16 @@
   <table class="table table-sm w-100 mb-0" *ngIf="this.permissions.controls.length">
     <thead>
       <tr>
-        <td class="border-top-0">Name</td>
-        <td class="text-center border-top-0">Admin</td>
-        <td class="text-center border-top-0">Write</td>
-        <td class="text-center border-top-0">Read</td>
+        <td class="border-top-0 pl-0">Name</td>
+        <td class="text-center border-top-0"><span class="d-inline d-sm-none">A</span><span class="d-none d-sm-inline">Admin</span></td>
+        <td class="text-center border-top-0"><span class="d-inline d-sm-none">W</span><span class="d-none d-sm-inline">Write</span></td>
+        <td class="text-center border-top-0"><span class="d-inline d-sm-none">R</span><span class="d-none d-sm-inline">Read</span></td>
         <td class="text-center border-top-0"></td>
       </tr>
     </thead>
     <tbody>
       <tr formArrayName="permissions" *ngFor="let item of this.permissions.controls; let i = index;">
-        <td class="align-middle">{{item.get('email').value}}</td>
+        <td class="align-middle nowrap pl-0">{{item.get('email').value}}</td>
         <td class="text-center align-middle" [formGroupName]="i"><input type="checkbox" formControlName="admin"
             (change)="check(item)"></td>
         <td class="text-center align-middle" [formGroupName]="i"><input type="checkbox" formControlName="write"></td>

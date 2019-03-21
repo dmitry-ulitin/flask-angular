@@ -98,10 +98,10 @@ def get_account_json(account, balances, user_id):
 @jwt_required
 def get_users():
     limit = request.args.get('limit', 5)
-    name = request.args.get('offset', '')
+    name = request.args.get('name', '')
     user_id = get_jwt_identity()['id']
     users = User.query.filter(User.id != user_id).filter(func.lower(User.name).like('%' + name.lower() + '%')).limit(limit).all()
-    return user_schema.jsonify(users, many=True) #jsonify([u.email for u in users])   
+    return user_schema.jsonify(users, many=True)
 
 @app.route('/api/groups')
 @jwt_required
@@ -250,7 +250,7 @@ def category_update():
 @app.route('/api/transactions')
 @jwt_required
 def get_transactions():
-    limit = request.args.get('limit', 40)
+    limit = request.args.get('limit', 30)
     offset = request.args.get('offset', 0)
     user_id = get_jwt_identity()['id']
     # select accounts
