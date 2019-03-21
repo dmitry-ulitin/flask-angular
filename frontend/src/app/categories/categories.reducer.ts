@@ -26,10 +26,15 @@ export function reducer(state: State = initialState, action: any): State {
                 if (!categories.some(c => c.id == transaction.category.id)) {
                     let index = categories.findIndex(c => c.parent_id == transaction.category.parent_id && c.name>transaction.category.name)
                     if (index<0) {
-                        categories.push(transaction.category);
+                        index = categories.findIndex(c => c.id == transaction.category.parent_id) + 1;
+                        if (index<1) {
+                            categories.push(transaction.category);
+                        } else {
+                            categories.splice(index,0, transaction.category);
+                        }
                     } else {
                         categories.splice(index,0, transaction.category);
-                    }
+                    }                    
                     return {...state, expenses: transaction.account ? categories : state.expenses, income: transaction.account ? state.income : categories};
                 }
             }
