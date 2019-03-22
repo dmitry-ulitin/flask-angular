@@ -69,44 +69,34 @@ function addTransaction(state: State, transaction: Transaction, add: boolean) {
         return state;
     }
     let groups = [...state.groups];
-    let total = state.total;
     let sacc = state.sacc;
-    let sgrp = state.sgrp;
     if (transaction.recipient) {
-        sacc = sacc && sacc.group_id == transaction.recipient.group_id ? sacc : transaction.recipient;
-        total = add2balance(groups, transaction.recipient.id, add ? transaction.debit : -transaction.debit);
+        sacc = transaction.recipient;
+        add2balance(groups, transaction.recipient.id, add ? transaction.debit : -transaction.debit);
     }
     if (transaction.account) {
-        sacc = sacc && sacc.group_id == transaction.account.group_id ? sacc : transaction.account;
-        total = add2balance(groups, transaction.account.id, add ? -transaction.credit : transaction.credit);
+        sacc = transaction.account;
+        add2balance(groups, transaction.account.id, add ? -transaction.credit : transaction.credit);
     }
     sacc.group_id = sacc.group ? sacc.group.id : sacc.group_id;
-    sgrp = groups.find(g => g.id == sacc.group_id);
-    sacc = state.accounts.find(a => a.id == sacc.id);
-    sacc = !sacc && sgrp ? sgrp.accounts[0] : sacc;
-    return {groups: groups, accounts: getAccounts(groups), total: total, sgrp: sgrp, sacc: sacc};
+    let sgrp = groups.find(g => g.id == sacc.group_id);
+    sacc = state.accounts.find(a => a.id == sacc.id) || (sgrp ? sgrp.accounts[0] : sacc);
+    return {groups: groups, accounts: getAccounts(groups), total:  getGTotal(groups), sgrp: sgrp, sacc: sacc};
 }
 
-function add2balance(groups: Group[], id: number, amount: number) {
-    let gtotal: { [id: string] : {balance: number, currency: string}} = {};
+function add2balance(groups: Group[], account_id: number, amount: number) {
     for (let g of groups) {
-        let atotal: { [id: string] : {balance: number, currency: string}} = {};
+        let total: { [id: string] : {balance: number, currency: string}} = {};
         for (let a of g.accounts) {
-            if (a.id == id) {
+            if (a.id == account_id) {
                 a.balance += amount;
             }
-            let balance = gtotal[a.currency] || { balance:0, currency: a.currency};
+            let balance = total[a.currency] || { balance:0, currency: a.currency};
             balance.balance += a.balance;
-            if (!a.deleted) {
-                gtotal[a.currency] = balance;
-            }
-            balance = atotal[a.currency] || { balance:0, currency: a.currency};
-            balance.balance += a.balance;
-            atotal[a.currency] = balance;
+            total[a.currency] = balance;
         }
-        g.total = Object.values(atotal);
+        g.total = Object.values(total);
     }
-    return Object.values(gtotal);
 }
 
 function getGTotal(groups: Group[]) {
