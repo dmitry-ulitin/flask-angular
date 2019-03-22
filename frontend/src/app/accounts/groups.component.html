@@ -36,13 +36,13 @@
                 [class.coowner]="g.belong==2" [class.shared]="g.belong==3">
                 <td><a  href="#" routerLink="/transactions" (click)="transactions(g)">{{g.full_name}}</a>&nbsp;<i *ngIf="watched(g)" class="far fa-eye geye"></i></td>
                 <td class="text-right">
-                    <div *ngFor="let t of g.total">{{t.balance  | currency:t.currency}}</div>
+                    <div *ngFor="let t of getTotal(g)">{{t.value  | currency:t.currency}}</div>
                 </td>
             </tr>
             <tr>
                 <td></td>
                 <td class="text-right">
-                    <div *ngFor="let t of total$ | async">{{t.balance  | currency:t.currency}}</div>
+                    <div *ngFor="let t of total$ | async">{{t.value  | currency:t.currency}}</div>
                 </td>
             </tr>
         </table>

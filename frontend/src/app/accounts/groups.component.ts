@@ -4,6 +4,7 @@ import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Group } from '../models/group';
 import { map } from 'rxjs/operators';
+import { Balance, Amount, Total } from '../models/balance';
 
 @Component({
   selector: 'app-groups',
@@ -12,13 +13,13 @@ import { map } from 'rxjs/operators';
 })
 export class GroupsComponent implements OnInit {
   groups$: Observable<Group[]>;
-  total$: Observable<{balance: number, currency: string}[]>;
+  total$: Observable<Amount[]>;
   sgrp$: Observable<Group>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.groups$ = this.store.select('groups', 'groups').pipe(map(groups => groups.filter(g => !g.deleted)));
-    this.total$ = this.store.select('groups', 'total');
+    this.total$ = this.store.select('groups', 'total').pipe(map(t => Object.values(t)));
     this.sgrp$ = this.store.select('groups', 'sgrp');
   }
 
@@ -49,5 +50,9 @@ export class GroupsComponent implements OnInit {
 
   createTr(ttype: number) {
     this.store.dispatch({type:'[transactions] create', payload: {ttype:ttype}});
+  }
+
+  getTotal(group: Group) {
+    return Object.values(Total.total(group));
   }
 }

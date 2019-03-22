@@ -26,9 +26,9 @@ export abstract class Total {
             if ('balance' in amount) {
                 value = amount.balance;
             }
-            if (currency && value) {
+            if (currency) {
                 let a = balance[currency] || { value:0, currency:currency};
-                a.value += value;
+                a.value += (value || 0);
                 balance[currency] = a;
             }    
         }

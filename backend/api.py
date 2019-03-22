@@ -70,17 +70,13 @@ def get_group_json(group, balances, user_id):
     json = group_schema.dump(group)
     json['belong'] = group.belong(user_id)
     json['full_name'] = group.full_name(user_id)
-    totals = {}
     accounts = []
     for account in group.accounts:
         ajson = get_account_json(account, balances, user_id)
         ajson.pop('group', None)
         ajson['group_id'] = group.id
         accounts.append(ajson)
-        if not account.deleted:
-            totals[account.currency] = totals.get(account.currency, 0) + ajson['balance']
     json['accounts'] = accounts
-    json['total'] = [{'currency':currency, 'balance': balance} for currency,balance in totals.items()]
     return json
 
 def get_account_json(account, balances, user_id):
