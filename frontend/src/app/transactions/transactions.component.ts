@@ -38,6 +38,14 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] delete'});    
   }
 
+  isFilterEmpty(filter: Filter): boolean {
+    return !filter || (filter.groups || []).length == 0;
+  }
+
+  filterName(filter: Filter): string {
+    return this.isFilterEmpty(filter) ? 'Empty' : filter.groups[0].full_name;
+  }
+
   clearFilter() {
     this.store.dispatch({type:'[transactions] filter groups', payload: []});    
   }
