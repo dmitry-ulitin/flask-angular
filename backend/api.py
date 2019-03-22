@@ -141,7 +141,7 @@ def group_add():
         if not acc['deleted']:
             group.accounts.append(Account(start_balance =start_balance, currency = currency, name = name))
     for p in request.json['permissions']:
-        group.permissions.append(AccountUser(user_id=p['id'], admin=p['admin'], write=p.get('write', permission.admin)))
+        group.permissions.append(AccountUser(user_id=p['id'], admin=p['admin'], write=p.get('write', p['admin'])))
     db.session.add(group)
     db.session.commit()
     json = get_group_json(group, None, user_id)
@@ -319,6 +319,11 @@ def transaction_add():
         data['category_id'] = request.json['category']['id']
     transaction = Transaction(**data)
     transaction.user_id=get_jwt_identity()['id']
+    if request.json['cname']:
+        parent_id = transaction.category_id if transaction.category_id else Category.EXPENSE if transaction.account_id else Category.INCOME
+        transaction.category_id = None
+        transaction.category = Category(parent_id=parent_id, name=request.json['cname'], user_id=transaction.user_id)
+        db.session.add(transaction.category)
     db.session.add(transaction)
     db.session.commit()
     return transaction_schema.jsonify(transaction), 201
@@ -337,6 +342,11 @@ def transaction_update():
     transaction.debit = request.json['debit']
     transaction.currency = request.json['currency']
     transaction.details = request.json['details']
+    if request.json['cname']:
+        parent_id = transaction.category_id if transaction.category_id else Category.EXPENSE if transaction.account_id else Category.INCOME
+        transaction.category_id = None
+        transaction.category = Category(parent_id=parent_id, name=request.json['cname'], user_id=transaction.user_id)
+        db.session.add(transaction.category)
     db.session.commit()
     return transaction_schema.jsonify(transaction)
 
