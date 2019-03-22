@@ -80,8 +80,9 @@ class OTransaction(Base):
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=True)
     currency = Column(String(250), nullable=True)
     details = Column(String(1024), nullable=True)
+    mcc = Column(Integer, nullable=True)
 
-engine = create_engine('sqlite:///swarmer_old.db')
+engine = create_engine('sqlite:///swarmer_bak.db')
 Base.metadata.bind = engine
 DBSession = sessionmaker()
 DBSession.bind = engine
