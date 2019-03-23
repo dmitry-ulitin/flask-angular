@@ -83,7 +83,7 @@ def get_account_json(account, balances, user_id):
     json = account_schema.dump(account)
     json['belong'] = account.group.belong(user_id)
     json['full_name'] = account.full_name(user_id)
-    json['name'] = account.name if len(account.group.accounts)>1 else account.group.name
+    json['name'] = account.name # if len(account.group.accounts)>1 else account.group.name
     json['balance'] = account.start_balance
     if balances:
         json['balance'] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == account.id, balances)))))
@@ -154,15 +154,15 @@ def group_update():
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
-        currency = acc['currency'] if acc['currency'] else 'RUB'
+        currency = acc.get('currency', None)
         if acc['id']:
             account = next(account for account in group.accounts if account.id==acc['id'])
             account.start_balance = start_balance
-            account.currency = currency
+            account.currency = currency if currency else account.currency
             account.deleted = acc.get('deleted', False)
             account.name = name
         elif not acc['deleted']:
-            group.accounts.append(Account(start_balance = start_balance, currency = currency, name = name))
+            group.accounts.append(Account(start_balance = start_balance, currency = currency if currency else 'RUB', name = name))
     for p in request.json['permissions']:
         permission = next((permission for permission in group.permissions if permission.user_id==p['id']), None)
         if permission:
