@@ -250,8 +250,10 @@ def get_transactions():
     offset = request.args.get('offset', 0)
     user_id = get_jwt_identity()['id']
     # select accounts
-    user_accounts = Account.query.filter(AccountGroup.user_id == user_id).all()
+    user_accounts = Account.query.join(Account.group).filter(AccountGroup.user_id == user_id).all()
+    print(user_accounts)
     user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
+    print(user_permissions)
     accounts = user_accounts +  [a for p in user_permissions for a in p.group.accounts]
     account_jsons = dict((a.id,get_account_json(a, None, user_id)) for a in accounts)
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
