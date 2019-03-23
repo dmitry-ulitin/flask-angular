@@ -26,15 +26,15 @@ class AccountGroup(db.Model):
     @hybrid_method
     def belong(self, user_id):
         if self.user_id == user_id:
-            result = AccountGroup.COOWNER if any([p.write for p in self.permissions]) else AccountGroup.OWNER
+            result = AccountGroup.COOWNER if any([p.admin for p in self.permissions]) else AccountGroup.OWNER
         else:
-            result = AccountGroup.COOWNER if any([p.write for p in self.permissions if p.user_id == user_id]) \
+            result = AccountGroup.COOWNER if any([p.admin for p in self.permissions if p.user_id == user_id]) \
                 else AccountGroup.SHARED if any([p for p in self.permissions if p.user_id == user_id]) \
                 else AccountGroup.ANOTHER
         return result
     @hybrid_method
     def full_name(self, user_id):
-        return self.name if user_id == self.user_id or user_id in [p.user_id for p in self.permissions if p.write] else self.name + ' (' + self.user.name + ')'
+        return self.name if user_id == self.user_id or user_id in [p.user_id for p in self.permissions if p.admin] else self.name + ' (' + self.user.name + ')'
     def __repr__(self):
         return '<AccountGroup %r>' % self.name
  
@@ -77,7 +77,7 @@ class Account(db.Model):
             fn += ' ' + self.name
         elif len(self.group.accounts) > 1:
             fn += ' ' + self.currency
-        if self.group.user_id != user_id:
+        if self.group.user_id != user_id and user_id not in [p.user_id for p in self.group.permissions if p.admin]:
             fn += ' (' + self.group.user.name + ')'
         return fn
     def __repr__(self):
