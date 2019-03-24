@@ -55,6 +55,9 @@ div.filter {
     padding: .375rem .5rem;
     border: 1px solid transparent;
     border-radius: .25rem;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
 }
 
 div.filter button.close {

@@ -10,8 +10,7 @@
                 </button>
             </div>
             <div class="btn-group mr-2" role="group" *ngIf="sgrp$ | async">
-                <a role="button" class="btn btn-outline-primary"
-                    [routerLink]="['/accounts/edit/'+(sgrp$ | async)?.id]">
+                <a role="button" class="btn btn-outline-primary" [routerLink]="['/accounts/edit/'+(sgrp$ | async)?.id]">
                     <i class="fas fa-pencil-alt"></i>
                 </a>
                 <button type="button" class="btn btn-outline-primary" (click)="delete()">
@@ -31,11 +30,18 @@
             </div>
         </div>
         <table class="table">
-            <tr *ngFor="let g of groups$ | async" (click)="select(g)"
-                [class.table-active]="(sgrp$ | async)?.id == g.id" [class.owner]="g.belong==1"
-                [class.coowner]="g.belong==2" [class.shared]="g.belong==3">
-                <td><a  href="#" routerLink="/transactions" (click)="transactions(g)">{{g.full_name}}</a>&nbsp;<i *ngIf="watched(g)" class="far fa-eye geye"></i></td>
-                <td class="text-right">
+            <tr *ngFor="let g of groups$ | async" (click)="select(g)" [class.table-active]="(sgrp$ | async)?.id == g.id"
+                [class.owner]="g.belong==1" [class.coowner]="g.belong==2" [class.shared]="g.belong==3">
+                <td *ngIf="(extended$ | async) && (sgrp$ | async)?.id == g.id">
+                    <div *ngFor="let a of g.accounts"><a href="#" routerLink="/transactions" (click)="filterAccount(a)">{{a.full_name}}</a></div>
+                </td>
+                <td *ngIf="!(extended$ | async) || (sgrp$ | async)?.id != g.id">
+                    <a href="#" routerLink="/transactions" (click)="filterGroup(g)">{{g.full_name}}</a>&nbsp;<i *ngIf="watched(g)" class="far fa-eye geye"></i>
+                </td>
+                <td class="text-right" *ngIf="(extended$ | async) && (sgrp$ | async)?.id == g.id">
+                    <div *ngFor="let a of g.accounts">{{a.balance  | currency:a.currency}}</div>
+                </td>
+                <td class="text-right" *ngIf="!(extended$ | async) || (sgrp$ | async)?.id != g.id">
                     <div *ngFor="let t of getTotal(g)">{{t.value  | currency:t.currency}}</div>
                 </td>
             </tr>

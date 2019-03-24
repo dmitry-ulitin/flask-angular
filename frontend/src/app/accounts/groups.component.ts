@@ -15,12 +15,14 @@ export class GroupsComponent implements OnInit {
   groups$: Observable<Group[]>;
   total$: Observable<Amount[]>;
   sgrp$: Observable<Group>;
+  extended$: Observable<boolean>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.groups$ = this.store.select('groups', 'groups').pipe(map(groups => groups.filter(g => !g.deleted)));
     this.total$ = this.store.select('groups', 'total').pipe(map(t => Object.values(t)));
     this.sgrp$ = this.store.select('groups', 'sgrp');
+    this.extended$ = this.store.select('groups', 'extended');
   }
 
   refresh() {
@@ -43,9 +45,12 @@ export class GroupsComponent implements OnInit {
     this.store.dispatch({type:'[groups] delete'});    
   }
 
-  transactions(group: Group) {
-    this.store.dispatch({type:'[groups] select', payload: group});    
+  filterGroup(group: Group) {
     this.store.dispatch({type:'[transactions] filter groups', payload: [group]});    
+  }
+
+  filterAccount(account: Account) {
+    this.store.dispatch({type:'[transactions] filter accounts', payload: [account]});    
   }
 
   createTr(ttype: number) {

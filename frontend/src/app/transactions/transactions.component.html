@@ -1,7 +1,7 @@
 <div class="row h-100">
     <div class="col h-100 d-flex flex-column">
         <div>
-            <div class="btn-toolbar mb-2" role="toolbar">
+            <div class="btn-toolbar mb-2 flex-nowrap" role="toolbar">
                 <div class="btn-group mr-2" role="group">
                     <button type="button" class="btn btn-outline-primary" (click)="refresh()">
                         <i class="fas fa-sync-alt"></i>
@@ -28,8 +28,7 @@
                     </button>
                 </div>
                 <div *ngIf="!isFilterEmpty(filter$ | async)" class="filter">
-                    {{filterName(filter$ | async)}} <button type="button" class="close ml-2"
-                        aria-label="Close" (click)="clearFilter()"><span aria-hidden="true">&times;</span></button>
+                    <button type="button" class="close ml-2"aria-label="Close" (click)="clearFilter()"><span aria-hidden="true">&times;</span></button> {{filterName(filter$ | async)}}
                 </div>
             </div>
         </div>
