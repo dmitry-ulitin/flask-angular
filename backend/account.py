@@ -74,7 +74,7 @@ class Account(db.Model):
     def full_name(self, user_id):
         fn = self.group.name
         if self.name:
-            fn += ' / ' + self.name
+            fn += ' ' + self.name
         elif len(self.group.accounts) > 1:
             fn += ' ' + self.currency
         if self.group.user_id != user_id:

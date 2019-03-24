@@ -10,7 +10,6 @@ export interface Group {
     inbalance: boolean,
     deleted: boolean,
     accounts: Account[],
-    total: {currency:string, balance: number}[],
     permissions: Permission[]
 }
 
