@@ -39,11 +39,17 @@ export class TransactionsComponent implements OnInit {
   }
 
   isFilterEmpty(filter: Filter): boolean {
-    return !filter || (filter.groups || []).length == 0;
+    return !filter || ((filter.groups || []).length == 0 && (filter.accounts || []).length == 0);
   }
 
   filterName(filter: Filter): string {
-    return this.isFilterEmpty(filter) ? 'Empty' : filter.groups[0].full_name;
+    if (filter && (filter.groups || []).length) {
+      return filter.groups.map(g => g.full_name).join(',');
+    }
+    else if (filter && (filter.accounts || []).length) {
+      return filter.accounts.map(a => a.full_name).join(',');
+    }
+    return this.isFilterEmpty(filter) ? 'Empty' : 'Filter...';
   }
 
   clearFilter() {

@@ -8,7 +8,8 @@ export interface State {
     accounts: Account[],
     total: Balance,
     sgrp: Group,
-    sacc: Account
+    sacc: Account,
+    extended: boolean
 }
 
 export const initialState: State = {
@@ -16,7 +17,8 @@ export const initialState: State = {
     accounts: [],
     total: {},
     sgrp: null,
-    sacc: null
+    sacc: null,
+    extended: false
 };
 
 export function reducer(state: State = initialState, action: any): State {
@@ -25,12 +27,19 @@ export function reducer(state: State = initialState, action: any): State {
             let groups = (action.payload as Group[])
             let sgrp = state.sgrp ? groups.find(a => a.id == state.sgrp.id) : null;
             let sacc = sgrp ? sgrp.accounts[0] : null;
-            return {groups: groups, total: Total.total(groups), accounts: getAccounts(groups), sgrp: sgrp, sacc: sacc};
+            return {groups: groups, total: Total.total(groups), accounts: getAccounts(groups), sgrp: sgrp, sacc: sacc, extended: false};
+        }
+        case '[transactions] filter accounts': {
+            let accs = (action.payload as Account[]);
+            let sacc = accs.length ? (action.payload as Account[])[0] : state.sacc;
+            let sgrp = sacc ? state.groups.find(g => g.id == sacc.group_id) : null;
+            return {...state, sgrp: sgrp, sacc: sacc};
         }
         case '[groups] select': {
             let sgrp = action.payload as Group;
+            let extended = sgrp == state.sgrp ? !state.extended : false;
             let sacc = sgrp ? sgrp.accounts[0] : null;
-            return {...state, sgrp: sgrp, sacc: sacc};
+            return {...state, extended: extended, sgrp: sgrp, sacc: sacc};
         }
         case '[group] query id success':
         case '[group] save success': {
@@ -43,7 +52,7 @@ export function reducer(state: State = initialState, action: any): State {
             } else {
                 groups[index] = sgrp;
             }
-            return {groups: groups, total: Total.total(groups), accounts: getAccounts(groups), sgrp: sgrp, sacc: sacc};
+            return {groups: groups, total: Total.total(groups), accounts: getAccounts(groups), sgrp: sgrp, sacc: sacc, extended: state.extended};
         }
         case '[groups] delete success': {
             let groups = [...state.groups];
@@ -51,7 +60,7 @@ export function reducer(state: State = initialState, action: any): State {
             if (index>=0) {
                 groups.splice(index, 1);
             }
-            return {groups: groups, accounts: getAccounts(groups), total: Total.total(groups), sgrp: null, sacc: null};
+            return {groups: groups, accounts: getAccounts(groups), total: Total.total(groups), sgrp: null, sacc: null, extended: false};
         }
         case '[groups] add transaction': {
             return addTransaction(state, action.payload as Transaction, true);
@@ -84,7 +93,7 @@ function addTransaction(state: State, transaction: Transaction, add: boolean) {
         }
     }
     let sgrp = groups.find(g => g.id == sacc.group_id);
-    return {groups: groups, accounts: getAccounts(groups), total: Total.total(groups), sgrp: sgrp, sacc: sacc};
+    return {groups: groups, accounts: getAccounts(groups), total: Total.total(groups), sgrp: sgrp, sacc: sacc, extended: state.extended};
 }
 
 function getAccounts(groups: Group[]) {
