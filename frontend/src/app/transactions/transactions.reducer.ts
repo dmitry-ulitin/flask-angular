@@ -44,6 +44,13 @@ export function reducer(state: State = initialState, action: any): State {
             let transactions = [...state.transactions];
             let index = transactions.findIndex(a => a.id == state.selected.id);
             if (index>=0) {
+                if (transactions[index].account && transactions[index].account.balance) {
+                    transactions[index].account.balance += transactions[index].credit;
+                }
+                if (transactions[index].recipient && transactions[index].recipient.balance) {
+                    transactions[index].recipient.balance -= transactions[index].debit;
+                }
+                fixBalance(transactions, index)
                 transactions.splice(index, 1);
             } 
             return {...state, transactions: transactions, selected: null};
@@ -58,10 +65,43 @@ export function reducer(state: State = initialState, action: any): State {
             }
             index = transactions.filter(t => t.opdate>selected.opdate).length;
             transactions.splice( index, 0, selected);
+            fixBalance(transactions, index)
             return {...state, transactions: transactions, selected: selected, form: selected};
         }
         default: {
             return state;
+        }
+    }
+}
+function fixBalance(transactions: Transaction[], index: number) {
+    let account = null;
+    let recipient = null;
+    if (transactions[index].account && transactions[index].account.balance) {
+        account = transactions[index].account;
+    }
+    if (transactions[index].recipient && transactions[index].recipient.balance) {
+        recipient = transactions[index].recipient;
+    }
+    for(let i = index - 1; i>=0; i--) {
+        if (account) {
+            if (transactions[i].account && transactions[i].account.id == account.id) {
+                transactions[i].account.balance = account.balance - transactions[i].credit;
+                account = transactions[i].account;
+            }
+            if (transactions[i].recipient && transactions[i].recipient.id == account.id) {
+                transactions[i].recipient.balance = account.balance + transactions[i].debit;
+                account = transactions[i].recipient;
+            }
+        }
+        if (recipient) {
+            if (transactions[i].account && transactions[i].account.id == recipient.id) {
+                transactions[i].account.balance = recipient.balance - transactions[i].credit;
+                recipient = transactions[i].account;
+            }
+            if (transactions[i].recipient && transactions[i].recipient.id == recipient.id) {
+                transactions[i].recipient.balance = recipient.balance + transactions[i].debit;
+                recipient = transactions[i].recipient;
+            }
         }
     }
 }
