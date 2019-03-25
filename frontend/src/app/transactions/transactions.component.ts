@@ -4,6 +4,8 @@ import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Transaction } from '../models/transaction';
 import { Filter } from '../models/filter';
+import { Group } from '../models/group';
+import { map } from 'rxjs/operators';
 
 @Component({
   selector: 'app-transactions',
@@ -14,12 +16,14 @@ export class TransactionsComponent implements OnInit {
   transactions$: Observable<Transaction[]>;
   selected$: Observable<Transaction>;
   filter$: Observable<Filter>;
+  groups$: Observable<Group[]>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.transactions$ = this.store.select('transactions', 'transactions');
     this.selected$ = this.store.select('transactions', 'selected');
     this.filter$ = this.store.select('transactions', 'filter');
+    this.groups$ = this.store.select('groups', 'groups').pipe(map(groups => groups.filter(g => !g.deleted)));
   }
 
   refresh() {
@@ -65,5 +69,9 @@ export class TransactionsComponent implements OnInit {
 
   getBalance(t: Transaction) {
     return t.account && t.account.balance ? t.account : (t.recipient && t.recipient.balance ? t.recipient : null);
+  }
+
+  filterGroup(group: Group) {
+    this.store.dispatch({type:'[transactions] filter groups', payload: [group]});    
   }
 }
