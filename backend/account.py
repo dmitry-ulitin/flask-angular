@@ -81,7 +81,7 @@ class Account(db.Model):
             fn += ' (' + self.group.user.name + ')'
         return fn
     def __repr__(self):
-        return '<Account %r>' % self.name
+        return '<Account %r>' % self.id
  
 class AccountSchema(ma.Schema):
     class Meta:
