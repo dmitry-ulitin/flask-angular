@@ -5,4 +5,5 @@ export interface Filter {
     name: string
     accounts: Account[]
     categories: Category[]
+    scope?: number
 }

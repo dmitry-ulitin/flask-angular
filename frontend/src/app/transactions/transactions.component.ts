@@ -60,4 +60,8 @@ export class TransactionsComponent implements OnInit {
   filterGroup(group: Group) {
     this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: group.full_name, accounts: group.accounts, categories:[]}});    
   }
+
+  filterAllAccounts() {
+    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: 'All Accounts', accounts: [], categories:[], scope: 3}});    
+  }
 }
