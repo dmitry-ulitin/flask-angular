@@ -3,6 +3,8 @@ import { Observable} from 'rxjs';
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Group } from '../models/group';
+import { Account } from '../models/account';
+import { Filter } from '../models/filter';
 import { map } from 'rxjs/operators';
 import { Balance, Amount, Total } from '../models/balance';
 
@@ -46,11 +48,11 @@ export class GroupsComponent implements OnInit {
   }
 
   filterGroup(group: Group) {
-    this.store.dispatch({type:'[transactions] filter groups', payload: [group]});    
+    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: group.full_name, accounts: group.accounts, categories:[]}});    
   }
 
   filterAccount(account: Account) {
-    this.store.dispatch({type:'[transactions] filter accounts', payload: [account]});    
+    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: account.full_name, accounts: [account], categories:[]}});    
   }
 
   createTr(ttype: number) {

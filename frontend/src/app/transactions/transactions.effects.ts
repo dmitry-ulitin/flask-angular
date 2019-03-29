@@ -8,7 +8,6 @@ import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { BackendService } from '../backend.service'
 import { AlertifyService } from '../alertify.service'
-import { Group } from "../models/group";
 
 @Injectable()
 export class TransactionsEffects {
@@ -20,7 +19,7 @@ export class TransactionsEffects {
         private location: Location) { };
 
     @Effect() getTransactions$: Observable<any> = this.actions$.pipe(
-        ofType('[transactions] query', '[transactions] filter accounts'),
+        ofType('[transactions] query'),
         withLatestFrom(this.store),
         switchMap(([action, state]) => this.backend.getTransactions(state.transactions.filter).pipe(
             map(data => { return { type: '[transactions] query success', payload: data }; }),
@@ -28,21 +27,10 @@ export class TransactionsEffects {
         ))
     );
 
-    @Effect() groupFilter$: Observable<any> = this.actions$.pipe(
-        ofType<any>('[transactions] filter groups'),
-        map(action => {
-            let accounts = [];
-            let groups = action.payload as Group[];
-            if (groups) {
-                for (let g of groups) {
-                    accounts = accounts.concat(g.accounts);
-                }
-            }
-            return { type: '[transactions] filter accounts', payload: accounts };
-        })
+    @Effect() filter$: Observable<any> = this.actions$.pipe(
+        ofType('[transactions] filter'),
+        map(action => { return {type: '[transactions] query'};})
     );
-
-    //    @Effect() setAccount$: Observable<any> = this.actions$.ofType('[transaction] account').pipe(map(action => { return { type: '[transactions] query'};}));
 
     @Effect() getTransaction$: Observable<any> = this.actions$.pipe(
         ofType<any>('[transaction] query id'),

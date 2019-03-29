@@ -42,22 +42,8 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] delete'});    
   }
 
-  isFilterEmpty(filter: Filter): boolean {
-    return !filter || ((filter.groups || []).length == 0 && (filter.accounts || []).length == 0);
-  }
-
-  filterName(filter: Filter): string {
-    if (filter && (filter.groups || []).length) {
-      return filter.groups.map(g => g.full_name).join(',');
-    }
-    else if (filter && (filter.accounts || []).length) {
-      return filter.accounts.map(a => a.full_name).join(',');
-    }
-    return this.isFilterEmpty(filter) ? 'Empty' : 'Filter...';
-  }
-
   clearFilter() {
-    this.store.dispatch({type:'[transactions] filter groups', payload: []});    
+    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name:'', accounts:[], categories:[]}});    
   }
 
   getName(t: Transaction) {
@@ -72,6 +58,6 @@ export class TransactionsComponent implements OnInit {
   }
 
   filterGroup(group: Group) {
-    this.store.dispatch({type:'[transactions] filter groups', payload: [group]});    
+    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: group.full_name, accounts: group.accounts, categories:[]}});    
   }
 }
