@@ -109,7 +109,7 @@ def get_groups():
     all_groups += [g for g in u_groups if g.belong(user_id) == AccountGroup.COOWNER]
     all_groups += [g for g in s_groups if g.belong(user_id) == AccountGroup.COOWNER]
     all_groups += [g for g in s_groups if g.belong(user_id) == AccountGroup.SHARED]
-    all_accounts = [g for g in all_groups for a in g.accounts]
+    all_accounts = [a for g in all_groups for a in g.accounts]
     balances = get_balances([a.id for a in all_accounts])
     jsons = [get_group_json(group,balances,user_id) for group in all_groups]
     return jsonify(jsons)
@@ -248,15 +248,13 @@ def category_update():
 def get_transactions():
     limit = request.args.get('limit', 30)
     offset = request.args.get('offset', 0)
+    account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
     user_id = get_jwt_identity()['id']
     # select accounts
     user_accounts = Account.query.join(Account.group).filter(AccountGroup.user_id == user_id).all()
-    print(user_accounts)
     user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
-    print(user_permissions)
     accounts = user_accounts +  [a for p in user_permissions for a in p.group.accounts]
     account_jsons = dict((a.id,get_account_json(a, None, user_id)) for a in accounts)
-    account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
     if not any(account_ids):
         account_ids = [a.id for a in accounts]
     account_balances = dict((a.id,a.start_balance) for a in accounts if a.id in account_ids)
@@ -274,15 +272,17 @@ def get_transactions():
     for t in tr[::-1]:
         if t['account']:
             id = t['account']['id']
-            if id in account_jsons:
-                t['account']['full_name'] = account_jsons[id]['full_name']
+            if id not in account_jsons:
+                account_jsons[id] = get_account_json(Account.query.get(id), None, user_id)
+            t['account']['full_name'] = account_jsons[id]['full_name']                
             if id in account_balances:
                 account_balances[id] -= t['credit']
                 t['account']['balance'] = account_balances[id]
         if t['recipient']:
             id = t['recipient']['id']
-            if id in account_jsons:
-                t['recipient']['full_name'] = account_jsons[id]['full_name']
+            if id not in account_jsons:
+                account_jsons[id] = get_account_json(Account.query.get(id), None, user_id)
+            t['recipient']['full_name'] = account_jsons[id]['full_name']
             if id in account_balances:
                 account_balances[id] += t['debit']
                 t['recipient']['balance'] = account_balances[id]
