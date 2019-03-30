@@ -250,13 +250,14 @@ def get_transactions():
     offset = request.args.get('offset', 0)
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
     user_id = get_jwt_identity()['id']
+    scope = int(request.args.get('scope', 2))
     # select accounts
     user_accounts = Account.query.join(Account.group).filter(AccountGroup.user_id == user_id).all()
     user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
     accounts = user_accounts +  [a for p in user_permissions for a in p.group.accounts]
     account_jsons = dict((a.id,get_account_json(a, None, user_id)) for a in accounts)
     if not any(account_ids):
-        account_ids = [a.id for a in accounts]
+        account_ids = [a.id for a in accounts if a.group.belong(user_id)>0 and a.group.belong(user_id)<= scope]
     account_balances = dict((a.id,a.start_balance) for a in accounts if a.id in account_ids)
     # get transactions
     transactions = Transaction.query.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \

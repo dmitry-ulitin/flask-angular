@@ -2,6 +2,7 @@ import { Account } from '../models/account';
 import { Group } from '../models/group';
 import { Transaction } from '../models/transaction';
 import { Balance, Total } from '../models/balance';
+import { Filter } from '../models/filter';
 
 export interface State {
     groups: Group[],
@@ -29,8 +30,8 @@ export function reducer(state: State = initialState, action: any): State {
             let sacc = sgrp ? sgrp.accounts[0] : null;
             return {groups: groups, total: Total.total(groups), accounts: getAccounts(groups), sgrp: sgrp, sacc: sacc, extended: false};
         }
-        case '[transactions] filter accounts': {
-            let accs = (action.payload as Account[]);
+        case '[transactions] filter': {
+            let accs = (action.payload as Filter).accounts;
             let sacc = accs.length ? (action.payload as Account[])[0] : state.sacc;
             let sgrp = sacc ? state.groups.find(g => g.id == sacc.group_id) : null;
             return {...state, sgrp: sgrp, sacc: sacc};

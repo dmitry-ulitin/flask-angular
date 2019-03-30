@@ -86,6 +86,9 @@ export class BackendService {
     let params = new HttpParams()
       .set('accounts', (filter.accounts || []).map(a => a.id).join(','))
       .set('categories', (filter.categories || []).map(a => a.id).join(','));
+    if (filter.scope) {
+      params = params.set('scope', '' + filter.scope);
+    }
     return this.http.get<Transaction[]>('/api/transactions', {params: params});
   }
 

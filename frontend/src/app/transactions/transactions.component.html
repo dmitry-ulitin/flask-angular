@@ -27,8 +27,18 @@
                         <i class="fas fa-trash-alt"></i>
                     </button>
                 </div>
-                <div *ngIf="!isFilterEmpty(filter$ | async)" class="filter">
-                    <button type="button" class="close ml-2"aria-label="Close" (click)="clearFilter()"><span aria-hidden="true">&times;</span></button> {{filterName(filter$ | async)}}
+                <div *ngIf="!(filter$ | async)?.name" class="dropdown">
+                    <button class="btn btn-outline-primary dropdown-toggle" type="button" id="dropdownAccount" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false"><i class="fas fa-filter"></i></button>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownAccount">
+                        <a class="dropdown-item" href="#" (click)="filterAllAccounts(); false">All Accounts</a>
+                        <div class="dropdown-divider"></div>
+                        <a *ngFor="let g of groups$ | async" class="dropdown-item" href="#" (click)="filterGroup(g); false">{{g.full_name}}</a>
+                    </div>
+                </div>
+                <div *ngIf="(filter$ | async)?.name" class="filter">
+                    <button type="button" class="close ml-2" aria-label="Close" (click)="clearFilter()"><span
+                            aria-hidden="true">&times;</span></button> {{(filter$ | async)?.name}}
                 </div>
             </div>
         </div>
