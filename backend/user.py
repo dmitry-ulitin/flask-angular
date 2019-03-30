@@ -10,6 +10,7 @@ class User(db.Model):
     email = db.Column(db.String(250), nullable=False)
     name = db.Column(db.String(250), nullable=False)
     password = db.Column(db.String(32), nullable=False)
+    currency = db.Column(db.String(5), nullable=False, default='RUB')
     created = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now)
     updated = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
     def __repr__(self):
@@ -18,7 +19,7 @@ class User(db.Model):
 class UserSchema(ma.Schema):
     class Meta:
         json_module = simplejson
-        fields = ('id', 'email','name')
+        fields = ('id', 'email','name','currency')
     id = fields.Int(dump_only=True)
 
 user_schema = UserSchema()

@@ -66,7 +66,7 @@ class Account(db.Model):
     created = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now)
     updated = db.Column(db.DateTime, nullable = False, default=datetime.datetime.now, onupdate=datetime.datetime.now)
     name = db.Column(db.String(250), nullable=True)
-    currency = db.Column(db.String(250), nullable=False)
+    currency = db.Column(db.String(5), nullable=False)
     start_balance = db.Column(db.Numeric(10,2), nullable=False)
     deleted = db.Column(db.Boolean, nullable=False, default = False)
     order = db.Column(db.Integer, nullable=False, default = 0)

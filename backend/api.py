@@ -20,6 +20,7 @@ from .user import User, user_schema
 from .account import AccountGroup, group_schema, Account, account_schema, AccountUser, account_user_schema
 from .category import Category, category_schema
 from .transaction import Transaction, transaction_schema
+from .currency import CurrencyRates, rate_schema, convert
 db.create_all()
 
 app.config['JWT_SECRET_KEY'] = 'swarmer'
@@ -147,6 +148,7 @@ def group_add():
 @jwt_required
 def group_update():
     user_id = get_jwt_identity()['id']
+    ucurrency = get_jwt_identity()['currency']
     group = AccountGroup.query.get(request.json['id'])
     if group.user_id != group.user_id and user_id not in [p.user_id for p in group.permissions if p.write]:
         return jsonify({"msg": "Can't update this group"}), 403
@@ -154,7 +156,7 @@ def group_update():
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
-        currency = acc.get('currency', None)
+        currency = acc.get('currency', ucurrency)
         if acc['id']:
             account = next(account for account in group.accounts if account.id==acc['id'])
             account.start_balance = start_balance
@@ -357,3 +359,11 @@ def transaction_delete(id):
         db.session.delete(transaction)
         db.session.commit()
     return ('', 204)
+
+@app.route('/api/convert')
+def convert_value():
+    currency = request.args.get('currency', 'RUB')
+    target = request.args.get('target', 'RUB')
+    value = request.args.get('value', 1.0)
+    date = request.args.get('date', datetime.datetime.now().date())
+    return jsonify(convert(value, currency, target, date))
