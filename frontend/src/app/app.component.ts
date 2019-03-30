@@ -10,7 +10,8 @@ import { Router } from '@angular/router';
       <span class="navbar-brand mb-0 h1">Swarmer</span>
         <a class="nav-item nav-link" href="#" routerLink="/accounts" routerLinkActive="active"><i class="fas fa-database"></i><span class="d-none d-sm-inline"> Accounts</span></a>
         <a class="nav-item nav-link mr-auto" href="#" routerLink="/transactions" routerLinkActive="active"><i class="fas fa-list-ul"></i><span class="d-none d-sm-inline"> Transactions</span></a>
-        <a class="nav-item nav-link" href="#" (click)="logout(); false" *ngIf="isAthorized"><i class="fas fa-sign-out-alt"></i><span class="d-none d-sm-inline"> Logout</span></a>
+        <span *ngIf="isAthorized">{{auth.claims.identity.name}}</span>
+        <a class="nav-item nav-link pr-0" href="#" (click)="logout(); false" *ngIf="isAthorized"><i class="fas fa-sign-out-alt"></i><span class="d-none d-sm-inline"> Logout</span></a>
     </div>
   </nav>
   <div class="container h-100">
@@ -27,7 +28,7 @@ export class AppComponent {
   }
 
   logout() {
-    this.auth.logout();
+    console.log(this.auth.claims);
     this.router.navigate(['/login']);
   }
 }
