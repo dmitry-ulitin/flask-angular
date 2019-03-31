@@ -54,6 +54,7 @@ def get_balances(ai, tid = None, opdate = None):
 
 def get_user_categories(user_id):
     a_au = [au.group.user_id for au in AccountUser.query.filter(AccountUser.user_id == user_id).all()]
+    a_au += [au.user_id for au in AccountUser.query.join(AccountUser.group).filter(AccountGroup.user_id == user_id).all()]
     a_au.append(user_id)
     all_categories = Category.query.filter(Category.user_id.in_(a_au)).all()
     all_categories = sorted(all_categories, key = lambda c: c.full_name)
