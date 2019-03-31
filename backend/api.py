@@ -158,7 +158,7 @@ def group_update():
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
-        currency = acc.get('currency', ucurrency)
+        currency = acc.get('currency')
         if acc['id']:
             account = next(account for account in group.accounts if account.id==acc['id'])
             account.start_balance = start_balance
@@ -166,7 +166,7 @@ def group_update():
             account.deleted = acc.get('deleted', False)
             account.name = name
         elif not acc['deleted']:
-            group.accounts.append(Account(start_balance = start_balance, currency = currency if currency else 'RUB', name = name))
+            group.accounts.append(Account(start_balance = start_balance, currency = currency if currency else ucurrency, name = name))
     for p in request.json['permissions']:
         permission = next((permission for permission in group.permissions if permission.user_id==p['id']), None)
         if permission:
