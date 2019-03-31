@@ -5,6 +5,7 @@ import { Actions, Effect, ofType } from '@ngrx/effects';
 import { AlertifyService } from './alertify.service';
 import { AuthService } from "./auth.service";
 import { Router } from "@angular/router";
+import { Filter } from "./models/filter";
 
 @Injectable()
 export class AppEffects {
@@ -33,7 +34,7 @@ export class AppEffects {
     @Effect() loadData$: Observable<any> = this.actions$.pipe(
         ofType('[app] load'),
         filter(action => this.auth.currentToken != null),
-        mergeMap(action => of({ type: '[groups] query' }, { type: '[transactions] query' }, { type: '[categories] query expenses' }, { type: '[categories] query income' }))
+        mergeMap(action => of({ type: '[groups] query' }, { type: '[transactions] query' }, { type: '[categories] query expenses' }, { type: '[categories] query income' }, {type:'[transactions] filter', payload: <Filter>{name: '', accounts: [], categories:[]}}))
     );
 
     @Effect() init$ = defer(() => {

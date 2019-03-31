@@ -64,6 +64,13 @@ div.filter button.close {
     font-size: 1.3rem;
 }
 
+.text-toolbar {
+    padding: .375rem .5rem;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+}
+
 td.nowrap {
     text-overflow:ellipsis;
     white-space:nowrap;

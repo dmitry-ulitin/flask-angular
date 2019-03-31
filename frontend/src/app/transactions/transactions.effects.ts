@@ -32,6 +32,16 @@ export class TransactionsEffects {
         map(action => { return {type: '[transactions] query'};})
     );
 
+    @Effect() getSummary$: Observable<any> = this.actions$.pipe(
+        ofType('[transactions] filter'),
+        withLatestFrom(this.store),
+        filter(([action, state]) => state.transactions.filter.accounts.length != 1),
+        switchMap(([action, state]) => this.backend.getSummary(state.transactions.filter).pipe(
+            map(data => { return { type: '[transactions] filter success', payload: data }; }),
+            catchError(error => of({ type: '[transactions] filter fail', payload: error }))
+        ))
+    );
+
     @Effect() getTransaction$: Observable<any> = this.actions$.pipe(
         ofType<any>('[transaction] query id'),
         switchMap(action => this.backend.getTransaction(action.payload).pipe(

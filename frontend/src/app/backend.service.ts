@@ -7,6 +7,7 @@ import { Transaction } from './models/transaction';
 import { Filter } from './models/filter';
 import { Group } from './models/group';
 import { User } from './models/user';
+import { Amount } from './models/balance';
 
 @Injectable({
   providedIn: 'root'
@@ -90,6 +91,16 @@ export class BackendService {
       params = params.set('scope', '' + filter.scope);
     }
     return this.http.get<Transaction[]>('/api/transactions', {params: params});
+  }
+
+  getSummary(filter: Filter): Observable<Amount> {
+    let params = new HttpParams()
+      .set('accounts', (filter.accounts || []).map(a => a.id).join(','))
+      .set('categories', (filter.categories || []).map(a => a.id).join(','));
+    if (filter.scope) {
+      params = params.set('scope', '' + filter.scope);
+    }
+    return this.http.get<Amount>('/api/transactions/summary', {params: params});
   }
 
   getTransaction(id: number): Observable<Transaction> {

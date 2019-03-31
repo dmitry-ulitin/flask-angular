@@ -1,4 +1,4 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Numeric, Boolean
+from sqlalchemy import Column, ForeignKey, Integer, String, DateTime, Date, Numeric, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -13,6 +13,7 @@ class OUser(Base):
     email = Column(String(250), nullable=False)
     name = Column(String(250), nullable=False)
     password = Column(String(32), nullable=False)
+    currency = Column(String(5), nullable=False)
     created = Column(DateTime, nullable = False)
     updated = Column(DateTime, nullable = False)
 
@@ -47,7 +48,7 @@ class OAccount(Base):
     created = Column(DateTime, nullable = False)
     updated = Column(DateTime, nullable = False)
     name = Column(String(250), nullable=True)
-    currency = Column(String(250), nullable=False)
+    currency = Column(String(5), nullable=False)
     start_balance = Column(Numeric(10,2), nullable=False)
     deleted = Column(Boolean, nullable=False, default = False)
     order = Column(Integer, nullable=False, default = 0)
@@ -78,9 +79,18 @@ class OTransaction(Base):
     recipient_id = Column(Integer, ForeignKey('accounts.id'), nullable=True)
     debit = Column(Numeric(10,2), nullable=False)
     category_id = Column(Integer, ForeignKey('categories.id'), nullable=True)
-    currency = Column(String(250), nullable=True)
+    currency = Column(String(5), nullable=True)
     details = Column(String(1024), nullable=True)
     mcc = Column(Integer, nullable=True)
+
+class OCurrencyRate(Base):
+    __tablename__ = 'rates'
+    date = Column(Date, primary_key=True)
+    currency = Column(String(5), primary_key=True)
+    target = Column(String(5), primary_key=True)
+    nominal = Column(Integer, nullable=False)
+    value = Column(Numeric(10,4), nullable=False)
+
 
 engine = create_engine('sqlite:///swarmer_bak.db')
 Base.metadata.bind = engine
@@ -93,13 +103,15 @@ from backend.user import User
 from backend.account import AccountGroup, Account, AccountUser
 from backend.category import Category
 from backend.transaction import Transaction
+from backend.currency import CurrencyRate
+
 
 User.query.delete()
 print('Users')
 users = session.query(OUser).all()
 for u in users:
     print(u.name, u.email)
-    db.session.add(User(id = u.id, email = u.email, name = u.name, password = u.password, created = u.created, updated = u.updated))
+    db.session.add(User(id = u.id, email = u.email, name = u.name, password = u.password, currency=u.currency, created = u.created, updated = u.updated))
 
 Category.query.delete()
 print('\nCategories')
@@ -137,5 +149,12 @@ transactions = session.query(OTransaction).all()
 for t in transactions:
     print(t.credit)
     db.session.add(Transaction(id = t.id, user_id = t.user_id, created = t.created, updated = t.updated, opdate = t.opdate, account_id = t.account_id, credit = t.credit, recipient_id = t.recipient_id, debit = t.debit, category_id = t.category_id, currency = t.currency, details = t.details, mcc=t.mcc))
+
+CurrencyRate.query.delete()
+print('\nCurrency Rates')
+rates = session.query(OCurrencyRate).all()
+for r in rates:
+    print(r.currency, r.value)
+    db.session.add(CurrencyRate(date = r.date, currency = r.currency, target = r.target, nominal = r.nominal, value = r.value))
 
 db.session.commit()

@@ -6,6 +6,7 @@ from sqlalchemy.sql import label, expression
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 import dateutil.parser
 import datetime
+from decimal import *
 import hashlib
 import os
 
@@ -20,7 +21,7 @@ from .user import User, user_schema
 from .account import AccountGroup, group_schema, Account, account_schema, AccountUser, account_user_schema
 from .category import Category, category_schema
 from .transaction import Transaction, transaction_schema
-from .currency import CurrencyRates, rate_schema, convert
+from .currency import CurrencyRate, rate_schema, convert
 db.create_all()
 
 app.config['JWT_SECRET_KEY'] = 'swarmer'
@@ -359,6 +360,32 @@ def transaction_delete(id):
         db.session.delete(transaction)
         db.session.commit()
     return ('', 204)
+
+@app.route('/api/transactions/summary')
+@jwt_required
+def get_summary():
+    account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    user_id = get_jwt_identity()['id']
+    target = get_jwt_identity()['currency']
+    scope = int(request.args.get('scope', 2))
+    # select accounts
+    if any(account_ids):
+        accounts = Account.query.filter(Account.id.in_(account_ids)).all()
+    else:
+        user_accounts = Account.query.join(Account.group).filter(AccountGroup.user_id == user_id).all()
+        user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
+        accounts = [a for a in (user_accounts +  [a for p in user_permissions for a in p.group.accounts]) if a.group.belong(user_id)>0 and a.group.belong(user_id)<= scope]
+        account_ids = [a.id for a in accounts]
+    # get balances
+    balances = get_balances(account_ids)
+    summary = Decimal(0.0)
+    for a in accounts:
+        balance = a.start_balance
+        balance -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == a.id, balances)))))
+        balance += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == a.id, balances)))))
+        summary += convert(balance, a.currency, target, datetime.datetime.now().date())
+    return jsonify({'value':summary, 'currency':target})
+
 
 @app.route('/api/convert')
 def convert_value():

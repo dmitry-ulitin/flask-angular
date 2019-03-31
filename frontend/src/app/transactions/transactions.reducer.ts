@@ -32,7 +32,13 @@ export function reducer(state: State = initialState, action: any): State {
             if (filter.accounts.length) {
                 transactions = transactions.filter(t => accounts.some(a => t.account && a.id == t.account.id || t.recipient && a.id == t.recipient.id))
             }
+            if (filter.accounts.length == 1) {
+                filter.summary = {value: filter.accounts[0].balance, currency: filter.accounts[0].currency}
+            }
             return {...state, transactions: transactions, filter: filter, selected: null};
+        }
+        case '[transactions] filter success': {
+            return {...state, filter: {...state.filter, summary: action.payload}};
         }
         case '[transactions] edit': {
             return {...state, form: action.payload};
