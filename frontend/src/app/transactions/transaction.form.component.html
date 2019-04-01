@@ -1,49 +1,61 @@
 <form [formGroup]="form" (submit)="onSubmit(form)">
     <div class="form-row">
         <div class="form-group col-8">
-            <label for="tamount">Amount</label>
-            <input type="number" class="form-control" id="tamount" placeholder="0.00" formControlName="tamount"
+            <label for="amount">Amount</label>
+            <input type="number" class="form-control" id="amount" placeholder="0.00" formControlName="amount"
                 autocomplete="off">
         </div>
         <div class="form-group col-4">
-            <label for="tcurrency">Currency</label>
-            <input type="text" class="form-control" id="tcurrency" placeholder="RUB" formControlName="tcurrency"
+            <label for="currency">Currency</label>
+            <input type="text" class="form-control" id="currency" placeholder="RUB" formControlName="currency"
                 autocomplete="off">
         </div>
     </div>
-    <div class="form-row" *ngIf="isConverted()">
+    <div class="form-row" *ngIf="aconvert">
         <div class="form-group col-8">
-            <label for="camount">Converted</label>
-            <input type="number" class="form-control" id="camount" placeholder="0.00" formControlName="camount"
+            <label for="credit">Converted</label>
+            <input type="number" class="form-control" id="credit" placeholder="0.00" formControlName="credit"
                 autocomplete="off">
         </div>
         <div class="form-group col-4">
-            <label for="ccurrency">Currency</label>
-            <input type="text" class="form-control" id="ccurrency" placeholder="RUB" formControlName="ccurrency"
+            <label for="acurrency">Currency</label>
+            <input type="text" class="form-control" id="acurrency" placeholder="RUB" formControlName="acurrency"
                 autocomplete="off">
         </div>
     </div>
     <div class="form-group" *ngIf="form.controls.ttype.value != 2">
         <label for="account">Account</label>
         <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownAccount" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownAccount"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="d-inline-block w-100 text-left">{{form.controls.account.value?.full_name}}</span>
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownAccount">
-                <a *ngFor="let a of accounts" class="dropdown-item" href="#" (click)="setAccount(a); false">{{a.full_name}}</a>
+                <a *ngFor="let a of accounts" class="dropdown-item" href="#"
+                    (click)="setAccount(a); false">{{a.full_name}}</a>
             </div>
+        </div>
+    </div>
+    <div class="form-row" *ngIf="rconvert">
+        <div class="form-group col-8">
+            <label for="debit">Converted</label>
+            <input type="number" class="form-control" id="debit" placeholder="0.00" formControlName="debit" autocomplete="off">
+        </div>
+        <div class="form-group col-4">
+            <label for="rcurrency">Currency</label>
+            <input type="text" class="form-control" id="rcurrency" placeholder="RUB" formControlName="rcurrency" autocomplete="off">
         </div>
     </div>
     <div class="form-group" *ngIf="form.controls.ttype.value != 1">
         <label for="recipient">Recipient</label>
         <div class="dropdown">
-            <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownRecipient" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">
+            <button class="btn btn-light dropdown-toggle w-100 pr-4" type="button" id="dropdownRecipient"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                 <span class="d-inline-block w-100 text-left">{{form.controls.recipient.value?.full_name}}</span>
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownRecipient">
-                <a *ngFor="let a of accounts" class="dropdown-item" href="#" (click)="setRecipient(a); false">{{a.full_name}}</a>
+                <a *ngFor="let a of accounts" class="dropdown-item" href="#"
+                    (click)="setRecipient(a); false">{{a.full_name}}</a>
             </div>
         </div>
     </div>
@@ -56,28 +68,36 @@
                     <span class="d-inline-block w-100 text-left">{{form.controls.category?.value?.name || '-'}}</span>
                 </button>
                 <div class="dropdown-menu" aria-labelledby="dropdownCategory">
-                    <a class="dropdown-item" href="#" (click)="setCategory(null); false" style="padding: 0.1rem 1rem;">-</a>
-                    <a *ngFor="let c of categories" class="dropdown-item" href="#" (click)="setCategory(c); false" style="padding: 0.1rem 1rem;" [style.padding-left.rem]="c.level">{{c.name}}</a>
+                    <a class="dropdown-item" href="#" (click)="setCategory(null); false"
+                        style="padding: 0.1rem 1rem;">-</a>
+                    <a *ngFor="let c of categories" class="dropdown-item" href="#" (click)="setCategory(c); false"
+                        style="padding: 0.1rem 1rem;" [style.padding-left.rem]="c.level">{{c.name}}</a>
                 </div>
             </div>
-            <button type="button" class="btn btn-outline-secondary" (click)="add_category = true"><i class="fas fa-plus"></i></button>
+            <button type="button" class="btn btn-outline-secondary" (click)="add_category = true"><i
+                    class="fas fa-plus"></i></button>
         </div>
     </div>
     <div class="form-group" *ngIf="form.controls.ttype.value != 0 && add_category">
-        <label for="cname">{{form.controls.category?.value ? "'" + form.controls.category.value.name + "' Subcategory" : 'New Root Category'}}</label>
+        <label
+            for="cname">{{form.controls.category?.value ? "'" + form.controls.category.value.name + "' Subcategory" : 'New Root Category'}}</label>
         <div class="d-flex flex-row justify-content-between">
             <input type="text" class="form-control mr-1" id="cname" placeholder="category name" formControlName="cname"
                 autocomplete="off">
-            <button type="button" class="btn btn-outline-secondary" (click)="add_category = false"><i class="fas fa-ban"></i></button>
+            <button type="button" class="btn btn-outline-secondary" (click)="add_category = false"><i
+                    class="fas fa-ban"></i></button>
         </div>
     </div>
     <div class="form-group">
         <label for="opdate">Operation Date</label>
         <div class="d-flex flex-row justify-content-between">
             <input type="date" class="form-control mr-1" id="opdate" formControlName="opdate" required>
-            <button type="button" class="btn btn-outline-secondary mr-1" (click)="prev()"><i class="fas fa-caret-left"></i></button>
-            <button type="button" class="btn btn-outline-secondary" (click)="today()"><i class="fas fa-bullseye"></i></button>
-            <button type="button" class="btn btn-outline-secondary ml-1" (click)="next()"><i class="fas fa-caret-right"></i></button>
+            <button type="button" class="btn btn-outline-secondary mr-1" (click)="prev()"><i
+                    class="fas fa-caret-left"></i></button>
+            <button type="button" class="btn btn-outline-secondary" (click)="today()"><i
+                    class="fas fa-bullseye"></i></button>
+            <button type="button" class="btn btn-outline-secondary ml-1" (click)="next()"><i
+                    class="fas fa-caret-right"></i></button>
         </div>
     </div>
     <div class="form-group">
@@ -86,11 +106,13 @@
     </div>
     <div class="d-flex flex-row justify-content-between">
         <div class="dropdown">
-            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown"
-                aria-haspopup="true" aria-expanded="false">{{types[form.controls.ttype.value]}}</button>
+            <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton"
+                data-toggle="dropdown" aria-haspopup="true"
+                aria-expanded="false">{{types[form.controls.ttype.value]}}</button>
             <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
                 <ng-template ngFor let-item let-i="index" [ngForOf]="types">
-                    <a *ngIf="form.controls.ttype.value != i && (accounts?.length>1 || i>0)" class="dropdown-item" href="#" (click)="setType(i); false">{{item}}</a>
+                    <a *ngIf="form.controls.ttype.value != i && (accounts?.length>1 || i>0)" class="dropdown-item"
+                        href="#" (click)="setType(i); false">{{item}}</a>
                 </ng-template>
             </div>
         </div>

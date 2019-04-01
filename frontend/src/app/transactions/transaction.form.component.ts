@@ -3,6 +3,8 @@ import { Location } from '@angular/common'
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Account } from '../models/account';
 import { Category } from '../models/category';
+import { map } from 'rxjs/operators';
+import { combineLatest, Observable } from 'rxjs';
 
 @Component({
     selector: 'app-transaction-form',
@@ -19,15 +21,20 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     types = ['Transfer', 'Expense', 'Income'];
     categories:Category[] = [];
     add_category = false;
+    convert$: Observable<boolean>;
     form: FormGroup;
+    aconvert = false;
+    rconvert = false;
     constructor(private location: Location, private fb: FormBuilder) {
         this.form = this.fb.group({
             id: [],
             ttype: [1],
-            tamount: ['', Validators.required],
-            tcurrency: ['', Validators.required],
-            camount: [''],
-            ccurrency: [''],
+            amount: ['', Validators.required],
+            currency: ['', Validators.required],
+            credit: [''],
+            acurrency: [{ value: '', disabled: true }],
+            debit: [''],
+            rcurrency: [{ value: '', disabled: true }],
             account: [],
             recipient: [],
             category: [],
@@ -49,13 +56,17 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.setType(changes.data.currentValue.ttype);
             if (changes.data.currentValue.id) {
                 this.form.patchValue(changes.data.currentValue);
-                this.form.controls.tamount.setValue(changes.data.currentValue.credit);
-                this.form.controls.tcurrency.setValue(changes.data.currentValue.currency);
+                this.form.controls.amount.setValue(changes.data.currentValue.ttype == 1 ? changes.data.currentValue.debit : changes.data.currentValue.credit);
+                this.form.controls.currency.setValue(changes.data.currentValue.currency);
+                this.form.controls.credit.setValue(changes.data.currentValue.credit);
+                this.form.controls.debit.setValue(changes.data.currentValue.debit);
                 this.form.controls.opdate.setValue(changes.data.currentValue.opdate.substr(0,10));
                 this.setCategory(changes.data.currentValue.category);
             }
         }
         this.setType(this.form.controls.ttype.value);
+        this.convert$ = combineLatest(this.form.controls.currency.valueChanges,this.form.controls.acurrency.valueChanges,this.form.controls.rcurrency.valueChanges).pipe(
+            map(([c,ac,rc]) => ac && ac!=c || rc && rc!=c));
     }
 
     setType(ttype: number) {
@@ -64,19 +75,30 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         let acc = this.form.controls.account.value;
         let rec = this.form.controls.recipient.value;
         if (ttype == 0) {
-            this.setAccount(acc || rec || this.accounts[0]);
-            this.setRecipient(rec || acc || this.accounts[1]);
+            acc = acc || rec || this.accounts[0]
+            rec = (rec || acc) == acc ? this.accounts.filter(a => a != acc)[0]: rec;
+            this.setRecipient(acc);
+            this.setAccount(rec);
             this.categories = [];
+            this.form.controls.amount.setValue(this.form.controls.credit.value);
+            this.form.controls.currency.disable();
+            this.aconvert = false;
         }
         else if (ttype == 1) {
             this.setAccount(acc || rec || this.accounts[0]);
             this.setRecipient(null);
             this.categories = this.expenses || [];
+            this.form.controls.amount.setValue(this.form.controls.debit.value);
+            this.form.controls.currency.enable();
+            this.rconvert = false;
         }
         else if (ttype == 2) {
             this.setAccount(null);
             this.setRecipient(rec || acc || this.accounts[0]);
             this.categories = this.income || [];
+            this.form.controls.amount.setValue(this.form.controls.credit.value);
+            this.form.controls.currency.enable();
+            this.aconvert = false;
         }
         if (change || !this.form.controls.category.value || !this.form.controls.category.value.id) {
             this.setCategory(null);
@@ -84,36 +106,35 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     }
 
     setAccount(a: Account) {
-        this.form.controls.account.setValue(a);
-        if (a) {
-            if (this.form.controls.ttype.value > 0 || !this.form.controls.id.value) {
-                this.form.controls.tcurrency.setValue(a.currency)
-            }
-            if (this.form.controls.recipient.value == a) {
-                this.form.controls.recipient.setValue(this.accounts.filter(item => item != a)[0]);
-            }
+        let r = this.form.controls.account.value;
+        if (a && r && this.form.controls.recipient.value == a) {
+            this.form.controls.recipient.setValue(r);
+            this.form.controls.rcurrency.setValue(r ? r.currency : null);
         }
+        this.form.controls.account.setValue(a);
+        this.form.controls.acurrency.setValue(a ? a.currency : null);
+        if (a && !this.form.controls.id.value) {
+            this.form.controls.currency.setValue(this.form.controls.acurrency.value);
+        }
+        this.rconvert = this.form.controls.currency.value != this.form.controls.rcurrency.value;
     }
 
-    setRecipient(a: Account) {
-        this.form.controls.recipient.setValue(a);
-        if (a) {
-            if (this.form.controls.ttype.value > 0 || !this.form.controls.id.value) {
-                this.form.controls.tcurrency.setValue(a.currency)
-            }
-            this.form.controls.ccurrency.setValue(a.currency)
-            if (this.form.controls.account.value == a) {
-                this.form.controls.account.setValue(this.accounts.filter(item => item != a)[0]);
-            }
+    setRecipient(r: Account) {
+        let a = this.form.controls.recipient.value;
+        if (a && r && this.form.controls.account.value == r) {
+            this.form.controls.account.setValue(a);
+            this.form.controls.acurrency.setValue(a ? a.currency : null);
         }
+        this.form.controls.recipient.setValue(r);
+        this.form.controls.rcurrency.setValue(r ? r.currency : null);
+        if (this.form.controls.ttype.value != 0 && r && !this.form.controls.id.value) {
+            this.form.controls.currency.setValue(this.form.controls.rcurrency.value);
+        }
+        this.aconvert = this.form.controls.currency.value != this.form.controls.acurrency.value;
     }
 
     setCategory(c: Category) {
         this.form.controls.category.setValue(c);
-    }
-
-    isConverted() {
-        return false;
     }
 
     prev() {
@@ -141,8 +162,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
 
 
     onSubmit({ value, valid }) {
-        value.credit = value.debit = value.tamount;
-        value.currency = value.tcurrency;
+        value.credit = value.debit = value.amount;
         value.cname = this.add_category && value.ttype ? value.cname : null;
         let tzoffset = (new Date()).getTimezoneOffset() * 60000;
         let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
