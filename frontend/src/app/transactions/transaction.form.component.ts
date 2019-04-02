@@ -75,14 +75,11 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         let acc = this.form.controls.account.value;
         let rec = this.form.controls.recipient.value;
         if (ttype == 0) {
-            acc = acc || rec || this.accounts[0]
-            rec = (rec || acc) == acc ? this.accounts.filter(a => a != acc)[0]: rec;
-            this.setRecipient(acc);
-            this.setAccount(rec);
+            this.setRecipient(acc || rec || this.accounts[1]);
+            this.setAccount(acc || rec || this.accounts[0]);
             this.categories = [];
             this.form.controls.amount.setValue(this.form.controls.credit.value);
             this.form.controls.currency.disable();
-            this.aconvert = false;
         }
         else if (ttype == 1) {
             this.setAccount(acc || rec || this.accounts[0]);
@@ -90,7 +87,6 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.categories = this.expenses || [];
             this.form.controls.amount.setValue(this.form.controls.debit.value);
             this.form.controls.currency.enable();
-            this.rconvert = false;
         }
         else if (ttype == 2) {
             this.setAccount(null);
@@ -98,7 +94,6 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             this.categories = this.income || [];
             this.form.controls.amount.setValue(this.form.controls.credit.value);
             this.form.controls.currency.enable();
-            this.aconvert = false;
         }
         if (change || !this.form.controls.category.value || !this.form.controls.category.value.id) {
             this.setCategory(null);
@@ -106,8 +101,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     }
 
     setAccount(a: Account) {
-        let r = this.form.controls.account.value;
-        if (a && r && this.form.controls.recipient.value == a) {
+        if (a && this.form.controls.recipient.value == a) {
+            let r = this.form.controls.account.value || this.accounts.filter(acc => acc != a)[0];
             this.form.controls.recipient.setValue(r);
             this.form.controls.rcurrency.setValue(r ? r.currency : null);
         }
@@ -116,12 +111,13 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         if (a && !this.form.controls.id.value) {
             this.form.controls.currency.setValue(this.form.controls.acurrency.value);
         }
-        this.rconvert = this.form.controls.currency.value != this.form.controls.rcurrency.value;
+        this.aconvert = a && this.form.controls.currency.value != this.form.controls.acurrency.value;
+        this.rconvert = !this.aconvert && this.form.controls.recipient.value && this.form.controls.currency.value != this.form.controls.rcurrency.value;
     }
 
     setRecipient(r: Account) {
-        let a = this.form.controls.recipient.value;
-        if (a && r && this.form.controls.account.value == r) {
+        if (r && this.form.controls.account.value == r) {
+            let a = this.form.controls.recipient.value || this.accounts.filter(acc => acc != r)[0];
             this.form.controls.account.setValue(a);
             this.form.controls.acurrency.setValue(a ? a.currency : null);
         }
@@ -130,7 +126,8 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         if (this.form.controls.ttype.value != 0 && r && !this.form.controls.id.value) {
             this.form.controls.currency.setValue(this.form.controls.rcurrency.value);
         }
-        this.aconvert = this.form.controls.currency.value != this.form.controls.acurrency.value;
+        this.rconvert = r && this.form.controls.currency.value != this.form.controls.rcurrency.value;
+        this.aconvert = !this.rconvert && this.form.controls.account.value && this.form.controls.currency.value != this.form.controls.acurrency.value;
     }
 
     setCategory(c: Category) {
