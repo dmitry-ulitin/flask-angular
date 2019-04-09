@@ -1,30 +1,24 @@
 <form [formGroup]="form" (submit)="onSubmit(form)">
-    <div class="form-row">
-        <div class="form-group col-8">
-            <label for="amount">Amount</label>
-            <input type="number" class="form-control" id="amount" placeholder="0.00" formControlName="amount"
-                autocomplete="off">
+    <div class="d-flex flex-column">
+        <div class="form-row" *ngIf="aconvert" [class.order-1]="form.controls.ttype.value != 1" [class.order-2]="form.controls.ttype.value == 1">
+            <div class="form-group col-8">
+                <label for="credit" *ngIf="!rconvert || form.controls.ttype.value != 1">Amount</label>
+                <input type="number" class="form-control" id="credit" placeholder="0.00" formControlName="credit" autocomplete="off">
+            </div>
+            <div class="form-group col-4">
+                <label for="acurrency" *ngIf="!rconvert || form.controls.ttype.value != 1">Currency</label>
+                <input type="text" class="form-control" id="acurrency" placeholder="RUB" formControlName="acurrency" autocomplete="off">
+            </div>
         </div>
-        <div class="form-group col-4">
-            <label for="currency">Currency</label>
-            <input type="text" class="form-control" id="currency" placeholder="RUB" formControlName="currency"
-                autocomplete="off">
-        </div>
-    </div>
-    <div class="form-row" *ngIf="aconvert">
-        <div class="form-group col-8">
-            <input type="number" class="form-control" id="credit" placeholder="0.00" formControlName="credit" autocomplete="off">
-        </div>
-        <div class="form-group col-4">
-            <input type="text" class="form-control" id="acurrency" placeholder="RUB" formControlName="acurrency" autocomplete="off">
-        </div>
-    </div>
-    <div class="form-row" *ngIf="rconvert">
-        <div class="form-group col-8">
-            <input type="number" class="form-control" id="debit" placeholder="0.00" formControlName="debit" autocomplete="off">
-        </div>
-        <div class="form-group col-4">
-            <input type="text" class="form-control" id="rcurrency" placeholder="RUB" formControlName="rcurrency" autocomplete="off">
+        <div class="form-row" *ngIf="rconvert" [class.order-2]="form.controls.ttype.value != 1" [class.order-1]="form.controls.ttype.value == 1">
+            <div class="form-group col-8">
+                <label for="debit" *ngIf="!aconvert || form.controls.ttype.value == 1">Amount</label>
+                <input type="number" class="form-control" id="debit" placeholder="0.00" formControlName="debit" autocomplete="off">
+            </div>
+            <div class="form-group col-4">
+                <label for="rcurrency" *ngIf="!aconvert || form.controls.ttype.value == 1">Currency</label>
+                <input type="text" class="form-control" id="rcurrency" placeholder="RUB" formControlName="rcurrency" autocomplete="off">
+            </div>
         </div>
     </div>
     <div class="form-group" *ngIf="form.controls.ttype.value != 2">
