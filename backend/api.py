@@ -304,7 +304,7 @@ def get_transaction(id):
     if tr['account']:
         tr['account'] = get_account_json(transaction.account, balances, user_id)
         tr['account']['balance'] -= transaction.credit
-    elif tr['recipient']:
+    if tr['recipient']:
         tr['recipient'] = get_account_json(transaction.recipient, balances, user_id)
         tr['recipient']['balance'] += transaction.debit
     return jsonify(tr)
