@@ -45,7 +45,7 @@ class TransactionSchema(ma.Schema):
     recipient = ma.Nested('AccountSchema', dump_only=True)
     debit = fields.Decimal()
     category = ma.Nested('CategorySchema', dump_only=True)
-    currency = fields.Str()
+    currency = fields.Str(allow_none=True)
     details = fields.Str(allow_none=True)
     ttype = fields.Int(dump_only=True)
     bg = fields.Str(dump_only=True)

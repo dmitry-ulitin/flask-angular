@@ -52,7 +52,7 @@
                         <div class="text-black-50">{{t.opdate | date:'shortDate'}} {{getBalance(t)?.full_name}}</div>
                     </td>
                     <td class="text-right">
-                        <div>{{t.credit | currency:t.currency}}</div>
+                        <div>{{t.credit | currency:(t.currency || getBalance(t)?.currency)}}</div>
                         <div class="text-black-50">{{getBalance(t)?.balance | currency:getBalance(t)?.currency}}</div>
                     </td>
                 </tr>

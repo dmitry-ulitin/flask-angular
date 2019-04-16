@@ -40,6 +40,12 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             details: []
         });
         this.today();
+        this.form.controls.credit.valueChanges.forEach(c => {
+            this.form.controls.debit.setValue(c, {onlySelf:true,emitEvent:false })
+        });
+        this.form.controls.debit.valueChanges.forEach(c => {
+            this.form.controls.credit.setValue(c, {onlySelf:true,emitEvent:false })
+        });
     }
     
     ngOnInit() {
