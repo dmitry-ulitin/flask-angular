@@ -1,10 +1,9 @@
 import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { Location } from '@angular/common'
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Account } from '../models/account';
 import { Category } from '../models/category';
-import { map } from 'rxjs/operators';
-import { combineLatest, Observable } from 'rxjs';
+import { BackendService } from '../backend.service';
 
 @Component({
     selector: 'app-transaction-form',
@@ -24,7 +23,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     form: FormGroup;
     aconvert = true;
     rconvert = true;
-    constructor(private location: Location, private fb: FormBuilder) {
+    constructor(private location: Location, private fb: FormBuilder, private backend: BackendService) {
         this.form = this.fb.group({
             id: [],
             ttype: [1],
@@ -41,10 +40,10 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         });
         this.today();
         this.form.controls.credit.valueChanges.forEach(c => {
-            this.form.controls.debit.setValue(c, {onlySelf:true,emitEvent:false })
+            this.convert(c, this.form.controls.acurrency.value, this.form.controls.rcurrency.value, this.form.controls.debit);
         });
         this.form.controls.debit.valueChanges.forEach(c => {
-            this.form.controls.credit.setValue(c, {onlySelf:true,emitEvent:false })
+            this.convert(c, this.form.controls.rcurrency.value, this.form.controls.acurrency.value, this.form.controls.credit);
         });
     }
     
@@ -177,5 +176,13 @@ export class TransactionFormComponent implements OnInit, OnChanges {
 
     onCancel() {
         this.location.back();
+    }
+
+    convert(value: number, currency: string, target: string, control: AbstractControl) {
+        if (currency == target) {
+            control.setValue(value, {onlySelf:true,emitEvent:false });
+        } else {
+            this.backend.convert(value, currency, target).toPromise().then(v => control.setValue(v, {onlySelf:true,emitEvent:false }));
+        }
     }
 }

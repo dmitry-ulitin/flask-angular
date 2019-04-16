@@ -390,8 +390,8 @@ def get_summary():
 
 @app.route('/api/convert')
 def convert_value():
-    currency = request.args.get('currency', 'RUB')
-    target = request.args.get('target', 'RUB')
-    value = request.args.get('value', 1.0)
+    currency = request.args.get('currency', '')
+    target = request.args.get('target', '')
+    value = request.args.get('value', 0.0)
     date = request.args.get('date', datetime.datetime.now().date())
-    return jsonify(convert(value, currency, target, date))
+    return jsonify(convert(value if value else 1.0, currency if currency else 'RUB', target if currency else 'RUB', date))

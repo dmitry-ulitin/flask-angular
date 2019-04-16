@@ -118,4 +118,9 @@ export class BackendService {
   deleteTransaction(id: number): Observable<any> {
     return this.http.delete('/api/transactions/' + id);
   }
+
+  convert(value: number, currency: string, target: string): Observable<number> {
+    let params = new HttpParams().set('value', (value || 0).toString()).set('currency', currency).set('target', target);
+    return this.http.get<number>('/api/convert', {params: params});
+  }
 }
