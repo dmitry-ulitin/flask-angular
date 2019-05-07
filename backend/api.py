@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from sqlalchemy import func, or_, and_
@@ -9,6 +9,7 @@ import datetime
 from decimal import *
 import hashlib
 import os
+import requests
 
 db_path = os.path.join(os.path.dirname(__file__), 'swarmer.db')
 db_uri = 'sqlite:///{}'.format(db_path)
@@ -395,3 +396,8 @@ def convert_value():
     value = request.args.get('value', 0.0)
     date = request.args.get('date', datetime.datetime.now().date())
     return jsonify(convert(value if value else 1.0, currency if currency else 'RUB', target if currency else 'RUB', date))
+
+@app.route('/api/currencies')
+def currencies():
+    response = requests.get('https://openexchangerates.org/api/currencies.json')
+    return Response(response.text, mimetype='application/json')
