@@ -40,10 +40,14 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         });
         this.today();
         this.form.controls.credit.valueChanges.forEach(c => {
-            this.convert(c, this.form.controls.acurrency.value, this.form.controls.rcurrency.value, this.form.controls.debit);
+            if (this.form.controls.credit.dirty) {
+                this.convert(c, this.form.controls.acurrency.value, this.form.controls.rcurrency.value, this.form.controls.debit);
+            }
         });
         this.form.controls.debit.valueChanges.forEach(c => {
-            this.convert(c, this.form.controls.rcurrency.value, this.form.controls.acurrency.value, this.form.controls.credit);
+            if (this.form.controls.debit.dirty) {
+                this.convert(c, this.form.controls.rcurrency.value, this.form.controls.acurrency.value, this.form.controls.credit);
+            }
         });
     }
     
@@ -181,7 +185,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     convert(value: number, currency: string, target: string, control: AbstractControl) {
         if (currency == target) {
             control.setValue(value, {onlySelf:true,emitEvent:false });
-        } else {
+        } else if (control.pristine) {
             this.backend.convert(value, currency, target).toPromise().then(v => control.setValue(v, {onlySelf:true,emitEvent:false }));
         }
     }
