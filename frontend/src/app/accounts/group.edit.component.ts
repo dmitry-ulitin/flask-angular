@@ -8,6 +8,7 @@ import { State } from '../app.reducers'
 import { Observable, of } from 'rxjs';
 import { BackendService } from '../backend.service';
 import { User } from '../models/user';
+import { AuthService } from '../auth.service';
 
 @Component({
   selector: 'app-group-edit',
@@ -20,7 +21,8 @@ export class GroupEditComponent implements OnInit {
   permissions: FormArray;
   users$: Observable<User[]>
   user: User = null;
-  constructor(private store: Store<State>, private route: ActivatedRoute, private location: Location, private fb: FormBuilder, private backend: BackendService) { }
+  currencies$: Observable<string[]>;
+  constructor(private store: Store<State>, private route: ActivatedRoute, private location: Location, private fb: FormBuilder, private backend: BackendService, private auth: AuthService) { }
 
   ngOnInit() {
     this.accounts = this.fb.array([]);
@@ -56,11 +58,16 @@ export class GroupEditComponent implements OnInit {
         return v.length > 1 ? this.backend.getUserNames(v, 5).pipe(map(users => users.filter(u => !ids.some(id => u.id == id)))) : of([])
       })
     );
+    this.currencies$ = this.store.select('groups','groups').pipe(map(groups => [].concat.apply([this.auth.claims.identity.currency], groups.map(g => g.accounts.map(a => a.currency))).filter((v, i, a) => a.indexOf(v) === i)));
   }
 
   setUserName(user: User) {
     this.user = user;
     this.form.controls.username.setValue(user.email);
+  }
+
+  setAccountCurrency(item, currency) {
+    item.get('currency').setValue(currency);   
   }
 
   addPermission() {

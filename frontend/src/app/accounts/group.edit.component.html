@@ -17,14 +17,20 @@
     <tbody>
       <tr formArrayName="accounts" *ngFor="let item of this.accounts.controls; let i = index;">
         <ng-template [ngIf]="!item.get('deleted').value">
-          <td [formGroupName]="i" class="pl-0"  *ngIf="canDelete()">
+          <td [formGroupName]="i" class="pl-0" *ngIf="canDelete()">
             <input type="text" class="form-control" placeholder="name" formControlName="name">
           </td>
           <td [formGroupName]="i" class="pl-0">
             <input type="number" class="form-control" placeholder="0.00" formControlName="start_balance">
           </td>
           <td [formGroupName]="i" class="pl-0" [class.pr-0]="!canDelete()">
-            <input type="text" class="form-control" placeholder="RUB" formControlName="currency">
+            <div class="dropdown">
+              <input type="text" class="form-control" placeholder="{{auth.claims.identity.currency}}" formControlName="currency" autocomplete="off" data-toggle="dropdown">
+              <div class="dropdown-menu" aria-labelledby="currency" [class.d-none]="!(currencies$ | async)?.length">
+                <a class="dropdown-item" href="#" *ngFor="let c of currencies$ | async"
+                  (click)="setAccountCurrency(item, c); false">{{c}}</a>
+              </div>
+            </div>
           </td>
           <td class="text-right pr-0 pl-0 align-middle" [formGroupName]="i" *ngIf="canDelete()">
             <button type="button" class="btn btn-outline-secondary btn-sm border-0" (click)="delete(item)"><i
@@ -40,9 +46,11 @@
   <div class="form-row align-items-center">
     <div class="col">
       <div class="dropdown">
-        <input type="text" class="form-control" placeholder="Add User" formControlName="username" id="username"  autocomplete="off"  data-toggle="dropdown">
+        <input type="text" class="form-control" placeholder="Add User" formControlName="username" id="username"
+          autocomplete="off" data-toggle="dropdown">
         <div class="dropdown-menu" aria-labelledby="username" [class.d-none]="!(users$ | async)?.length">
-          <a class="dropdown-item" href="#" *ngFor="let n of users$ | async" (click)="setUserName(n); false">{{n.email}}</a>
+          <a class="dropdown-item" href="#" *ngFor="let n of users$ | async"
+            (click)="setUserName(n); false">{{n.email}}</a>
         </div>
       </div>
     </div>
@@ -62,9 +70,12 @@
     <thead>
       <tr>
         <td class="border-top-0 pl-0">Name</td>
-        <td class="text-center border-top-0"><span class="d-inline d-sm-none">A</span><span class="d-none d-sm-inline">Admin</span></td>
-        <td class="text-center border-top-0"><span class="d-inline d-sm-none">W</span><span class="d-none d-sm-inline">Write</span></td>
-        <td class="text-center border-top-0"><span class="d-inline d-sm-none">R</span><span class="d-none d-sm-inline">Read</span></td>
+        <td class="text-center border-top-0"><span class="d-inline d-sm-none">A</span><span
+            class="d-none d-sm-inline">Admin</span></td>
+        <td class="text-center border-top-0"><span class="d-inline d-sm-none">W</span><span
+            class="d-none d-sm-inline">Write</span></td>
+        <td class="text-center border-top-0"><span class="d-inline d-sm-none">R</span><span
+            class="d-none d-sm-inline">Read</span></td>
         <td class="text-center border-top-0"></td>
       </tr>
     </thead>
@@ -76,7 +87,8 @@
         <td class="text-center align-middle" [formGroupName]="i"><input type="checkbox" formControlName="write"></td>
         <td class="text-center align-middle" [formGroupName]="i"><input type="checkbox" formControlName="read"></td>
         <td class="text-right pr-0 pl-0 align-middle">
-          <button type="button" class="btn btn-outline-secondary btn-sm border-0" (click)="delPermission(i)"><i class="fas fa-trash-alt"></i></button>
+          <button type="button" class="btn btn-outline-secondary btn-sm border-0" (click)="delPermission(i)"><i
+              class="fas fa-trash-alt"></i></button>
         </td>
       </tr>
     </tbody>
