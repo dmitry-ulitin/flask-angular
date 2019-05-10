@@ -25,7 +25,7 @@
           </td>
           <td [formGroupName]="i" class="pl-0" [class.pr-0]="!canDelete()">
             <div class="dropdown">
-              <input type="text" class="form-control" placeholder="{{auth.claims.identity.currency}}" formControlName="currency" autocomplete="off" data-toggle="dropdown">
+              <input type="text" class="form-control" placeholder="{{auth.claims.identity.currency}}" formControlName="currency" autocomplete="off" data-toggle="dropdown" maxlength="3" style="text-transform:uppercase">
               <div class="dropdown-menu" aria-labelledby="currency" [class.d-none]="!(currencies$ | async)?.length">
                 <a class="dropdown-item" href="#" *ngFor="let c of currencies$ | async"
                   (click)="setAccountCurrency(item, c); false">{{c}}</a>

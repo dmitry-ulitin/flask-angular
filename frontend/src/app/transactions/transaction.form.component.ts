@@ -4,6 +4,7 @@ import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/fo
 import { Account } from '../models/account';
 import { Category } from '../models/category';
 import { BackendService } from '../backend.service';
+import { AuthService } from '../auth.service';
 
 @Component({
     selector: 'app-transaction-form',
@@ -18,12 +19,12 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     @Output('save') save = new EventEmitter<any>();
 
     types = ['Transfer', 'Expense', 'Income'];
-    categories:Category[] = [];
+    categories: Category[] = [];
     add_category = false;
     form: FormGroup;
     aconvert = true;
     rconvert = true;
-    constructor(private location: Location, private fb: FormBuilder, private backend: BackendService) {
+    constructor(private location: Location, private fb: FormBuilder, private backend: BackendService, private auth: AuthService) {
         this.form = this.fb.group({
             id: [],
             ttype: [1],
@@ -40,17 +41,27 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         });
         this.today();
         this.form.controls.credit.valueChanges.forEach(c => {
-            if (this.form.controls.credit.dirty) {
-                this.convert(c, this.form.controls.acurrency.value, this.form.controls.rcurrency.value, this.form.controls.debit);
-            }
+            this.convert2();
         });
         this.form.controls.debit.valueChanges.forEach(c => {
-            if (this.form.controls.debit.dirty) {
-                this.convert(c, this.form.controls.rcurrency.value, this.form.controls.acurrency.value, this.form.controls.credit);
+            this.convert2();
+        });
+        this.form.controls.acurrency.valueChanges.forEach(c => {
+            if (this.form.controls.acurrency.dirty) {
+                this.rconvert = this.form.controls.ttype.value == 1 || this.form.controls.recipient.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
+                this.convert2();
+            }
+        });
+        this.form.controls.rcurrency.valueChanges.forEach(c => {
+            if (this.form.controls.rcurrency.dirty) {
+                this.aconvert = this.form.controls.ttype.value != 1 || this.form.controls.account.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
+                this.convert2();
             }
         });
     }
-    
+
+
+
     ngOnInit() {
     }
 
@@ -66,7 +77,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
                 this.form.controls.acurrency.setValue(changes.data.currentValue.account ? changes.data.currentValue.account.currency : changes.data.currentValue.currency);
                 this.form.controls.debit.setValue(changes.data.currentValue.debit);
                 this.form.controls.rcurrency.setValue(changes.data.currentValue.recipient ? changes.data.currentValue.recipient.currency : changes.data.currentValue.currency);
-                this.form.controls.opdate.setValue(changes.data.currentValue.opdate.substr(0,10));
+                this.form.controls.opdate.setValue(changes.data.currentValue.opdate.substr(0, 10));
                 this.setCategory(changes.data.currentValue.category);
             }
         }
@@ -139,6 +150,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         }
         this.aconvert = this.form.controls.ttype.value != 1 || this.form.controls.account.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
         this.rconvert = this.form.controls.ttype.value == 1 || this.form.controls.recipient.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
+        this.convert2();
     }
 
     setCategory(c: Category) {
@@ -150,14 +162,14 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         today.setDate(today.getDate() - 1);
         let tzoffset = today.getTimezoneOffset() * 60000;
         let localISOTime = (new Date(today.getTime() - tzoffset)).toISOString().slice(0, -1);
-        this.form.controls.opdate.setValue(localISOTime.substr(0,10))
+        this.form.controls.opdate.setValue(localISOTime.substr(0, 10))
     }
 
     today() {
         var today = new Date();
         let tzoffset = today.getTimezoneOffset() * 60000;
         let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
-        this.form.controls.opdate.setValue(localISOTime.substr(0,10))
+        this.form.controls.opdate.setValue(localISOTime.substr(0, 10))
     }
 
     next() {
@@ -165,16 +177,19 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         today.setDate(today.getDate() + 1);
         let tzoffset = today.getTimezoneOffset() * 60000;
         let localISOTime = (new Date(today.getTime() - tzoffset)).toISOString().slice(0, -1);
-        this.form.controls.opdate.setValue(localISOTime.substr(0,10))
+        this.form.controls.opdate.setValue(localISOTime.substr(0, 10))
     }
 
 
     onSubmit({ value, valid }) {
+        value.credit = this.form.controls.credit.value;
+        value.debit = this.form.controls.debit.value;
         value.currency = this.form.controls.ttype.value == 0 ? null : (this.form.controls.ttype.value == 1 ? this.form.controls.rcurrency.value : this.form.controls.acurrency.value)
         value.cname = this.add_category && value.ttype ? value.cname : null;
         let tzoffset = (new Date()).getTimezoneOffset() * 60000;
         let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
         value.opdate += localISOTime.substr(10)
+        this.form.markAsPristine(); // to stop converting
         this.save.emit(value);
     }
 
@@ -182,11 +197,20 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         this.location.back();
     }
 
+    convert2() {
+        if (this.form.controls.credit.dirty) {
+            this.convert(this.form.controls.credit.value, this.form.controls.acurrency.value, this.form.controls.rcurrency.value, this.form.controls.debit);
+        }
+        else if (this.form.controls.debit.dirty) {
+            this.convert(this.form.controls.debit.value, this.form.controls.rcurrency.value, this.form.controls.acurrency.value, this.form.controls.credit);
+        }
+    }
+
     convert(value: number, currency: string, target: string, control: AbstractControl) {
         if (currency == target) {
-            control.setValue(value, {onlySelf:true,emitEvent:false });
-        } else if (control.pristine) {
-            this.backend.convert(value, currency, target).toPromise().then(v => control.setValue(v, {onlySelf:true,emitEvent:false }));
+            control.setValue(value, { onlySelf: true, emitEvent: false });
+        } else if (control.pristine && currency.length == 3 && target.length == 3) {
+            this.backend.convert(value, currency.toLocaleUpperCase(), target.toLocaleUpperCase()).toPromise().then(v => control.setValue(v, { onlySelf: true, emitEvent: false }));
         }
     }
 }
