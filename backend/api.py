@@ -131,13 +131,14 @@ def get_group(id):
 @jwt_required
 def group_add():
     user_id = get_jwt_identity()['id']
+    ucurrency = get_jwt_identity()['currency']
     data = group_schema.load(request.json, partial=True)
     group = AccountGroup(**data)
     group.user_id = user_id
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
-        currency = acc['currency'] if acc['currency'] else 'RUB'
+        currency = (acc['currency'] if acc['currency'] else ucurrency).upper()
         if not acc['deleted']:
             group.accounts.append(Account(start_balance =start_balance, currency = currency, name = name))
     for p in request.json['permissions']:
@@ -163,11 +164,11 @@ def group_update():
         if acc['id']:
             account = next(account for account in group.accounts if account.id==acc['id'])
             account.start_balance = start_balance
-            account.currency = currency if currency else account.currency
+            account.currency = (currency if currency else account.currency).upper()
             account.deleted = acc.get('deleted', False)
             account.name = name
         elif not acc['deleted']:
-            group.accounts.append(Account(start_balance = start_balance, currency = currency if currency else ucurrency, name = name))
+            group.accounts.append(Account(start_balance = start_balance, currency = (currency if currency else ucurrency).upper(), name = name))
     for p in request.json['permissions']:
         permission = next((permission for permission in group.permissions if permission.user_id==p['id']), None)
         if permission:
