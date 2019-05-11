@@ -40,6 +40,7 @@
                     <button type="button" class="close ml-2" aria-label="Close" (click)="clearFilter()"><span
                             aria-hidden="true">&times;</span></button> {{(filter$ | async)?.name}}
                 </div>
+                <span class="ml-auto text-toolbar pr-1" *ngIf="(filter$ | async)?.summary">{{(filter$ | async).summary.value | currency:(filter$ | async).summary.currency}}</span>
             </div>
         </div>
         <div class="flex-grow-1" style="overflow-y:auto">
@@ -51,7 +52,7 @@
                         <div class="text-black-50">{{t.opdate | date:'shortDate'}} {{getBalance(t)?.full_name}}</div>
                     </td>
                     <td class="text-right">
-                        <div>{{t.credit | currency:t.currency}}</div>
+                        <div>{{getAmount(t).value | currency:getAmount(t).currency}}</div>
                         <div class="text-black-50">{{getBalance(t)?.balance | currency:getBalance(t)?.currency}}</div>
                     </td>
                 </tr>

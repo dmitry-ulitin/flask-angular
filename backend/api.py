@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from sqlalchemy import func, or_, and_
@@ -6,8 +6,10 @@ from sqlalchemy.sql import label, expression
 from flask_jwt_extended import JWTManager, jwt_required, create_access_token, get_jwt_identity
 import dateutil.parser
 import datetime
+from decimal import *
 import hashlib
 import os
+import requests
 
 db_path = os.path.join(os.path.dirname(__file__), 'swarmer.db')
 db_uri = 'sqlite:///{}'.format(db_path)
@@ -20,6 +22,7 @@ from .user import User, user_schema
 from .account import AccountGroup, group_schema, Account, account_schema, AccountUser, account_user_schema
 from .category import Category, category_schema
 from .transaction import Transaction, transaction_schema
+from .currency import CurrencyRate, rate_schema, convert
 db.create_all()
 
 app.config['JWT_SECRET_KEY'] = 'swarmer'
@@ -52,6 +55,7 @@ def get_balances(ai, tid = None, opdate = None):
 
 def get_user_categories(user_id):
     a_au = [au.group.user_id for au in AccountUser.query.filter(AccountUser.user_id == user_id).all()]
+    a_au += [au.user_id for au in AccountUser.query.join(AccountUser.group).filter(AccountGroup.user_id == user_id).all()]
     a_au.append(user_id)
     all_categories = Category.query.filter(Category.user_id.in_(a_au)).all()
     all_categories = sorted(all_categories, key = lambda c: c.full_name)
@@ -127,13 +131,14 @@ def get_group(id):
 @jwt_required
 def group_add():
     user_id = get_jwt_identity()['id']
+    ucurrency = get_jwt_identity()['currency']
     data = group_schema.load(request.json, partial=True)
     group = AccountGroup(**data)
     group.user_id = user_id
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
-        currency = acc['currency'] if acc['currency'] else 'RUB'
+        currency = (acc['currency'] if acc['currency'] else ucurrency).upper()
         if not acc['deleted']:
             group.accounts.append(Account(start_balance =start_balance, currency = currency, name = name))
     for p in request.json['permissions']:
@@ -147,6 +152,7 @@ def group_add():
 @jwt_required
 def group_update():
     user_id = get_jwt_identity()['id']
+    ucurrency = get_jwt_identity()['currency']
     group = AccountGroup.query.get(request.json['id'])
     if group.user_id != group.user_id and user_id not in [p.user_id for p in group.permissions if p.write]:
         return jsonify({"msg": "Can't update this group"}), 403
@@ -154,15 +160,15 @@ def group_update():
     for acc in request.json['accounts']:
         name = acc['name'] if acc['name'] else None
         start_balance = acc['start_balance'] if acc['start_balance'] else 0
-        currency = acc.get('currency', None)
+        currency = acc.get('currency')
         if acc['id']:
             account = next(account for account in group.accounts if account.id==acc['id'])
             account.start_balance = start_balance
-            account.currency = currency if currency else account.currency
+            account.currency = (currency if currency else account.currency).upper()
             account.deleted = acc.get('deleted', False)
             account.name = name
         elif not acc['deleted']:
-            group.accounts.append(Account(start_balance = start_balance, currency = currency if currency else 'RUB', name = name))
+            group.accounts.append(Account(start_balance = start_balance, currency = (currency if currency else ucurrency).upper(), name = name))
     for p in request.json['permissions']:
         permission = next((permission for permission in group.permissions if permission.user_id==p['id']), None)
         if permission:
@@ -300,7 +306,7 @@ def get_transaction(id):
     if tr['account']:
         tr['account'] = get_account_json(transaction.account, balances, user_id)
         tr['account']['balance'] -= transaction.credit
-    elif tr['recipient']:
+    if tr['recipient']:
         tr['recipient'] = get_account_json(transaction.recipient, balances, user_id)
         tr['recipient']['balance'] += transaction.debit
     return jsonify(tr)
@@ -357,3 +363,42 @@ def transaction_delete(id):
         db.session.delete(transaction)
         db.session.commit()
     return ('', 204)
+
+@app.route('/api/transactions/summary')
+@jwt_required
+def get_summary():
+    account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    user_id = get_jwt_identity()['id']
+    target = get_jwt_identity()['currency']
+    scope = int(request.args.get('scope', 2))
+    # select accounts
+    if any(account_ids):
+        accounts = Account.query.filter(Account.id.in_(account_ids)).all()
+    else:
+        user_accounts = Account.query.join(Account.group).filter(AccountGroup.user_id == user_id).all()
+        user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
+        accounts = [a for a in (user_accounts +  [a for p in user_permissions for a in p.group.accounts]) if a.group.belong(user_id)>0 and a.group.belong(user_id)<= scope]
+        account_ids = [a.id for a in accounts]
+    # get balances
+    balances = get_balances(account_ids)
+    summary = Decimal(0.0)
+    for a in accounts:
+        balance = a.start_balance
+        balance -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == a.id, balances)))))
+        balance += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == a.id, balances)))))
+        summary += convert(balance, a.currency, target, datetime.datetime.now().date())
+    return jsonify({'value':summary, 'currency':target})
+
+
+@app.route('/api/convert')
+def convert_value():
+    currency = request.args.get('currency', '')
+    target = request.args.get('target', '')
+    value = request.args.get('value', 0.0)
+    date = request.args.get('date', datetime.datetime.now().date())
+    return jsonify(convert(value if value else 1.0, currency if currency else 'RUB', target if currency else 'RUB', date))
+
+@app.route('/api/currencies')
+def currencies():
+    response = requests.get('https://openexchangerates.org/api/currencies.json')
+    return Response(response.text, mimetype='application/json')

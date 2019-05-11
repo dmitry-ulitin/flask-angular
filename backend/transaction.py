@@ -21,7 +21,7 @@ class Transaction(db.Model):
     debit = db.Column(db.Numeric(10,2), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=True)
     category = db.relationship("Category")
-    currency = db.Column(db.String(250), nullable=True)
+    currency = db.Column(db.String(5), nullable=True)
     details = db.Column(db.String(1024), nullable=True)
     mcc = db.Column(db.Integer, nullable=True)
     @hybrid_property
@@ -45,7 +45,7 @@ class TransactionSchema(ma.Schema):
     recipient = ma.Nested('AccountSchema', dump_only=True)
     debit = fields.Decimal()
     category = ma.Nested('CategorySchema', dump_only=True)
-    currency = fields.Str()
+    currency = fields.Str(allow_none=True)
     details = fields.Str(allow_none=True)
     ttype = fields.Int(dump_only=True)
     bg = fields.Str(dump_only=True)

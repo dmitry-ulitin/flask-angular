@@ -6,6 +6,7 @@ import { Transaction } from '../models/transaction';
 import { Filter } from '../models/filter';
 import { Group } from '../models/group';
 import { map } from 'rxjs/operators';
+import { Amount } from '../models/balance';
 
 @Component({
   selector: 'app-transactions',
@@ -55,6 +56,10 @@ export class TransactionsComponent implements OnInit {
 
   getBalance(t: Transaction) {
     return t.account && t.account.balance ? t.account : (t.recipient && t.recipient.balance ? t.recipient : null);
+  }
+
+  getAmount(t: Transaction) : Amount {
+    return t.account ? {value: t.credit, currency: t.account.currency} : (t.recipient ? {value: t.debit, currency: t.recipient.currency} : {value: t.credit, currency: t.currency});
   }
 
   filterGroup(group: Group) {

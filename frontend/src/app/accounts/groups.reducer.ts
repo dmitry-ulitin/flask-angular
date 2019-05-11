@@ -26,26 +26,29 @@ export function reducer(state: State = initialState, action: any): State {
     switch(action.type) {        
         case '[groups] query success' : {
             let groups = (action.payload as Group[])
-            let sgrp = state.sgrp ? groups.find(a => a.id == state.sgrp.id) : null;
-            let sacc = sgrp ? sgrp.accounts[0] : null;
+            let sgrp = groups.find(g => state.sgrp && state.sgrp.id == g.id);
+            let sacc = sgrp ? (sgrp.accounts.find(a => state.sacc && state.sacc.id == a.id) || sgrp.accounts[0]) : null;
             return {groups: groups, total: Total.total(groups), accounts: getAccounts(groups), sgrp: sgrp, sacc: sacc, extended: false};
         }
         case '[transactions] filter': {
             let accs = (action.payload as Filter).accounts;
-            let sacc = accs.length ? (action.payload as Account[])[0] : state.sacc;
-            let sgrp = sacc ? state.groups.find(g => g.id == sacc.group_id) : null;
+            if (!accs.length) {
+                return state;
+            }
+            let sacc = accs.find(a => state.sacc && state.sacc.id == a.id) || accs[0];
+            let sgrp = state.groups.find(g => g.id == sacc.group_id);
             return {...state, sgrp: sgrp, sacc: sacc};
         }
         case '[groups] select': {
             let sgrp = action.payload as Group;
             let extended = sgrp == state.sgrp ? !state.extended : false;
-            let sacc = sgrp ? sgrp.accounts[0] : null;
+            let sacc = sgrp ? (sgrp.accounts.find(a => state.sacc && state.sacc.id == a.id) || sgrp.accounts[0]) : null;
             return {...state, extended: extended, sgrp: sgrp, sacc: sacc};
         }
         case '[group] query id success':
         case '[group] save success': {
             let sgrp = action.payload as Group;
-            let sacc = sgrp ? sgrp.accounts[0] : null;
+            let sacc = sgrp ? (sgrp.accounts.find(a => state.sacc && state.sacc.id == a.id) || sgrp.accounts[0]) : null;
             let groups = [...state.groups];
             let index = groups.findIndex(a => a.id == sgrp.id);
             if (index<0) {

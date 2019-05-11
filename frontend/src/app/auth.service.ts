@@ -30,6 +30,12 @@ export class AuthService {
     return this.currentUserSubject.value;
   }
 
+  public get claims(): any {
+    let base64Url = this.currentUserSubject.value.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(window.atob(base64));
+  }
+
 
   logout() {
     localStorage.removeItem('token');
