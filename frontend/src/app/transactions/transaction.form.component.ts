@@ -1,23 +1,26 @@
-import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { Location } from '@angular/common'
 import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
 import { Account } from '../models/account';
 import { Category } from '../models/category';
 import { BackendService } from '../backend.service';
 import { AuthService } from '../auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 
 @Component({
     selector: 'app-transaction-form',
     templateUrl: './transaction.form.component.html',
     styles: []
 })
-export class TransactionFormComponent implements OnInit, OnChanges {
+export class TransactionFormComponent implements OnInit, OnDestroy, OnChanges {
     @Input('data') data: any;
     @Input('accounts') accounts: Account[];
     @Input('expenses') expenses: Category[];
     @Input('income') income: Category[];
     @Output('save') save = new EventEmitter<any>();
 
+    destroy$: Subject<boolean> = new Subject<boolean>();
     types = ['Transfer', 'Expense', 'Income'];
     categories: Category[] = [];
     add_category = false;
@@ -40,29 +43,28 @@ export class TransactionFormComponent implements OnInit, OnChanges {
             details: []
         });
         this.today();
-        this.form.controls.credit.valueChanges.forEach(c => {
-            this.convert2();
+        this.form.controls.credit.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(c => {
+            this.convert();
         });
-        this.form.controls.debit.valueChanges.forEach(c => {
-            this.convert2();
+        this.form.controls.debit.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(c => {
+            this.convert();
         });
-        this.form.controls.acurrency.valueChanges.forEach(c => {
-            if (this.form.controls.acurrency.dirty) {
-                this.rconvert = this.form.controls.ttype.value == 1 || this.form.controls.recipient.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
-                this.convert2();
-            }
+        this.form.controls.acurrency.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(c => {
+            this.rconvert = this.form.controls.ttype.value == 1 || this.form.controls.recipient.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
+            this.convert();
         });
-        this.form.controls.rcurrency.valueChanges.forEach(c => {
-            if (this.form.controls.rcurrency.dirty) {
-                this.aconvert = this.form.controls.ttype.value != 1 || this.form.controls.account.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
-                this.convert2();
-            }
+        this.form.controls.rcurrency.valueChanges.pipe(takeUntil(this.destroy$)).subscribe(c => {
+            this.aconvert = this.form.controls.ttype.value != 1 || this.form.controls.account.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
+            this.convert();
         });
     }
 
-
-
     ngOnInit() {
+    }
+
+    ngOnDestroy(): void {
+        this.destroy$.next(true);
+        this.destroy$.unsubscribe();
     }
 
     ngOnChanges(changes: SimpleChanges): void {
@@ -115,26 +117,32 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         }
     }
 
-    setAccount(a: Account) {
+    setAccount(a: Account, dirty: boolean = false) {
         if (a && this.form.controls.recipient.value == a) {
             let r = this.form.controls.account.value || this.accounts.filter(acc => acc != a)[0];
             this.form.controls.recipient.setValue(r);
             this.form.controls.rcurrency.setValue(r ? r.currency : null);
         }
         this.form.controls.account.setValue(a);
+        if (dirty) {
+            this.form.controls.account.markAsDirty();
+        }
         if (a) {
             this.form.controls.acurrency.setValue(a.currency);
         }
         this.setCurrency();
     }
 
-    setRecipient(r: Account) {
+    setRecipient(r: Account, dirty: boolean = false) {
         if (r && this.form.controls.account.value == r) {
             let a = this.form.controls.recipient.value || this.accounts.filter(acc => acc != r)[0];
             this.form.controls.account.setValue(a);
             this.form.controls.acurrency.setValue(a ? a.currency : null);
         }
         this.form.controls.recipient.setValue(r);
+        if (dirty) {
+            this.form.controls.recipient.markAsDirty();
+        }
         if (r) {
             this.form.controls.rcurrency.setValue(r.currency);
         }
@@ -150,7 +158,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         }
         this.aconvert = this.form.controls.ttype.value != 1 || this.form.controls.account.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
         this.rconvert = this.form.controls.ttype.value == 1 || this.form.controls.recipient.value && this.form.controls.rcurrency.value != this.form.controls.acurrency.value;
-        this.convert2();
+        this.convert();
     }
 
     setCategory(c: Category) {
@@ -184,7 +192,7 @@ export class TransactionFormComponent implements OnInit, OnChanges {
     onSubmit({ value, valid }) {
         value.credit = this.form.controls.credit.value;
         value.debit = this.form.controls.debit.value;
-        value.currency = this.form.controls.ttype.value == 0 ? null : (this.form.controls.ttype.value == 1 ? this.form.controls.rcurrency.value : this.form.controls.acurrency.value)
+        value.currency = this.form.controls.ttype.value == 0 ? null : (this.form.controls.ttype.value == 1 ? this.form.controls.rcurrency.value : this.form.controls.acurrency.value).toLocaleUpperCase();
         value.cname = this.add_category && value.ttype ? value.cname : null;
         let tzoffset = (new Date()).getTimezoneOffset() * 60000;
         let localISOTime = (new Date(Date.now() - tzoffset)).toISOString().slice(0, -1);
@@ -197,20 +205,19 @@ export class TransactionFormComponent implements OnInit, OnChanges {
         this.location.back();
     }
 
-    convert2() {
-        if (this.form.controls.credit.dirty) {
-            this.convert(this.form.controls.credit.value, this.form.controls.acurrency.value, this.form.controls.rcurrency.value, this.form.controls.debit);
+    convert() {
+        if (this.form.pristine) {
+            return;
         }
-        else if (this.form.controls.debit.dirty) {
-            this.convert(this.form.controls.debit.value, this.form.controls.rcurrency.value, this.form.controls.acurrency.value, this.form.controls.credit);
-        }
-    }
-
-    convert(value: number, currency: string, target: string, control: AbstractControl) {
+        let direction = this.form.controls.credit.dirty || (this.form.controls.debit.pristine && this.form.controls.ttype.value != 1);
+        let value = direction ? this.form.controls.credit.value : this.form.controls.debit.value;
+        let currency = (direction ? this.form.controls.acurrency.value : this.form.controls.rcurrency.value).toLocaleUpperCase();
+        let target = (direction ? this.form.controls.rcurrency.value : this.form.controls.acurrency.value).toLocaleUpperCase();
+        let control = direction ? this.form.controls.debit : this.form.controls.credit;
         if (currency == target) {
             control.setValue(value, { onlySelf: true, emitEvent: false });
         } else if (control.pristine && currency.length == 3 && target.length == 3) {
-            this.backend.convert(value, currency.toLocaleUpperCase(), target.toLocaleUpperCase()).toPromise().then(v => control.setValue(v, { onlySelf: true, emitEvent: false }));
+            this.backend.convert(value, currency, target).toPromise().then(v => control.setValue(v, { onlySelf: true, emitEvent: false }));
         }
     }
 }

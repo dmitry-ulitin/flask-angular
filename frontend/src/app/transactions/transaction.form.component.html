@@ -30,7 +30,7 @@
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownAccount">
                 <a *ngFor="let a of accounts" class="dropdown-item" href="#"
-                    (click)="setAccount(a); false">{{a.full_name}}</a>
+                    (click)="setAccount(a, true); false">{{a.full_name}}</a>
             </div>
         </div>
     </div>
@@ -43,7 +43,7 @@
             </button>
             <div class="dropdown-menu" aria-labelledby="dropdownRecipient">
                 <a *ngFor="let a of accounts" class="dropdown-item" href="#"
-                    (click)="setRecipient(a); false">{{a.full_name}}</a>
+                    (click)="setRecipient(a, true); false">{{a.full_name}}</a>
             </div>
         </div>
     </div>
