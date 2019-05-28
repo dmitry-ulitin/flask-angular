@@ -255,6 +255,7 @@ def get_transactions():
     limit = request.args.get('limit', 30)
     offset = request.args.get('offset', 0)
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    category_ids = [int(c) for c in request.args.get('categories','').split(',') if c]
     user_id = get_jwt_identity()['id']
     scope = int(request.args.get('scope', 2))
     # select accounts
@@ -266,7 +267,14 @@ def get_transactions():
         account_ids = [a.id for a in accounts if a.group.belong(user_id)>0 and a.group.belong(user_id)<= scope]
     account_balances = dict((a.id,a.start_balance) for a in accounts if a.id in account_ids)
     # get transactions
-    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
+    transactions = Transaction.query
+    if category_ids == [0]:
+        transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.isnot(None))
+    elif category_ids == [1]:
+        transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.is_(None))
+    elif category_ids == [2]:
+        transactions = transactions.filter(Transaction.account_id.is_(None)).filter(Transaction.recipient_id.isnot(None))
+    transactions = transactions.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
         .limit(limit).offset(offset).all()
     # get balances for all previous transactions
@@ -368,6 +376,7 @@ def transaction_delete(id):
 @jwt_required
 def get_summary():
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    category_ids = [int(c) for c in request.args.get('categories','').split(',') if c]
     user_id = get_jwt_identity()['id']
     target = get_jwt_identity()['currency']
     scope = int(request.args.get('scope', 2))

@@ -7,6 +7,7 @@ import { Filter } from '../models/filter';
 import { Group } from '../models/group';
 import { map } from 'rxjs/operators';
 import { Amount } from '../models/balance';
+import { Category } from '../models/category';
 
 @Component({
   selector: 'app-transactions',
@@ -68,5 +69,9 @@ export class TransactionsComponent implements OnInit {
 
   filterAllAccounts() {
     this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: 'All Accounts', accounts: [], categories:[], scope: 3}});    
+  }
+
+  filterCategory(c: Category) {
+    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: c.name, accounts: [], categories:[c]}});    
   }
 }
