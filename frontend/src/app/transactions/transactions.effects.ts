@@ -8,6 +8,7 @@ import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { BackendService } from '../backend.service'
 import { AlertifyService } from '../alertify.service'
+import { Filter } from "../models/filter";
 
 @Injectable()
 export class TransactionsEffects {
@@ -91,5 +92,11 @@ export class TransactionsEffects {
             )),
             catchError(error => of({ type: '[transactions] delete fail', payload: error }))
         ))
+    );
+
+    @Effect() filterSelectedCategory$: Observable<any> = this.actions$.pipe(
+        ofType('[transactions] filter selected category'),
+        withLatestFrom(this.store),
+        map(([a,s]) => { return {type:'[transactions] filter', payload: <Filter>{name: s.transactions.selected.category.name, accounts: [], categories: [s.transactions.selected.category]}}; })
     );
 }

@@ -255,6 +255,7 @@ def get_transactions():
     limit = request.args.get('limit', 30)
     offset = request.args.get('offset', 0)
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    category_ids = [int(c) for c in request.args.get('categories','').split(',') if c]
     user_id = get_jwt_identity()['id']
     scope = int(request.args.get('scope', 2))
     # select accounts
@@ -266,23 +267,32 @@ def get_transactions():
         account_ids = [a.id for a in accounts if a.group.belong(user_id)>0 and a.group.belong(user_id)<= scope]
     account_balances = dict((a.id,a.start_balance) for a in accounts if a.id in account_ids)
     # get transactions
-    transactions = Transaction.query.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
+    transactions = Transaction.query
+    if category_ids == [0]:
+        transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.isnot(None))
+    elif category_ids == [1]:
+        transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.is_(None))
+    elif category_ids == [2]:
+        transactions = transactions.filter(Transaction.account_id.is_(None)).filter(Transaction.recipient_id.isnot(None))
+    elif category_ids:
+        transactions = transactions.filter(Transaction.category_id.in_(category_ids))
+    transactions = transactions.filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids))) \
         .order_by(Transaction.opdate.desc(), Transaction.id.desc()) \
         .limit(limit).offset(offset).all()
+    tr = transaction_schema.dump(transactions, many = True)    
     # get balances for all previous transactions
     balances = get_balances(account_ids, transactions[-1].id, transactions[-1].opdate) if len(transactions) else []
     for id in account_balances:
         account_balances[id] -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == id, balances)))))
         account_balances[id] += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == id, balances)))))
     # set balances to transactions
-    tr = transaction_schema.dump(transactions, many = True)    
     for t in tr[::-1]:
         if t['account']:
             id = t['account']['id']
             if id not in account_jsons:
                 account_jsons[id] = get_account_json(Account.query.get(id), None, user_id)
             t['account']['full_name'] = account_jsons[id]['full_name']                
-            if id in account_balances:
+            if id in account_balances and not category_ids:
                 account_balances[id] -= t['credit']
                 t['account']['balance'] = account_balances[id]
         if t['recipient']:
@@ -290,7 +300,7 @@ def get_transactions():
             if id not in account_jsons:
                 account_jsons[id] = get_account_json(Account.query.get(id), None, user_id)
             t['recipient']['full_name'] = account_jsons[id]['full_name']
-            if id in account_balances:
+            if id in account_balances and not category_ids:
                 account_balances[id] += t['debit']
                 t['recipient']['balance'] = account_balances[id]
     return jsonify(tr)
@@ -368,6 +378,7 @@ def transaction_delete(id):
 @jwt_required
 def get_summary():
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
+    category_ids = [int(c) for c in request.args.get('categories','').split(',') if c]
     user_id = get_jwt_identity()['id']
     target = get_jwt_identity()['currency']
     scope = int(request.args.get('scope', 2))
@@ -379,14 +390,33 @@ def get_summary():
         user_permissions = AccountUser.query.filter(AccountUser.user_id == user_id).all()
         accounts = [a for a in (user_accounts +  [a for p in user_permissions for a in p.group.accounts]) if a.group.belong(user_id)>0 and a.group.belong(user_id)<= scope]
         account_ids = [a.id for a in accounts]
-    # get balances
-    balances = get_balances(account_ids)
     summary = Decimal(0.0)
-    for a in accounts:
-        balance = a.start_balance
-        balance -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == a.id, balances)))))
-        balance += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == a.id, balances)))))
-        summary += convert(balance, a.currency, target, datetime.datetime.now().date())
+    if category_ids:
+        transactions = db.session.query(Transaction.account_id, Transaction.recipient_id, \
+            label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
+            .filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids)))
+        if category_ids == [0]:
+            transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.isnot(None))
+        elif category_ids == [1]:
+            transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.is_(None))
+        elif category_ids == [2]:
+            transactions = transactions.filter(Transaction.account_id.is_(None)).filter(Transaction.recipient_id.isnot(None))
+        elif category_ids:
+            transactions = transactions.filter(Transaction.category_id.in_(category_ids))
+        balances = transactions.group_by(Transaction.account_id, Transaction.recipient_id).all()
+        for a in accounts:
+            balance = Decimal(0.0)
+            balance -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == a.id, balances)))))
+            balance += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == a.id, balances)))))
+            summary += convert(balance, a.currency, target, datetime.datetime.now().date())
+    else:
+        # get balances
+        balances = get_balances(account_ids)
+        for a in accounts:
+            balance = a.start_balance
+            balance -= sum(list(map(lambda b: b.credit, list(filter(lambda b: b.account_id == a.id, balances)))))
+            balance += sum(list(map(lambda b: b.debit, list(filter(lambda b: b.recipient_id == a.id, balances)))))
+            summary += convert(balance, a.currency, target, datetime.datetime.now().date())
     return jsonify({'value':summary, 'currency':target})
 
 
