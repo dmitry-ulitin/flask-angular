@@ -30,7 +30,7 @@ export function reducer(state: State = initialState, action: any): State {
             let sacc = sgrp ? (sgrp.accounts.find(a => state.sacc && state.sacc.id == a.id) || sgrp.accounts[0]) : null;
             return {groups: groups, total: Total.total(groups), accounts: getAccounts(groups), sgrp: sgrp, sacc: sacc, extended: false};
         }
-        case '[transactions] filter': {
+        case '[transactions] set filter': {
             let accs = (action.payload as Filter).accounts;
             if (!accs.length) {
                 return state;
