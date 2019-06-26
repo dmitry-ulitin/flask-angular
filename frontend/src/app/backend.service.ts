@@ -4,7 +4,7 @@ import { Observable, of } from 'rxjs';
 import { Account } from './models/account';
 import { Category } from './models/category';
 import { Transaction } from './models/transaction';
-import { Filter } from './models/filter';
+import { Filter, Filters } from './models/filter';
 import { Group } from './models/group';
 import { User } from './models/user';
 import { Amount } from './models/balance';
@@ -83,22 +83,34 @@ export class BackendService {
     return this.http.delete('/api/categories/' + id);
   }
 
-  getTransactions(filter: Filter): Observable<Transaction[]> {
-    let params = new HttpParams()
-      .set('accounts', (filter.accounts || []).map(a => a.id).join(','))
-      .set('categories', (filter.categories || []).map(a => a.id).join(','));
-    if (filter.scope) {
-      params = params.set('scope', '' + filter.scope);
+  getTransactions(filters: Filters): Observable<Transaction[]> {
+    let params = new HttpParams();
+    for(let filter of filters.filters) {
+      if (filter.accounts) {
+        params = params.set('accounts', (filter.accounts || []).map(a => a.id).join(','));
+      }
+      if (filter.categories) {
+        params = params.set('categories', (filter.categories || []).map(c => c.id).join(','));
+      }
+      if (filter.scope) {
+        params = params.set('scope', '' + filter.scope);
+      }
     }
     return this.http.get<Transaction[]>('/api/transactions', {params: params});
   }
 
-  getSummary(filter: Filter): Observable<Amount> {
-    let params = new HttpParams()
-      .set('accounts', (filter.accounts || []).map(a => a.id).join(','))
-      .set('categories', (filter.categories || []).map(a => a.id).join(','));
-    if (filter.scope) {
-      params = params.set('scope', '' + filter.scope);
+  getSummary(filters: Filters): Observable<Amount> {
+    let params = new HttpParams();
+    for(let filter of filters.filters) {
+      if (filter.accounts) {
+        params = params.set('accounts', (filter.accounts || []).map(a => a.id).join(','));
+      }
+      if (filter.categories) {
+        params = params.set('categories', (filter.categories || []).map(c => c.id).join(','));
+      }
+      if (filter.scope) {
+        params = params.set('scope', '' + filter.scope);
+      }
     }
     return this.http.get<Amount>('/api/transactions/summary', {params: params});
   }

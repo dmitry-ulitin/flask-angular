@@ -3,7 +3,7 @@ import { Observable} from 'rxjs';
 import { Store } from '@ngrx/store';
 import { State } from '../app.reducers'
 import { Transaction } from '../models/transaction';
-import { Filter } from '../models/filter';
+import { Filter, Filters } from '../models/filter';
 import { Group } from '../models/group';
 import { map } from 'rxjs/operators';
 import { Amount } from '../models/balance';
@@ -17,14 +17,14 @@ import { Category } from '../models/category';
 export class TransactionsComponent implements OnInit {
   transactions$: Observable<Transaction[]>;
   selected$: Observable<Transaction>;
-  filter$: Observable<Filter>;
+  filters$: Observable<Filters>;
   groups$: Observable<Group[]>;
   constructor(private store: Store<State>) {}
 
   ngOnInit() {
     this.transactions$ = this.store.select('transactions', 'transactions');
     this.selected$ = this.store.select('transactions', 'selected');
-    this.filter$ = this.store.select('transactions', 'filter');
+    this.filters$ = this.store.select('transactions', 'filters');
     this.groups$ = this.store.select('groups', 'groups').pipe(map(groups => groups.filter(g => !g.deleted)));
   }
 
@@ -44,8 +44,8 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] delete'});    
   }
 
-  clearFilter() {
-    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name:'', accounts:[], categories:[]}});    
+  clearFilter(filter: Filter) {
+    this.store.dispatch({type:'[transactions] clear filter', payload: filter});    
   }
 
   getName(t: Transaction) {
@@ -64,18 +64,18 @@ export class TransactionsComponent implements OnInit {
   }
 
   filterGroup(group: Group) {
-    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: group.full_name, accounts: group.accounts, categories:[]}});    
+    this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: group.full_name, accounts: group.accounts}});    
   }
 
   filterAllAccounts() {
-    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: 'All Accounts', accounts: [], categories:[], scope: 3}});    
+    this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: 'All Accounts', scope: 3}});    
   }
 
   filterCategory(c: Category) {
-    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: c.name, accounts: [], categories:[c]}});    
+    this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: c.name, categories:[c]}});    
   }
 
   filterSelectedCategory() {
-    this.store.dispatch({type:'[transactions] filter selected category'});    
+    this.store.dispatch({type:'[transactions] add filter selected category'});    
   }
 }

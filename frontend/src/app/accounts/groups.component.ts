@@ -48,11 +48,11 @@ export class GroupsComponent implements OnInit {
   }
 
   filterGroup(group: Group) {
-    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: group.full_name, accounts: group.accounts, categories:[]}});    
+    this.store.dispatch({type:'[transactions] set filter', payload: <Filter>{name: group.full_name, accounts: group.accounts}});    
   }
 
   filterAccount(account: Account) {
-    this.store.dispatch({type:'[transactions] filter', payload: <Filter>{name: account.full_name, accounts: [account], categories:[]}});    
+    this.store.dispatch({type:'[transactions] set filter', payload: <Filter>{name: account.full_name, accounts: [account]}});    
   }
 
   createTr(ttype: number) {

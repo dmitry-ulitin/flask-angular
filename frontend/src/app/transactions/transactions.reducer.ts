@@ -1,17 +1,17 @@
 import { Transaction } from '../models/transaction';
 import { Account } from '../models/account';
-import { Filter } from '../models/filter';
+import { Filter, Filters } from '../models/filter';
 
 export interface State {
     transactions: Transaction[],
-    filter: Filter,
+    filters: Filters,
     selected: Transaction,
     form:  Transaction
 }
 
 export const initialState: State = {
     transactions: [],
-    filter: { name: '', accounts: [], categories: []},
+    filters: { filters: []},
     selected: null,
     form: null
 };
@@ -25,20 +25,27 @@ export function reducer(state: State = initialState, action: any): State {
         case '[transactions] select': {
             return {...state, selected: action.payload};
         }
-        case '[transactions] filter': {
+        case '[transactions] add filter': {
             let filter = action.payload as Filter;
-            let accounts = filter.accounts;
-            let transactions = state.transactions;
-            if (filter.accounts.length) {
-                transactions = transactions.filter(t => accounts.some(a => t.account && a.id == t.account.id || t.recipient && a.id == t.recipient.id))
+            let filters = state.filters.filters;
+            if (filter.accounts || filter.scope) {
+                filters = [...filters.filter(f => !(f.accounts || f.scope)), filter]
             }
-            if (filter.accounts.length == 1) {
-                filter.summary = {value: filter.accounts[0].balance, currency: filter.accounts[0].currency}
+            if (filter.categories) {
+                filters = [...filters.filter(f => !f.categories), filter]
             }
-            return {...state, transactions: transactions, filter: filter, selected: null};
+            return {...state, filters: { filters: filters}, selected: null};
         }
-        case '[transactions] filter success': {
-            return {...state, filter: {...state.filter, summary: action.payload}};
+        case '[transactions] clear filter': {
+            let filter = action.payload as Filter;
+            let filters = state.filters.filters.filter(f => f.name != filter.name);
+            return {...state, filters: { filters: filters}, selected: null};
+        }
+        case '[transactions] set filter': {
+            return {...state, filters: { filters: (action.payload ? [action.payload]:[])}, selected: null};
+        }
+        case '[transactions] summary success': {
+            return {...state, filters: {...state.filters, summary: action.payload}};
         }
         case '[transactions] edit': {
             return {...state, form: action.payload};
