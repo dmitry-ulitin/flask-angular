@@ -22,19 +22,29 @@ export class TransactionsEffects {
     @Effect() getTransactions$: Observable<any> = this.actions$.pipe(
         ofType('[transactions] query'),
         withLatestFrom(this.store),
-        switchMap(([action, state]) => this.backend.getTransactions(state.transactions.filters).pipe(
+        switchMap(([action, state]) => this.backend.getTransactions(state.transactions.filters, 0, state.transactions.limit).pipe(
             map(data => { return { type: '[transactions] query success', payload: data }; }),
             catchError(error => of({ type: '[transactions] query fail', payload: error }))
         ))
     );
 
+
+    @Effect() appendTransactions$: Observable<any> = this.actions$.pipe(
+        ofType('[transactions] append'),
+        withLatestFrom(this.store),
+        switchMap(([action, state]) => this.backend.getTransactions(state.transactions.filters, state.transactions.transactions.length, state.transactions.limit).pipe(
+            map(data => { return { type: '[transactions] append success', payload: data }; }),
+            catchError(error => of({ type: '[transactions] append fail', payload: error }))
+        ))
+    );
+
     @Effect() filter$: Observable<any> = this.actions$.pipe(
-        ofType('[transactions] set filter','[transactions] add filter','[transactions] clear filter'),
-        map(action => { return {type: '[transactions] query'};})
+        ofType('[transactions] set filter', '[transactions] add filter', '[transactions] clear filter'),
+        map(action => { return { type: '[transactions] query' }; })
     );
 
     @Effect() getSummary$: Observable<any> = this.actions$.pipe(
-        ofType('[transactions] set filter','[transactions] add filter','[transactions] clear filter'),
+        ofType('[transactions] set filter', '[transactions] add filter', '[transactions] clear filter'),
         withLatestFrom(this.store),
         switchMap(([action, state]) => this.backend.getSummary(state.transactions.filters).pipe(
             map(data => { return { type: '[transactions] summary success', payload: data }; }),
@@ -96,6 +106,6 @@ export class TransactionsEffects {
     @Effect() filterSelectedCategory$: Observable<any> = this.actions$.pipe(
         ofType('[transactions] add filter selected category'),
         withLatestFrom(this.store),
-        map(([a,s]) => { return {type:'[transactions] add filter', payload: <Filter>{name: s.transactions.selected.category.name, accounts: [], categories: [s.transactions.selected.category]}}; })
+        map(([a, s]) => { return { type: '[transactions] add filter', payload: <Filter>{ name: s.transactions.selected.category.name, accounts: [], categories: [s.transactions.selected.category] } }; })
     );
 }
