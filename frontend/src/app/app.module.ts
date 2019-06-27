@@ -12,7 +12,7 @@ import { reducers } from './app.reducers'
 import { AppEffects } from './app.effects'
 import { GroupsEffects } from './accounts/groups.effects'
 import { CategoriesEffects } from './categories/categories.effects';
-import { TransactionsEffects } from './transactions/transactions.effects'
+import { TransactionsEffects } from './transactions/transactions.effects';
 
 import { AppComponent } from './app.component';
 import { LoginComponent } from './login/login.component'
@@ -25,6 +25,7 @@ import { environment } from '../environments/environment';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { JwtInterceptor } from './jwt.interceptor';
 import { ErrorInterceptor } from './error.interceptor';
+import { InfiniteScrollModule } from 'ngx-infinite-scroll';
 
 // i18n
 import { LOCALE_ID } from '@angular/core';
@@ -45,6 +46,7 @@ registerLocaleData(localeRu, 'ru');
     HttpClientModule,
     AppRoutingModule,
     ReactiveFormsModule,
+    InfiniteScrollModule,
     StoreModule.forRoot(reducers),
     EffectsModule.forRoot([GroupsEffects, CategoriesEffects, TransactionsEffects, AppEffects]),
     StoreDevtoolsModule.instrument({maxAge: 25, logOnly: environment.production}),

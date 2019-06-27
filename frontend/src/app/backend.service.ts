@@ -83,8 +83,9 @@ export class BackendService {
     return this.http.delete('/api/categories/' + id);
   }
 
-  getTransactions(filters: Filters): Observable<Transaction[]> {
+  getTransactions(filters: Filters, offset: number, limit: number): Observable<Transaction[]> {
     let params = new HttpParams();
+    params = params.set('limit', String(limit)).set('offset', String(offset));
     for(let filter of filters.filters) {
       if (filter.accounts) {
         params = params.set('accounts', (filter.accounts || []).map(a => a.id).join(','));

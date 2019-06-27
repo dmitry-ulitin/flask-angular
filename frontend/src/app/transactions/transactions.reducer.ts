@@ -6,14 +6,16 @@ export interface State {
     transactions: Transaction[],
     filters: Filters,
     selected: Transaction,
-    form:  Transaction
+    form:  Transaction,
+    limit: number
 }
 
 export const initialState: State = {
     transactions: [],
     filters: { filters: []},
     selected: null,
-    form: null
+    form: null,
+    limit: 30
 };
 
 export function reducer(state: State = initialState, action: any): State {
@@ -21,6 +23,10 @@ export function reducer(state: State = initialState, action: any): State {
         case '[transactions] query success' : {
             let transactions = action.payload as Transaction[];
             return {...state, transactions: transactions, selected: null};
+        }
+        case '[transactions] append success' : {
+            let transactions = action.payload as Transaction[];
+            return {...state, transactions: state.transactions.concat(transactions)};
         }
         case '[transactions] select': {
             return {...state, selected: action.payload};

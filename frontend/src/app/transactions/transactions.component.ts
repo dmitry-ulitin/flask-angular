@@ -32,6 +32,10 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] query'});
   }
 
+  onScrollDown () {
+    this.store.dispatch({type:'[transactions] append'});
+  }
+
   select(a: Transaction) {
     this.store.dispatch({type:'[transactions] select', payload: a});    
   }
