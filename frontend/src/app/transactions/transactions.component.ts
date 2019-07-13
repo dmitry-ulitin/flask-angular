@@ -75,7 +75,7 @@ export class TransactionsComponent implements OnInit {
     this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: 'All Accounts', scope: 3}});    
   }
 
-  filterCategory(c: Category) {
+  filterCategory(c: any) {
     this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: c.name, categories:[c]}});    
   }
 
