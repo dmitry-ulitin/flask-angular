@@ -42,7 +42,7 @@ export function reducer(state: State = initialState, action: any): State {
         case '[groups] select': {
             let sgrp = action.payload as Group;
             let extended = sgrp == state.sgrp ? !state.extended : false;
-            let sacc = sgrp ? (sgrp.accounts.find(a => state.sacc && state.sacc.id == a.id) || sgrp.accounts[0]) : null;
+            let sacc = sgrp ? (sgrp.accounts.find(a => state.sacc && state.sacc.id == a.id) || sgrp.accounts.filter(a => !a.deleted)[0]) : null;
             return {...state, extended: extended, sgrp: sgrp, sacc: sacc};
         }
         case '[group] query id success':

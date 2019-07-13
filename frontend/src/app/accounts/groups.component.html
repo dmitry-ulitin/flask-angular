@@ -33,13 +33,13 @@
             <tr *ngFor="let g of groups$ | async" (click)="select(g)" [class.table-active]="(sgrp$ | async)?.id == g.id"
                 [class.owner]="g.belong==1" [class.coowner]="g.belong==2" [class.shared]="g.belong==3">
                 <td *ngIf="(extended$ | async) && (sgrp$ | async)?.id == g.id">
-                    <div *ngFor="let a of g.accounts"><a href="#" routerLink="/transactions" (click)="filterAccount(a)">{{a.full_name}}</a></div>
+                    <div *ngFor="let a of g.accounts"><ng-template [ngIf]="!a.deleted"><a href="#" routerLink="/transactions" (click)="filterAccount(a)">{{a.full_name}}</a></ng-template></div>
                 </td>
                 <td *ngIf="!(extended$ | async) || (sgrp$ | async)?.id != g.id">
                     <a href="#" routerLink="/transactions" (click)="filterGroup(g)">{{g.full_name}}</a>&nbsp;<i *ngIf="watched(g)" class="far fa-eye geye"></i>
                 </td>
                 <td class="text-right" *ngIf="(extended$ | async) && (sgrp$ | async)?.id == g.id">
-                    <div *ngFor="let a of g.accounts">{{a.balance  | currency:a.currency}}</div>
+                    <div *ngFor="let a of g.accounts"><ng-template [ngIf]="!a.deleted">{{a.balance  | currency:a.currency}}</ng-template></div>
                 </td>
                 <td class="text-right" *ngIf="!(extended$ | async) || (sgrp$ | async)?.id != g.id">
                     <div *ngFor="let t of getTotal(g)">{{t.value  | currency:t.currency}}</div>
