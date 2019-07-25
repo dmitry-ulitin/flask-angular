@@ -32,13 +32,14 @@ import { LOCALE_ID } from '@angular/core';
 import { registerLocaleData } from '@angular/common';
 import localeRu from '@angular/common/locales/ru';
 import { GroupEditComponent } from './accounts/group.edit.component';
+import { PeriodFilterComponent } from './transactions/period-filter.component';
 registerLocaleData(localeRu, 'ru');
 
 @NgModule({
   declarations: [
     AppComponent,LoginComponent,
     GroupsComponent, GroupEditComponent,
-    TransactionsComponent,TransactionFormComponent,TransactionEditorComponent,
+    TransactionsComponent,TransactionFormComponent,TransactionEditorComponent,PeriodFilterComponent,
     CategoriesComponent
   ],
   imports: [
