@@ -3,3 +3,7 @@
     color: #007bff;
     border-color: #007bff;
 }
+.list-group-item > div > a {
+    padding-bottom: .55rem;
+    text-decoration: none;
+}
