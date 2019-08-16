@@ -1,15 +1,14 @@
 <ul class="list-group list-group-horizontal">
-    <li class="list-group-item"><a href="#" (click)="false"><i class="fas fa-chevron-left"></i></a></li>
+    <li class="list-group-item"><a href="#" (click)="prev(); false"><i class="fas fa-chevron-left"></i></a></li>
     <li class="list-group-item">
         <div class="dropdown">
-            <a class="dropdown-toggle" href="#" (click)="false" id="dropdownPeriod" data-toggle="dropdown"><i class="fas fa-calendar"></i> July</a>
+            <a class="dropdown-toggle" href="#" (click)="false" id="dropdownPeriod" data-toggle="dropdown"><i class="fas fa-calendar"></i> {{filter ? filter.name : 'All Time'}}</a>
             <div class="dropdown-menu" aria-labelledby="dropdownPeriod">
-                <a class="dropdown-item" href="#" (click)="false">July</a>
-                <a class="dropdown-item" href="#" (click)="false">3 months</a>
+                <a class="dropdown-item" href="#" (click)="setMonth();false">{{month}}</a>
                 <a class="dropdown-item" href="#" (click)="false">2019</a>
-                <a class="dropdown-item" href="#" (click)="false">All Time</a>
+                <a class="dropdown-item" href="#" (click)="false" [class.dropdown-item-checked]="isFilterEmpty()">All Time</a>
             </div>
         </div>
     </li>
-    <li class="list-group-item"><a href="#" (click)="false"><i class="fas fa-chevron-right"></i></a></li>
+    <li class="list-group-item"><a href="#" (click)="next(); false"><i class="fas fa-chevron-right"></i></a></li>
 </ul>

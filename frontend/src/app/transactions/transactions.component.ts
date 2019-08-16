@@ -18,6 +18,7 @@ export class TransactionsComponent implements OnInit {
   transactions$: Observable<Transaction[]>;
   selected$: Observable<Transaction>;
   filters$: Observable<Filters>;
+  period$: Observable<Filter>;
   groups$: Observable<Group[]>;
   constructor(private store: Store<State>) {}
 
@@ -25,6 +26,7 @@ export class TransactionsComponent implements OnInit {
     this.transactions$ = this.store.select('transactions', 'transactions');
     this.selected$ = this.store.select('transactions', 'selected');
     this.filters$ = this.store.select('transactions', 'filters');
+    this.period$ = this.store.select('transactions', 'filters').pipe(map(fs => fs.filters.find(f => f.period != null)));
     this.groups$ = this.store.select('groups', 'groups').pipe(map(groups => groups.filter(g => !g.deleted)));
   }
 
@@ -81,5 +83,9 @@ export class TransactionsComponent implements OnInit {
 
   filterSelectedCategory() {
     this.store.dispatch({type:'[transactions] add filter selected category'});    
+  }
+
+  filterPeriod(period: Filter) {
+    this.store.dispatch({type:'[transactions] add filter period', payload: period});
   }
 }
