@@ -7,7 +7,6 @@
     padding-bottom: .55rem;
     text-decoration: none;
 }
-
 .dropdown-item-checked::before {
     position: absolute;
     left: .4rem;

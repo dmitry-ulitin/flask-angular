@@ -41,17 +41,10 @@ export function reducer(state: State = initialState, action: any): State {
                 filters = [...filters.filter(f => !f.categories), filter]
             }
             if (filter.period) {
-                filters = [...filters.filter(f => !f.period), filter]
-            }
-            return {...state, filters: { filters: filters}, selected: null};
-        }
-        case '[transactions] add filter period': {
-            let filter = action.payload as Filter;
-            let filters = state.filters.filters;
-            if (filter && filter.period) {
-                filters = [...filters.filter(f => !f.period), filter]
-            } else {
                 filters = [...filters.filter(f => !f.period)]
+                if (filter.period.start || filter.period.finish) {
+                    filters.push(filter);
+                }
             }
             return {...state, filters: { filters: filters}, selected: null};
         }

@@ -86,6 +86,6 @@ export class TransactionsComponent implements OnInit {
   }
 
   filterPeriod(period: Filter) {
-    this.store.dispatch({type:'[transactions] add filter period', payload: period});
+    this.store.dispatch({type:'[transactions] add filter', payload: period});
   }
 }
