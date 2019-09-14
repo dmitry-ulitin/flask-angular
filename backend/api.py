@@ -256,6 +256,8 @@ def get_transactions():
     offset = request.args.get('offset', 0)
     account_ids = [int(a) for a in request.args.get('accounts','').split(',') if a]
     category_ids = [int(c) for c in request.args.get('categories','').split(',') if c]
+    start = request.args.get('start')
+    finish = request.args.get('finish')
     user_id = get_jwt_identity()['id']
     scope = int(request.args.get('scope', 2))
     # select accounts
@@ -268,6 +270,10 @@ def get_transactions():
     account_balances = dict((a.id,a.start_balance) for a in accounts if a.id in account_ids)
     # get transactions
     transactions = Transaction.query
+    if start:
+        transactions = transactions.filter(Transaction.opdate>=dateutil.parser.parse(start))
+    if finish:
+        transactions = transactions.filter(Transaction.opdate<=dateutil.parser.parse(finish))
     if category_ids == [0]:
         transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.isnot(None))
     elif category_ids == [1]:
@@ -382,6 +388,8 @@ def get_summary():
     user_id = get_jwt_identity()['id']
     target = get_jwt_identity()['currency']
     scope = int(request.args.get('scope', 2))
+    start = request.args.get('start')
+    finish = request.args.get('finish')
     # select accounts
     if any(account_ids):
         accounts = Account.query.filter(Account.id.in_(account_ids)).all()
@@ -391,10 +399,14 @@ def get_summary():
         accounts = [a for a in (user_accounts +  [a for p in user_permissions for a in p.group.accounts]) if a.group.belong(user_id)>0 and a.group.belong(user_id)<= scope]
         account_ids = [a.id for a in accounts]
     summary = Decimal(0.0)
-    if category_ids:
+    if category_ids or start or finish:
         transactions = db.session.query(Transaction.account_id, Transaction.recipient_id, \
             label('debit', func.sum(Transaction.debit)), label('credit', func.sum(Transaction.credit))) \
             .filter(or_(Transaction.account_id.in_(account_ids), Transaction.recipient_id.in_(account_ids)))
+        if start:
+            transactions = transactions.filter(Transaction.opdate>=dateutil.parser.parse(start))
+        if finish:
+            transactions = transactions.filter(Transaction.opdate<=dateutil.parser.parse(finish))
         if category_ids == [0]:
             transactions = transactions.filter(Transaction.account_id.isnot(None)).filter(Transaction.recipient_id.isnot(None))
         elif category_ids == [1]:

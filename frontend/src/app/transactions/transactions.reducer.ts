@@ -33,7 +33,7 @@ export function reducer(state: State = initialState, action: any): State {
         }
         case '[transactions] add filter': {
             let filter = action.payload as Filter;
-            let filters = state.filters.filters;
+            let filters = [...state.filters.filters];
             if (filter.accounts || filter.scope) {
                 filters = [...filters.filter(f => !(f.accounts || f.scope)), filter]
             }

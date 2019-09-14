@@ -55,7 +55,7 @@
                     [class.table-active]="(selected$ | async)?.id == t.id" [style.background-color]="t.bg">
                     <td class="nowrap">
                         <div>{{getName(t)}}</div>
-                        <div class="text-black-50">{{t.opdate | date:'shortDate'}} {{getBalance(t)?.full_name}}</div>
+                        <div class="text-black-50">{{t.opdate | date:'shortDate'}} {{(t.account || t.recipient)?.full_name}}</div>
                     </td>
                     <td class="text-right">
                         <div>{{getAmount(t).value | currency:getAmount(t).currency}}</div>

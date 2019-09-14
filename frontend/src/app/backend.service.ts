@@ -96,6 +96,12 @@ export class BackendService {
       if (filter.scope) {
         params = params.set('scope', '' + filter.scope);
       }
+      if (filter.period && filter.period.start) {
+        params = params.set('start', filter.period.start);
+      }
+      if (filter.period && filter.period.finish) {
+        params = params.set('finish', filter.period.finish);
+      }
     }
     return this.http.get<Transaction[]>('/api/transactions', {params: params});
   }
@@ -111,6 +117,12 @@ export class BackendService {
       }
       if (filter.scope) {
         params = params.set('scope', '' + filter.scope);
+      }
+      if (filter.period && filter.period.start) {
+        params = params.set('start', filter.period.start);
+      }
+      if (filter.period && filter.period.finish) {
+        params = params.set('finish', filter.period.finish);
       }
     }
     return this.http.get<Amount>('/api/transactions/summary', {params: params});

@@ -70,15 +70,15 @@ export class TransactionsComponent implements OnInit {
   }
 
   filterGroup(group: Group) {
-    this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: group.full_name, accounts: group.accounts}});    
+    this.store.dispatch({type:'[transactions] add filter', payload: {name: group.full_name, accounts: group.accounts}});    
   }
 
   filterAllAccounts() {
-    this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: 'All Accounts', scope: 3}});    
+    this.store.dispatch({type:'[transactions] add filter', payload: {name: 'All Accounts', scope: 3}});    
   }
 
   filterCategory(c: any) {
-    this.store.dispatch({type:'[transactions] add filter', payload: <Filter>{name: c.name, categories:[c]}});    
+    this.store.dispatch({type:'[transactions] add filter', payload: {name: c.name, categories:[c]}});    
   }
 
   filterSelectedCategory() {

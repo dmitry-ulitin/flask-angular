@@ -106,6 +106,6 @@ export class TransactionsEffects {
     @Effect() filterSelectedCategory$: Observable<any> = this.actions$.pipe(
         ofType('[transactions] add filter selected category'),
         withLatestFrom(this.store),
-        map(([a, s]) => { return { type: '[transactions] add filter', payload: <Filter>{ name: s.transactions.selected.category.name, accounts: [], categories: [s.transactions.selected.category] } }; })
+        map(([a, s]) => { return { type: '[transactions] add filter', payload: { name: s.transactions.selected.category.name, categories: [s.transactions.selected.category] } }; })
     );
 }
