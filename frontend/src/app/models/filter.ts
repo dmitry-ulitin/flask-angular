@@ -7,6 +7,7 @@ export interface Filter {
     accounts?: Account[],
     categories?: Category[],
     scope?: number,
+    period?: {start: string, finish: string}
 }
 
 export interface Filters {

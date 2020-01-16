@@ -1,0 +1,15 @@
+.list-group-item {
+    padding: .4rem .6rem;
+    color: #007bff;
+    border-color: #007bff;
+}
+.list-group-item > div > a {
+    padding-bottom: .55rem;
+    text-decoration: none;
+}
+.dropdown-item-checked::before {
+    position: absolute;
+    left: .4rem;
+    content: '✓';
+    font-weight: 600;
+}

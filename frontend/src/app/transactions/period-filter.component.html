@@ -1,0 +1,14 @@
+<ul class="list-group list-group-horizontal">
+    <li class="list-group-item" *ngIf="isPrev()" (click)="prev(); false"><a href="#"><i class="fas fa-chevron-left"></i></a></li>
+    <li class="list-group-item">
+        <div class="dropdown">
+            <a class="dropdown-toggle" href="#" (click)="false" id="dropdownPeriod" data-toggle="dropdown"><i class="fas fa-calendar"></i> {{filter ? filter.name : 'All Time'}}</a>
+            <div class="dropdown-menu" aria-labelledby="dropdownPeriod">
+                <a class="dropdown-item" href="#" (click)="setMonth(); false" [class.dropdown-item-checked]="isMonth()">{{month}}</a>
+                <a class="dropdown-item" href="#" (click)="setYear(); false" [class.dropdown-item-checked]="isYear()">{{year}}</a>
+                <a class="dropdown-item" href="#" (click)="setEmpty(); false" [class.dropdown-item-checked]="isFilterEmpty()">All Time</a>
+            </div>
+        </div>
+    </li>
+    <li class="list-group-item" *ngIf="isNext()" (click)="next(); false"><a href="#"><i class="fas fa-chevron-right"></i></a></li>
+</ul>

@@ -41,7 +41,7 @@ def convert(value, currency, target, date) :
         return round(Decimal(value) * rate.nominal / rate.value, 2)
     if currency == 'RUB' or target == 'RUB':
         code = target if currency == 'RUB' else currency
-        response = requests.get(f'http://www.cbr.ru/scripts/XML_daily.asp?date_req={date:%d/%m/%Y}')
+        response = requests.get(f'https://www.cbr.ru/scripts/XML_daily.asp?date_req={date:%d/%m/%Y}')
         root = ET.fromstring(response.text)
         valute = next((v for v in root.findall('Valute') if v.find('CharCode').text==code), None)
         if valute:
